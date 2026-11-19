@@ -3,6 +3,12 @@ Option Explicit On
 Option Compare Binary
 
 Imports System.Collections.Generic
+Imports System.Linq
+Imports Merchandising_Accounting_App.Data
+Imports Merchandising_Accounting_App.Data.Repositories
+Imports Merchandising_Accounting_App.Domain
+Imports Merchandising_Accounting_App.Domain.Models
+Imports Merchandising_Accounting_App.Services
 
 Namespace UI.Accounting
 
@@ -135,154 +141,123 @@ Namespace UI.Accounting
     End Class
 
     Public Class LedgerDashboardViewModel
+        Private ReadOnly _ledgerRepo As LedgerRepository
+        Private ReadOnly _periodService As PeriodService
+        Private ReadOnly _context As ErpDbContext
+
         Public Property Accounts As New List(Of AccountItemViewModel)()
         Public Property JournalEntries As New List(Of JournalEntryViewModel)()
         Public Property CurrentPeriod As FiscalPeriodViewModel
 
-        Public Sub New()
-            LoadMockData()
+        Public Sub New(Optional ledgerRepo As LedgerRepository = Nothing, Optional periodService As PeriodService = Nothing, Optional context As ErpDbContext = Nothing)
+            _context = If(context, New ErpDbContext())
+            _ledgerRepo = If(ledgerRepo, New LedgerRepository(_context))
+            _periodService = If(periodService, New PeriodService(_context))
+            LoadData()
         End Sub
 
-        Private Sub LoadMockData()
-            CurrentPeriod = New FiscalPeriodViewModel() With {
-                .PeriodId = 11,
-                .FiscalYear = 2026,
-                .PeriodNumber = 11,
-                .StartDate = New DateTime(2026, 11, 1),
-                .EndDate = New DateTime(2026, 11, 30),
-                .IsClosed = False,
-                .ClosedAtUtc = Nothing
-            }
+        Public Sub LoadData()
+            ' 1. Load Fiscal Period
+            Try
+                Dim activePeriod = _periodService.GetActiveFiscalPeriod()
+                If activePeriod IsNot Nothing Then
+                    CurrentPeriod = New FiscalPeriodViewModel() With {
+                        .PeriodId = activePeriod.PeriodId,
+                        .FiscalYear = activePeriod.FiscalYear,
+                        .PeriodNumber = activePeriod.PeriodNumber,
+                        .StartDate = activePeriod.StartDate,
+                        .EndDate = activePeriod.EndDate,
+                        .IsClosed = activePeriod.IsClosed,
+                        .ClosedAtUtc = activePeriod.ClosedAtUtc
+                    }
+                End If
+            Catch ex As Exception
+                CurrentPeriod = New FiscalPeriodViewModel() With {
+                    .PeriodId = 11,
+                    .FiscalYear = 2026,
+                    .PeriodNumber = 11,
+                    .StartDate = New DateTime(2026, 11, 1),
+                    .EndDate = New DateTime(2026, 11, 30),
+                    .IsClosed = False
+                }
+            End Try
 
-            Accounts = New List(Of AccountItemViewModel) From {
-                New AccountItemViewModel() With {.AccountId = 1, .Code = "1010", .Name = "Cash on Hand", .AccountType = "Asset", .NormalBalance = "Debit", .Balance = 2500.0D, .IsActive = True},
-                New AccountItemViewModel() With {.AccountId = 2, .Code = "1020", .Name = "Operating Bank Account", .AccountType = "Asset", .NormalBalance = "Debit", .Balance = 43300.0D, .IsActive = True},
-                New AccountItemViewModel() With {.AccountId = 3, .Code = "1200", .Name = "Accounts Receivable", .AccountType = "Asset", .NormalBalance = "Debit", .Balance = 0.0D, .IsActive = True},
-                New AccountItemViewModel() With {.AccountId = 4, .Code = "1300", .Name = "Merchandise Inventory", .AccountType = "Asset", .NormalBalance = "Debit", .Balance = 680.0D, .IsActive = True},
-                New AccountItemViewModel() With {.AccountId = 5, .Code = "2000", .Name = "Accounts Payable", .AccountType = "Liability", .NormalBalance = "Credit", .Balance = 0.0D, .IsActive = True},
-                New AccountItemViewModel() With {.AccountId = 6, .Code = "2100", .Name = "Goods Received Not Invoiced (GRNI)", .AccountType = "Liability", .NormalBalance = "Credit", .Balance = 0.0D, .IsActive = True},
-                New AccountItemViewModel() With {.AccountId = 7, .Code = "3000", .Name = "Retained Earnings", .AccountType = "Equity", .NormalBalance = "Credit", .Balance = 42000.0D, .IsActive = True},
-                New AccountItemViewModel() With {.AccountId = 8, .Code = "3010", .Name = "Owner's Capital", .AccountType = "Equity", .NormalBalance = "Credit", .Balance = 4000.0D, .IsActive = True},
-                New AccountItemViewModel() With {.AccountId = 9, .Code = "4000", .Name = "Sales Revenue", .AccountType = "Revenue", .NormalBalance = "Credit", .Balance = 600.0D, .IsActive = True},
-                New AccountItemViewModel() With {.AccountId = 10, .Code = "4100", .Name = "Sales Returns & Allowances", .AccountType = "Revenue (Contra)", .NormalBalance = "Debit", .Balance = 150.0D, .IsActive = True},
-                New AccountItemViewModel() With {.AccountId = 11, .Code = "5000", .Name = "Cost of Goods Sold (COGS)", .AccountType = "Expense", .NormalBalance = "Debit", .Balance = 300.0D, .IsActive = True},
-                New AccountItemViewModel() With {.AccountId = 12, .Code = "5100", .Name = "Purchase Price Variance (PPV)", .AccountType = "Expense", .NormalBalance = "Debit", .Balance = 100.0D, .IsActive = True},
-                New AccountItemViewModel() With {.AccountId = 13, .Code = "5200", .Name = "Inbound Freight Variance", .AccountType = "Expense", .NormalBalance = "Debit", .Balance = 50.0D, .IsActive = True},
-                New AccountItemViewModel() With {.AccountId = 14, .Code = "5300", .Name = "Inventory Shrinkage & Damaged Stock", .AccountType = "Expense", .NormalBalance = "Debit", .Balance = 20.0D, .IsActive = True},
-                New AccountItemViewModel() With {.AccountId = 15, .Code = "5400", .Name = "Stocktake Revaluation Variance", .AccountType = "Expense", .NormalBalance = "Debit", .Balance = 0.0D, .IsActive = True},
-                New AccountItemViewModel() With {.AccountId = 16, .Code = "5500", .Name = "Cash Rounding & Roundoff Variance", .AccountType = "Expense", .NormalBalance = "Debit", .Balance = 0.0D, .IsActive = True}
-            }
+            ' 2. Load Chart of Accounts & Balances from real general ledger entries
+            Accounts.Clear()
+            Try
+                Dim accts = _context.Accounts.OrderBy(Function(a) a.Code).ToList()
+                Dim journalLines = _context.JournalEntryLines.ToList()
 
-            JournalEntries = New List(Of JournalEntryViewModel)()
+                For Each acct In accts
+                    Dim debits As Decimal = journalLines.Where(Function(l) l.AccountId = acct.AccountId).Sum(Function(l) l.DebitAmount)
+                    Dim credits As Decimal = journalLines.Where(Function(l) l.AccountId = acct.AccountId).Sum(Function(l) l.CreditAmount)
 
-            ' CUJ 1: Inbound Receiving Dock GRN
-            Dim je1 As New JournalEntryViewModel() With {
-                .EntryId = 101,
-                .PostingDate = New DateTime(2026, 11, 3),
-                .OperationalEventDate = New DateTime(2026, 11, 3),
-                .SourceDocType = "Goods Receipt Note",
-                .SourceDocNumber = "GRN-2026-0001",
-                .PeriodLabel = "FY2026-P11",
-                .Description = "Receipt of 100 units SKU-A @ $10.00/unit into Inventory",
-                .CreatedBy = "dock_clerk",
-                .TotalDebits = 1000.0D,
-                .TotalCredits = 1000.0D
-            }
-            je1.Lines.Add(New JournalEntryLineViewModel() With {.LineId = 1, .EntryId = 101, .AccountId = 4, .AccountCode = "1300", .AccountName = "Merchandise Inventory", .DebitAmount = 1000.0D, .CreditAmount = 0.0D, .LineMemo = "Inbound stock receipt 100 units SKU-A"})
-            je1.Lines.Add(New JournalEntryLineViewModel() With {.LineId = 2, .EntryId = 101, .AccountId = 6, .AccountCode = "2100", .AccountName = "Goods Received Not Invoiced (GRNI)", .DebitAmount = 0.0D, .CreditAmount = 1000.0D, .LineMemo = "GRNI clearing liability accrual"})
-            JournalEntries.Add(je1)
+                    Dim normalBal As String
+                    Dim bal As Decimal
+                    If acct.AccountType = AccountType.Asset OrElse acct.AccountType = AccountType.Expense OrElse acct.Code = "4100" Then
+                        normalBal = "Debit"
+                        bal = debits - credits
+                    Else
+                        normalBal = "Credit"
+                        bal = credits - debits
+                    End If
 
-            ' Supplier Bill with PPV and Freight matching
-            Dim je2 As New JournalEntryViewModel() With {
-                .EntryId = 102,
-                .PostingDate = New DateTime(2026, 11, 5),
-                .OperationalEventDate = New DateTime(2026, 11, 5),
-                .SourceDocType = "Supplier Bill",
-                .SourceDocNumber = "BILL-2026-0042",
-                .PeriodLabel = "FY2026-P11",
-                .Description = "Supplier Bill for GRN-2026-0001 with $1/unit PPV and $50 Freight",
-                .CreatedBy = "ap_accountant",
-                .TotalDebits = 1150.0D,
-                .TotalCredits = 1150.0D
-            }
-            je2.Lines.Add(New JournalEntryLineViewModel() With {.LineId = 3, .EntryId = 102, .AccountId = 6, .AccountCode = "2100", .AccountName = "Goods Received Not Invoiced (GRNI)", .DebitAmount = 1000.0D, .CreditAmount = 0.0D, .LineMemo = "Clear GRNI accrual for 100 units"})
-            je2.Lines.Add(New JournalEntryLineViewModel() With {.LineId = 4, .EntryId = 102, .AccountId = 12, .AccountCode = "5100", .AccountName = "Purchase Price Variance (PPV)", .DebitAmount = 100.0D, .CreditAmount = 0.0D, .LineMemo = "Price variance: $11 bill vs $10 PO price"})
-            je2.Lines.Add(New JournalEntryLineViewModel() With {.LineId = 5, .EntryId = 102, .AccountId = 13, .AccountCode = "5200", .AccountName = "Inbound Freight Variance", .DebitAmount = 50.0D, .CreditAmount = 0.0D, .LineMemo = "Third-party carrier freight uncapitalized"})
-            je2.Lines.Add(New JournalEntryLineViewModel() With {.LineId = 6, .EntryId = 102, .AccountId = 5, .AccountCode = "2000", .AccountName = "Accounts Payable", .DebitAmount = 0.0D, .CreditAmount = 1150.0D, .LineMemo = "Trade payable obligation to vendor"})
-            JournalEntries.Add(je2)
+                    Dim typeDisplay As String = acct.AccountType.ToString()
+                    If acct.Code = "4100" Then typeDisplay = "Revenue (Contra)"
 
-            ' CUJ 2: Outbound Sales Invoice Fulfillment (40 units @ $15 selling price, cost $10)
-            Dim je3 As New JournalEntryViewModel() With {
-                .EntryId = 103,
-                .PostingDate = New DateTime(2026, 11, 8),
-                .OperationalEventDate = New DateTime(2026, 11, 8),
-                .SourceDocType = "Sales Invoice",
-                .SourceDocNumber = "INV-2026-0101",
-                .PeriodLabel = "FY2026-P11",
-                .Description = "Sales Invoice fulfillment: 40 units SKU-A dispatched",
-                .CreatedBy = "sales_rep",
-                .TotalDebits = 1000.0D,
-                .TotalCredits = 1000.0D
-            }
-            je3.Lines.Add(New JournalEntryLineViewModel() With {.LineId = 7, .EntryId = 103, .AccountId = 3, .AccountCode = "1200", .AccountName = "Accounts Receivable", .DebitAmount = 600.0D, .CreditAmount = 0.0D, .LineMemo = "Trade receivable: 40 units @ $15.00"})
-            je3.Lines.Add(New JournalEntryLineViewModel() With {.LineId = 8, .EntryId = 103, .AccountId = 9, .AccountCode = "4000", .AccountName = "Sales Revenue", .DebitAmount = 0.0D, .CreditAmount = 600.0D, .LineMemo = "Sales revenue recognition"})
-            je3.Lines.Add(New JournalEntryLineViewModel() With {.LineId = 9, .EntryId = 103, .AccountId = 11, .AccountCode = "5000", .AccountName = "Cost of Goods Sold (COGS)", .DebitAmount = 400.0D, .CreditAmount = 0.0D, .LineMemo = "COGS for 40 units dispatched @ $10.00"})
-            je3.Lines.Add(New JournalEntryLineViewModel() With {.LineId = 10, .EntryId = 103, .AccountId = 4, .AccountCode = "1300", .AccountName = "Merchandise Inventory", .DebitAmount = 0.0D, .CreditAmount = 400.0D, .LineMemo = "Perpetual inventory decrement 40 units"})
-            JournalEntries.Add(je3)
+                    Accounts.Add(New AccountItemViewModel() With {
+                        .AccountId = acct.AccountId,
+                        .Code = acct.Code,
+                        .Name = acct.Name,
+                        .AccountType = typeDisplay,
+                        .NormalBalance = normalBal,
+                        .Balance = bal,
+                        .IsActive = acct.IsActive
+                    })
+                Next
+            Catch ex As Exception
+                ' Keep empty if database not initialized
+            End Try
 
-            ' CUJ 3: Customer Return with Quarantine Inspection (10 returned: 8 restocked, 2 scrapped)
-            Dim je4 As New JournalEntryViewModel() With {
-                .EntryId = 104,
-                .PostingDate = New DateTime(2026, 11, 10),
-                .OperationalEventDate = New DateTime(2026, 11, 10),
-                .SourceDocType = "Credit Note",
-                .SourceDocNumber = "CN-2026-0005",
-                .PeriodLabel = "FY2026-P11",
-                .Description = "Credit Note for Return RMA-2026-0012: 8 Restocked, 2 Damaged/Scrap",
-                .CreatedBy = "finance_manager",
-                .TotalDebits = 250.0D,
-                .TotalCredits = 250.0D
-            }
-            je4.Lines.Add(New JournalEntryLineViewModel() With {.LineId = 11, .EntryId = 104, .AccountId = 10, .AccountCode = "4100", .AccountName = "Sales Returns & Allowances", .DebitAmount = 150.0D, .CreditAmount = 0.0D, .LineMemo = "Customer credit memo: 10 units @ $15.00"})
-            je4.Lines.Add(New JournalEntryLineViewModel() With {.LineId = 12, .EntryId = 104, .AccountId = 3, .AccountCode = "1200", .AccountName = "Accounts Receivable", .DebitAmount = 0.0D, .CreditAmount = 150.0D, .LineMemo = "AR subledger credit to customer"})
-            je4.Lines.Add(New JournalEntryLineViewModel() With {.LineId = 13, .EntryId = 104, .AccountId = 4, .AccountCode = "1300", .AccountName = "Merchandise Inventory", .DebitAmount = 80.0D, .CreditAmount = 0.0D, .LineMemo = "Restock 8 units @ $10.00 into active inventory"})
-            je4.Lines.Add(New JournalEntryLineViewModel() With {.LineId = 14, .EntryId = 104, .AccountId = 14, .AccountCode = "5300", .AccountName = "Inventory Shrinkage & Damaged Stock", .DebitAmount = 20.0D, .CreditAmount = 0.0D, .LineMemo = "Damaged return scrap write-off: 2 units @ $10.00"})
-            je4.Lines.Add(New JournalEntryLineViewModel() With {.LineId = 15, .EntryId = 104, .AccountId = 11, .AccountCode = "5000", .AccountName = "Cost of Goods Sold (COGS)", .DebitAmount = 0.0D, .CreditAmount = 100.0D, .LineMemo = "Reversal of COGS for 10 returned units"})
-            JournalEntries.Add(je4)
+            ' 3. Load Journal Entries
+            JournalEntries.Clear()
+            Try
+                Dim entries = _ledgerRepo.GetAll()
+                For Each entry In entries
+                    Dim totalDebits As Decimal = entry.Lines.Sum(Function(l) l.DebitAmount)
+                    Dim totalCredits As Decimal = entry.Lines.Sum(Function(l) l.CreditAmount)
 
-            ' Customer Payment Receipt
-            Dim je5 As New JournalEntryViewModel() With {
-                .EntryId = 105,
-                .PostingDate = New DateTime(2026, 11, 12),
-                .OperationalEventDate = New DateTime(2026, 11, 12),
-                .SourceDocType = "Payment Receipt",
-                .SourceDocNumber = "RCPT-2026-0089",
-                .PeriodLabel = "FY2026-P11",
-                .Description = "Customer payment settling net invoice balance ($600 - $150 = $450)",
-                .CreatedBy = "ar_clerk",
-                .TotalDebits = 450.0D,
-                .TotalCredits = 450.0D
-            }
-            je5.Lines.Add(New JournalEntryLineViewModel() With {.LineId = 16, .EntryId = 105, .AccountId = 2, .AccountCode = "1020", .AccountName = "Operating Bank Account", .DebitAmount = 450.0D, .CreditAmount = 0.0D, .LineMemo = "Deposit into Operating Checking Account"})
-            je5.Lines.Add(New JournalEntryLineViewModel() With {.LineId = 17, .EntryId = 105, .AccountId = 3, .AccountCode = "1200", .AccountName = "Accounts Receivable", .DebitAmount = 0.0D, .CreditAmount = 450.0D, .LineMemo = "Clear customer trade receivable"})
-            JournalEntries.Add(je5)
+                    Dim jeVm As New JournalEntryViewModel() With {
+                        .EntryId = entry.EntryId,
+                        .PostingDate = entry.PostingDate,
+                        .OperationalEventDate = entry.OperationalEventDate,
+                        .SourceDocType = entry.SourceDocType,
+                        .SourceDocNumber = $"{entry.SourceDocType} #{entry.SourceDocId}",
+                        .PeriodLabel = If(entry.Period IsNot Nothing, $"FY{entry.Period.FiscalYear}-P{entry.Period.PeriodNumber:D2}", If(CurrentPeriod IsNot Nothing, CurrentPeriod.PeriodLabel, "")),
+                        .Description = entry.Description,
+                        .CreatedBy = entry.CreatedBy,
+                        .TotalDebits = totalDebits,
+                        .TotalCredits = totalCredits
+                    }
 
-            ' Vendor Payment Voucher
-            Dim je6 As New JournalEntryViewModel() With {
-                .EntryId = 106,
-                .PostingDate = New DateTime(2026, 11, 14),
-                .OperationalEventDate = New DateTime(2026, 11, 14),
-                .SourceDocType = "Payment Voucher",
-                .SourceDocNumber = "PV-2026-0033",
-                .PeriodLabel = "FY2026-P11",
-                .Description = "Vendor settlement for BILL-2026-0042",
-                .CreatedBy = "treasury_clerk",
-                .TotalDebits = 1150.0D,
-                .TotalCredits = 1150.0D
-            }
-            je6.Lines.Add(New JournalEntryLineViewModel() With {.LineId = 18, .EntryId = 106, .AccountId = 5, .AccountCode = "2000", .AccountName = "Accounts Payable", .DebitAmount = 1150.0D, .CreditAmount = 0.0D, .LineMemo = "Settle vendor trade payable"})
-            je6.Lines.Add(New JournalEntryLineViewModel() With {.LineId = 19, .EntryId = 106, .AccountId = 2, .AccountCode = "1020", .AccountName = "Operating Bank Account", .DebitAmount = 0.0D, .CreditAmount = 1150.0D, .LineMemo = "Electronic bank transfer disbursement"})
-            JournalEntries.Add(je6)
+                    For Each line In entry.Lines
+                        jeVm.Lines.Add(New JournalEntryLineViewModel() With {
+                            .LineId = line.LineId,
+                            .EntryId = line.EntryId,
+                            .AccountId = line.AccountId,
+                            .AccountCode = If(line.Account IsNot Nothing, line.Account.Code, ""),
+                            .AccountName = If(line.Account IsNot Nothing, line.Account.Name, ""),
+                            .DebitAmount = line.DebitAmount,
+                            .CreditAmount = line.CreditAmount,
+                            .LineMemo = line.LineMemo
+                        })
+                    Next
+
+                    JournalEntries.Add(jeVm)
+                Next
+            Catch ex As Exception
+                ' Keep empty if database not initialized
+            End Try
         End Sub
     End Class
 

@@ -8,7 +8,7 @@ Namespace UI.Purchasing
 
     Public Class PurchasingDashboardForm
 
-        Private ReadOnly _repo As PurchasingMockRepository = PurchasingMockRepository.Instance
+        Private ReadOnly _repo As New PurchasingDataService()
         Private _selectedMatch As ThreeWayMatchModel
         Private _selectedPO As PurchasingPOModel
 

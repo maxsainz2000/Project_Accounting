@@ -2,7 +2,13 @@ Option Strict On
 Option Explicit On
 Option Compare Binary
 
+Imports System
 Imports System.Collections.Generic
+Imports System.Linq
+Imports Microsoft.EntityFrameworkCore
+Imports Merchandising_Accounting_App.Data
+Imports Merchandising_Accounting_App.Domain.Models
+Imports Merchandising_Accounting_App.Services
 
 Namespace UI.Warehouse
 
@@ -179,17 +185,11 @@ Namespace UI.Warehouse
         End Property
     End Class
 
-    Public Class WarehouseMockRepository
+    Public Class WarehouseDataService
 
-        Private Shared _instance As WarehouseMockRepository
-        Public Shared ReadOnly Property Instance As WarehouseMockRepository
-            Get
-                If _instance Is Nothing Then
-                    _instance = New WarehouseMockRepository()
-                End If
-                Return _instance
-            End Get
-        End Property
+        Private ReadOnly _p2pService As ProcureToPayService
+        Private ReadOnly _returnsService As ReturnsService
+        Private ReadOnly _context As ErpDbContext
 
         Public Property Products As New List(Of WarehouseProductModel)()
         Public Property PurchaseOrders As New List(Of WarehousePOModel)()
@@ -197,166 +197,156 @@ Namespace UI.Warehouse
         Public Property RMAList As New List(Of WarehouseRMAModel)()
         Public Property JournalHistory As New List(Of SimpleJournalEntry)()
 
-        Private _nextGRNNumber As Integer = 101
-        Private _nextRMANumber As Integer = 501
-
-        Public Sub New()
-            SeedInitialData()
+        Public Sub New(Optional p2pService As ProcureToPayService = Nothing, Optional returnsService As ReturnsService = Nothing, Optional context As ErpDbContext = Nothing)
+            _context = If(context, New ErpDbContext())
+            _p2pService = If(p2pService, New ProcureToPayService(_context))
+            _returnsService = If(returnsService, New ReturnsService(_context))
+            LoadData()
         End Sub
 
-        Private Sub SeedInitialData()
-            ' Products catalog
-            Products.Add(New WarehouseProductModel() With {
-                .ProductId = 1,
-                .SKU = "SKU-BEV-001",
-                .Name = "Artisan Colombian Coffee Beans (1kg)",
-                .BaseUnit = "Bag",
-                .CurrentUnitCost = 14.50D,
-                .TotalQtyOnHand = 120,
-                .QuarantineQty = 5
-            })
+        Public Sub LoadData()
+            Try
+                ' 1. Products
+                Products.Clear()
+                For Each p In _context.Products.Where(Function(x) x.IsActive).OrderBy(Function(x) x.SKU).ToList()
+                    Products.Add(New WarehouseProductModel() With {
+                        .ProductId = p.ProductId,
+                        .SKU = p.SKU,
+                        .Name = p.Name,
+                        .BaseUnit = p.BaseUnitName,
+                        .CurrentUnitCost = p.CurrentUnitCost,
+                        .TotalQtyOnHand = p.TotalQtyOnHand,
+                        .QuarantineQty = p.QuarantineQty
+                    })
+                Next
 
-            Products.Add(New WarehouseProductModel() With {
-                .ProductId = 2,
-                .SKU = "SKU-BEV-002",
-                .Name = "Organic Earl Grey Tea (500g)",
-                .BaseUnit = "Tin",
-                .CurrentUnitCost = 8.20D,
-                .TotalQtyOnHand = 85,
-                .QuarantineQty = 0
-            })
+                ' 2. Purchase Orders
+                PurchaseOrders.Clear()
+                Dim poEntities = _context.PurchaseOrders _
+                    .Include(Function(p) p.Vendor) _
+                    .Include(Function(p) p.Lines).ThenInclude(Function(l) l.Product) _
+                    .OrderByDescending(Function(p) p.OrderDate) _
+                    .ToList()
 
-            Products.Add(New WarehouseProductModel() With {
-                .ProductId = 3,
-                .SKU = "SKU-PKG-003",
-                .Name = "Biodegradable Hot Cups (Pack of 50)",
-                .BaseUnit = "Pack",
-                .CurrentUnitCost = 4.10D,
-                .TotalQtyOnHand = 300,
-                .QuarantineQty = 12
-            })
+                For Each po In poEntities
+                    Dim poModel As New WarehousePOModel() With {
+                        .POId = po.POId,
+                        .DocumentNumber = po.DocumentNumber,
+                        .VendorName = If(po.Vendor IsNot Nothing, po.Vendor.Name, ""),
+                        .OrderDate = po.OrderDate,
+                        .Status = po.Status
+                    }
 
-            Products.Add(New WarehouseProductModel() With {
-                .ProductId = 4,
-                .SKU = "SKU-SNK-004",
-                .Name = "Almond Butter Crisps (12pk)",
-                .BaseUnit = "Box",
-                .CurrentUnitCost = 6.75D,
-                .TotalQtyOnHand = 60,
-                .QuarantineQty = 0
-            })
+                    For Each l In po.Lines
+                        Dim recQty As Integer = _context.GRNLines.Where(Function(gl) gl.POLineId = l.POLineId).Sum(Function(gl) gl.ReceivedQty)
+                        poModel.Lines.Add(New WarehousePOLineModel() With {
+                            .LineId = l.POLineId,
+                            .ProductId = l.ProductId,
+                            .SKU = If(l.Product IsNot Nothing, l.Product.SKU, ""),
+                            .ProductName = If(l.Product IsNot Nothing, l.Product.Name, ""),
+                            .OrderedQty = l.OrderedQty,
+                            .ReceivedQty = recQty,
+                            .POUnitPrice = l.UnitPrice
+                        })
+                    Next
+                    PurchaseOrders.Add(poModel)
+                Next
 
-            ' Purchase Orders
-            Dim po1 As New WarehousePOModel() With {
-                .POId = 1,
-                .DocumentNumber = "PO-2026-0041",
-                .VendorName = "Global Bean Importers Ltd.",
-                .OrderDate = DateTime.Today.AddDays(-3),
-                .Status = "Open"
-            }
-            po1.Lines.Add(New WarehousePOLineModel() With {
-                .LineId = 1,
-                .ProductId = 1,
-                .SKU = "SKU-BEV-001",
-                .ProductName = "Artisan Colombian Coffee Beans (1kg)",
-                .OrderedQty = 100,
-                .ReceivedQty = 0,
-                .POUnitPrice = 15.00D
-            })
-            PurchaseOrders.Add(po1)
+                ' 3. Goods Receipt Notes
+                GoodsReceiptNotes.Clear()
+                Dim grnEntities = _context.GoodsReceiptNotes _
+                    .Include(Function(g) g.PurchaseOrder).ThenInclude(Function(p) p.Vendor) _
+                    .Include(Function(g) g.Lines).ThenInclude(Function(l) l.Product) _
+                    .OrderByDescending(Function(g) g.ReceiptDate) _
+                    .ToList()
 
-            Dim po2 As New WarehousePOModel() With {
-                .POId = 2,
-                .DocumentNumber = "PO-2026-0042",
-                .VendorName = "EcoPackaging Supplies Co.",
-                .OrderDate = DateTime.Today.AddDays(-2),
-                .Status = "Open"
-            }
-            po2.Lines.Add(New WarehousePOLineModel() With {
-                .LineId = 2,
-                .ProductId = 3,
-                .SKU = "SKU-PKG-003",
-                .ProductName = "Biodegradable Hot Cups (Pack of 50)",
-                .OrderedQty = 200,
-                .ReceivedQty = 50,
-                .POUnitPrice = 4.00D
-            })
-            PurchaseOrders.Add(po2)
+                For Each grn In grnEntities
+                    Dim grnModel As New WarehouseGRNModel() With {
+                        .GRNId = grn.GRNId,
+                        .DocumentNumber = grn.DocumentNumber,
+                        .PONumber = If(grn.PurchaseOrder IsNot Nothing, grn.PurchaseOrder.DocumentNumber, ""),
+                        .VendorName = If(grn.PurchaseOrder IsNot Nothing AndAlso grn.PurchaseOrder.Vendor IsNot Nothing, grn.PurchaseOrder.Vendor.Name, ""),
+                        .ReceiptDate = grn.ReceiptDate,
+                        .PostingDate = grn.PostingDate,
+                        .Status = grn.Status
+                    }
 
-            Dim po3 As New WarehousePOModel() With {
-                .POId = 3,
-                .DocumentNumber = "PO-2026-0043",
-                .VendorName = "Ceylon Tea Traders Inc.",
-                .OrderDate = DateTime.Today.AddDays(-1),
-                .Status = "Open"
-            }
-            po3.Lines.Add(New WarehousePOLineModel() With {
-                .LineId = 3,
-                .ProductId = 2,
-                .SKU = "SKU-BEV-002",
-                .ProductName = "Organic Earl Grey Tea (500g)",
-                .OrderedQty = 75,
-                .ReceivedQty = 0,
-                .POUnitPrice = 8.10D
-            })
-            PurchaseOrders.Add(po3)
+                    For Each l In grn.Lines
+                        grnModel.Lines.Add(New WarehouseGRNLineModel() With {
+                            .LineId = l.GRNLineId,
+                            .ProductId = l.ProductId,
+                            .SKU = If(l.Product IsNot Nothing, l.Product.SKU, ""),
+                            .ProductName = If(l.Product IsNot Nothing, l.Product.Name, ""),
+                            .ReceivedQty = l.ReceivedQty,
+                            .POUnitPrice = l.POUnitPrice
+                        })
+                    Next
+                    GoodsReceiptNotes.Add(grnModel)
+                Next
 
-            ' Existing GRN (historical)
-            Dim grn0 As New WarehouseGRNModel() With {
-                .GRNId = 1,
-                .DocumentNumber = "GRN-2026-0099",
-                .PONumber = "PO-2026-0042",
-                .VendorName = "EcoPackaging Supplies Co.",
-                .ReceiptDate = DateTime.Today.AddDays(-1),
-                .PostingDate = DateTime.Today.AddDays(-1),
-                .Status = "Posted"
-            }
-            grn0.Lines.Add(New WarehouseGRNLineModel() With {
-                .LineId = 1,
-                .ProductId = 3,
-                .SKU = "SKU-PKG-003",
-                .ProductName = "Biodegradable Hot Cups (Pack of 50)",
-                .ReceivedQty = 50,
-                .POUnitPrice = 4.00D
-            })
-            GoodsReceiptNotes.Add(grn0)
+                ' 4. RMA List
+                RMAList.Clear()
+                Dim rmaEntities = _context.CustomerReturns _
+                    .Include(Function(r) r.Customer) _
+                    .Include(Function(r) r.OriginalInvoice) _
+                    .Include(Function(r) r.Lines).ThenInclude(Function(l) l.Product) _
+                    .OrderByDescending(Function(r) r.ReturnDate) _
+                    .ToList()
 
-            ' RMA Returns in Quarantine
-            RMAList.Add(New WarehouseRMAModel() With {
-                .RMAId = 1,
-                .DocumentNumber = "RMA-2026-0012",
-                .CustomerName = "Apex Coffee Lounge",
-                .OriginalInvoiceNumber = "INV-2026-0189",
-                .ProductId = 1,
-                .SKU = "SKU-BEV-001",
-                .ProductName = "Artisan Colombian Coffee Beans (1kg)",
-                .ReturnedQty = 5,
-                .QuarantineQty = 5,
-                .RestockedQty = 0,
-                .ScrappedQty = 0,
-                .OriginalUnitCost = 14.50D,
-                .SellingUnitPrice = 24.00D,
-                .ReturnDate = DateTime.Today.AddDays(-2),
-                .Status = "Quarantine"
-            })
+                For Each r In rmaEntities
+                    For Each l In r.Lines
+                        Dim remainingQuarantine As Integer = Math.Max(0, l.ReturnedQty - l.RestockQty - l.ScrapQty)
+                        RMAList.Add(New WarehouseRMAModel() With {
+                            .RMAId = r.ReturnId,
+                            .DocumentNumber = r.DocumentNumber,
+                            .CustomerName = If(r.Customer IsNot Nothing, r.Customer.Name, ""),
+                            .OriginalInvoiceNumber = If(r.OriginalInvoice IsNot Nothing, r.OriginalInvoice.DocumentNumber, ""),
+                            .ProductId = l.ProductId,
+                            .SKU = If(l.Product IsNot Nothing, l.Product.SKU, ""),
+                            .ProductName = If(l.Product IsNot Nothing, l.Product.Name, ""),
+                            .ReturnedQty = l.ReturnedQty,
+                            .QuarantineQty = remainingQuarantine,
+                            .RestockedQty = l.RestockQty,
+                            .ScrappedQty = l.ScrapQty,
+                            .OriginalUnitCost = l.OriginalUnitCost,
+                            .SellingUnitPrice = l.SellingUnitPrice,
+                            .ReturnDate = r.ReturnDate,
+                            .Status = r.Status
+                        })
+                    Next
+                Next
 
-            RMAList.Add(New WarehouseRMAModel() With {
-                .RMAId = 2,
-                .DocumentNumber = "RMA-2026-0015",
-                .CustomerName = "Metro Catering Group",
-                .OriginalInvoiceNumber = "INV-2026-0192",
-                .ProductId = 3,
-                .SKU = "SKU-PKG-003",
-                .ProductName = "Biodegradable Hot Cups (Pack of 50)",
-                .ReturnedQty = 12,
-                .QuarantineQty = 12,
-                .RestockedQty = 0,
-                .ScrappedQty = 0,
-                .OriginalUnitCost = 4.10D,
-                .SellingUnitPrice = 7.50D,
-                .ReturnDate = DateTime.Today.AddDays(-1),
-                .Status = "Quarantine"
-            })
+                ' 5. Journal History (GRN & RMA entries)
+                JournalHistory.Clear()
+                Dim jeList = _context.JournalEntries _
+                    .Include(Function(j) j.Lines).ThenInclude(Function(l) l.Account) _
+                    .Where(Function(j) j.SourceDocType = "GoodsReceiptNote" OrElse j.SourceDocType = "Goods Receipt Note" OrElse j.SourceDocType = "CustomerReturn" OrElse j.SourceDocType = "CreditNote" OrElse j.SourceDocType = "Credit Note") _
+                    .OrderByDescending(Function(j) j.PostingDate) _
+                    .ThenByDescending(Function(j) j.EntryId) _
+                    .ToList()
+
+                For Each entry In jeList
+                    Dim sje As New SimpleJournalEntry() With {
+                        .DocumentNumber = $"{entry.SourceDocType} #{entry.SourceDocId}",
+                        .SourceDocType = entry.SourceDocType,
+                        .PostingDate = entry.PostingDate,
+                        .Description = entry.Description
+                    }
+                    For Each l In entry.Lines
+                        sje.Lines.Add(New SimpleJournalLine() With {
+                            .AccountCode = If(l.Account IsNot Nothing, l.Account.Code, ""),
+                            .AccountName = If(l.Account IsNot Nothing, l.Account.Name, ""),
+                            .Debit = l.DebitAmount,
+                            .Credit = l.CreditAmount,
+                            .LineMemo = l.LineMemo
+                        })
+                    Next
+                    JournalHistory.Add(sje)
+                Next
+
+            Catch ex As Exception
+                ' Graceful handle if DB is uninitialized
+            End Try
         End Sub
 
         Public Function CreateGRN(po As WarehousePOModel, lineReceipts As Dictionary(Of Integer, Integer)) As WarehouseGRNModel
@@ -365,112 +355,93 @@ Namespace UI.Warehouse
                 Throw New InvalidOperationException("At least one line receipt quantity must be provided.")
             End If
 
-            Dim grnDocNumber As String = $"GRN-2026-{_nextGRNNumber:D4}"
-            _nextGRNNumber += 1
-
-            Dim grn As New WarehouseGRNModel() With {
-                .GRNId = GoodsReceiptNotes.Count + 1,
-                .DocumentNumber = grnDocNumber,
-                .PONumber = po.DocumentNumber,
-                .VendorName = po.VendorName,
-                .ReceiptDate = DateTime.Today,
-                .PostingDate = DateTime.Today,
-                .Status = "Posted"
-            }
-
-            Dim journalEntry As New SimpleJournalEntry() With {
-                .DocumentNumber = grnDocNumber,
-                .SourceDocType = "GoodsReceiptNote",
-                .PostingDate = DateTime.Today,
-                .Description = $"Inbound Dock Receipt from {po.VendorName} under {po.DocumentNumber}"
-            }
-
-            Dim totalValuation As Decimal = 0D
-
-            For Each line In po.Lines
-                If lineReceipts.ContainsKey(line.LineId) Then
-                    Dim recQty As Integer = lineReceipts(line.LineId)
-                    If recQty > 0 Then
-                        Dim grnLine As New WarehouseGRNLineModel() With {
-                            .LineId = grn.Lines.Count + 1,
-                            .ProductId = line.ProductId,
-                            .SKU = line.SKU,
-                            .ProductName = line.ProductName,
-                            .ReceivedQty = recQty,
-                            .POUnitPrice = line.POUnitPrice
-                        }
-                        grn.Lines.Add(grnLine)
-
-                        ' Update PO line received count
-                        line.ReceivedQty += recQty
-
-                        ' Update product inventory and perpetual moving average cost
-                        Dim prod = Products.Find(Function(p) p.ProductId = line.ProductId)
-                        If prod IsNot Nothing Then
-                            Dim oldQty As Integer = prod.TotalQtyOnHand
-                            Dim oldCost As Decimal = prod.CurrentUnitCost
-                            Dim totalNewQty As Integer = oldQty + recQty
-
-                            If totalNewQty > 0 Then
-                                Dim totalValue As Decimal = (CDec(oldQty) * oldCost) + (CDec(recQty) * line.POUnitPrice)
-                                prod.CurrentUnitCost = Math.Round(totalValue / CDec(totalNewQty), 4)
-                            End If
-
-                            prod.TotalQtyOnHand = totalNewQty
-                        End If
-
-                        totalValuation += grnLine.ExtendedCost
+            Dim receiptLines As New List(Of GRNLine)()
+            For Each kvp In lineReceipts
+                If kvp.Value > 0 Then
+                    Dim poLine = po.Lines.FirstOrDefault(Function(l) l.LineId = kvp.Key)
+                    If poLine IsNot Nothing Then
+                        receiptLines.Add(New GRNLine() With {
+                            .POLineId = poLine.LineId,
+                            .ProductId = poLine.ProductId,
+                            .ReceivedQty = kvp.Value,
+                            .POUnitPrice = poLine.POUnitPrice
+                        })
                     End If
                 End If
             Next
 
-            If grn.Lines.Count = 0 Then
+            If receiptLines.Count = 0 Then
                 Throw New InvalidOperationException("No positive receiving quantities were specified.")
             End If
 
-            ' Update PO overall status
-            If po.TotalPendingQty = 0 Then
-                po.Status = "Fully Received"
-            Else
-                po.Status = "Partially Received"
-            End If
+            Dim grnEntity = _p2pService.ReceiveGoods(po.POId, receiptLines, DateTime.Today)
+            LoadData()
 
-            ' Generate balanced GL journal lines:
-            ' Debit 1300 Merchandise Inventory (Received Qty * PO Unit Price)
-            ' Credit 2100 GRNI Clearing (Received Qty * PO Unit Price)
-            journalEntry.Lines.Add(New SimpleJournalLine() With {
-                .AccountCode = "1300",
-                .AccountName = "Merchandise Inventory",
-                .Debit = totalValuation,
-                .Credit = 0D,
-                .LineMemo = $"GRN {grnDocNumber} Stock Intake ({po.DocumentNumber})"
-            })
-            journalEntry.Lines.Add(New SimpleJournalLine() With {
-                .AccountCode = "2100",
-                .AccountName = "Goods Received Not Invoiced (GRNI)",
-                .Debit = 0D,
-                .Credit = totalValuation,
-                .LineMemo = $"GRN {grnDocNumber} GRNI Accrual ({po.DocumentNumber})"
-            })
+            Dim result As New WarehouseGRNModel() With {
+                .GRNId = grnEntity.GRNId,
+                .DocumentNumber = grnEntity.DocumentNumber,
+                .PONumber = po.DocumentNumber,
+                .VendorName = po.VendorName,
+                .ReceiptDate = grnEntity.ReceiptDate,
+                .PostingDate = grnEntity.PostingDate,
+                .Status = grnEntity.Status
+            }
+            For Each rl In receiptLines
+                result.Lines.Add(New WarehouseGRNLineModel() With {
+                    .ProductId = rl.ProductId,
+                    .ReceivedQty = rl.ReceivedQty,
+                    .POUnitPrice = rl.POUnitPrice
+                })
+            Next
 
-            GoodsReceiptNotes.Insert(0, grn)
-            JournalHistory.Insert(0, journalEntry)
-
-            Return grn
+            Return result
         End Function
 
         Public Function IntakeRMAToQuarantine(customerName As String, invoiceNum As String, prod As WarehouseProductModel, returnedQty As Integer, originalCost As Decimal, sellingPrice As Decimal) As WarehouseRMAModel
             If prod Is Nothing Then Throw New ArgumentNullException(NameOf(prod))
             If returnedQty <= 0 Then Throw New ArgumentException("Returned quantity must be greater than zero.", NameOf(returnedQty))
 
-            Dim rmaDocNum As String = $"RMA-2026-{_nextRMANumber:D4}"
-            _nextRMANumber += 1
+            Dim invoice = _context.SalesInvoices.Include(Function(i) i.Lines).FirstOrDefault(Function(i) i.DocumentNumber.ToLower() = invoiceNum.ToLower())
+            Dim customer As Customer = Nothing
 
-            Dim rma As New WarehouseRMAModel() With {
-                .RMAId = RMAList.Count + 1,
-                .DocumentNumber = rmaDocNum,
-                .CustomerName = customerName,
-                .OriginalInvoiceNumber = invoiceNum,
+            If invoice IsNot Nothing Then
+                customer = _context.Customers.Find(invoice.CustomerId)
+            Else
+                customer = _context.Customers.FirstOrDefault(Function(c) c.Name.ToLower() = customerName.ToLower())
+                If customer Is Nothing Then
+                    customer = _context.Customers.FirstOrDefault()
+                End If
+                If customer IsNot Nothing Then
+                    invoice = _context.SalesInvoices.Include(Function(i) i.Lines).FirstOrDefault(Function(i) i.CustomerId = customer.CustomerId)
+                End If
+                If invoice Is Nothing Then
+                    invoice = _context.SalesInvoices.Include(Function(i) i.Lines).FirstOrDefault()
+                End If
+            End If
+
+            If invoice Is Nothing OrElse customer Is Nothing Then
+                Throw New InvalidOperationException("No valid sales invoice found to reference for customer return.")
+            End If
+
+            Dim retLines As New List(Of CustomerReturnLine)()
+            retLines.Add(New CustomerReturnLine() With {
+                .ProductId = prod.ProductId,
+                .ReturnedQty = returnedQty,
+                .OriginalUnitCost = originalCost,
+                .SellingUnitPrice = sellingPrice
+            })
+
+            Dim rma = _returnsService.ReceiveReturnToQuarantine(customer.CustomerId, invoice.InvoiceId, retLines)
+            LoadData()
+
+            Dim model = RMAList.FirstOrDefault(Function(r) r.RMAId = rma.ReturnId)
+            If model IsNot Nothing Then Return model
+
+            Return New WarehouseRMAModel() With {
+                .RMAId = rma.ReturnId,
+                .DocumentNumber = rma.DocumentNumber,
+                .CustomerName = If(rma.Customer IsNot Nothing, rma.Customer.Name, customerName),
+                .OriginalInvoiceNumber = invoice.DocumentNumber,
                 .ProductId = prod.ProductId,
                 .SKU = prod.SKU,
                 .ProductName = prod.Name,
@@ -480,15 +451,9 @@ Namespace UI.Warehouse
                 .ScrappedQty = 0,
                 .OriginalUnitCost = originalCost,
                 .SellingUnitPrice = sellingPrice,
-                .ReturnDate = DateTime.Today,
-                .Status = "Quarantine"
+                .ReturnDate = rma.ReturnDate,
+                .Status = rma.Status
             }
-
-            ' Increment Quarantine Qty on Product (Operational non-valuated quarantine - NO GL posting)
-            prod.QuarantineQty += returnedQty
-
-            RMAList.Insert(0, rma)
-            Return rma
         End Function
 
         Public Function InspectRMA(rma As WarehouseRMAModel, restockQty As Integer, scrapQty As Integer) As SimpleJournalEntry
@@ -504,54 +469,39 @@ Namespace UI.Warehouse
                 Throw New InvalidOperationException($"Cannot inspect {totalInspected} units. Only {rma.QuarantineQty} units remaining in quarantine.")
             End If
 
-            Dim prod = Products.Find(Function(p) p.ProductId = rma.ProductId)
-            If prod Is Nothing Then Throw New InvalidOperationException("Product record not found.")
+            Dim dispLines As New List(Of ReturnDispositionLine)()
+            dispLines.Add(New ReturnDispositionLine() With {
+                .ProductId = rma.ProductId,
+                .RestockQty = restockQty,
+                .ScrapQty = scrapQty
+            })
 
-            ' Decrement product quarantine stock
-            prod.QuarantineQty = Math.Max(0, prod.QuarantineQty - totalInspected)
-            rma.QuarantineQty -= totalInspected
-            rma.RestockedQty += restockQty
-            rma.ScrappedQty += scrapQty
+            Dim inspectedReturn = _returnsService.ProcessReturnInspection(rma.RMAId, dispLines)
+            LoadData()
 
-            If rma.QuarantineQty = 0 Then
-                rma.Status = "Completed"
-            Else
-                rma.Status = "Partially Inspected"
+            ' Find journal entry for this return inspection
+            Dim createdJe = JournalHistory.FirstOrDefault(Function(j) j.SourceDocType = "CustomerReturn" OrElse j.SourceDocType = "CreditNote")
+            If createdJe IsNot Nothing Then
+                Return createdJe
             End If
 
-            ' Restock updates perpetual moving average cost and TotalQtyOnHand
-            If restockQty > 0 Then
-                Dim oldQty As Integer = prod.TotalQtyOnHand
-                Dim oldCost As Decimal = prod.CurrentUnitCost
-                Dim newQty As Integer = oldQty + restockQty
-                If newQty > 0 Then
-                    Dim blendedValue As Decimal = (CDec(oldQty) * oldCost) + (CDec(restockQty) * rma.OriginalUnitCost)
-                    prod.CurrentUnitCost = Math.Round(blendedValue / CDec(newQty), 4)
-                End If
-                prod.TotalQtyOnHand = newQty
-            End If
-
-            ' Financial Credit Note Generation
-            ' Credit Note Selling Price Total: totalInspected * SellingUnitPrice
             Dim totalRevenueReversal As Decimal = CDec(totalInspected) * rma.SellingUnitPrice
             Dim restockCostVal As Decimal = CDec(restockQty) * rma.OriginalUnitCost
             Dim scrapCostVal As Decimal = CDec(scrapQty) * rma.OriginalUnitCost
             Dim totalCogsReversal As Decimal = restockCostVal + scrapCostVal
 
             Dim journal As New SimpleJournalEntry() With {
-                .DocumentNumber = $"CRN-{rma.DocumentNumber}",
+                .DocumentNumber = $"CRN-{inspectedReturn.DocumentNumber}",
                 .SourceDocType = "CreditNote",
                 .PostingDate = DateTime.Today,
-                .Description = $"Inspection Disposition for {rma.DocumentNumber} ({rma.CustomerName}): Restock {restockQty}, Scrap {scrapQty}"
+                .Description = $"Inspection Disposition for {inspectedReturn.DocumentNumber}: Restock {restockQty}, Scrap {scrapQty}"
             }
-
-            ' Revenue / AR reversal
             journal.Lines.Add(New SimpleJournalLine() With {
                 .AccountCode = "4100",
                 .AccountName = "Sales Returns & Allowances",
                 .Debit = totalRevenueReversal,
                 .Credit = 0D,
-                .LineMemo = $"Sales Return Allowance for {rma.DocumentNumber}"
+                .LineMemo = $"Sales Return Allowance for {inspectedReturn.DocumentNumber}"
             })
             journal.Lines.Add(New SimpleJournalLine() With {
                 .AccountCode = "1200",
@@ -560,8 +510,6 @@ Namespace UI.Warehouse
                 .Credit = totalRevenueReversal,
                 .LineMemo = $"Customer AR Credit Memo ({rma.CustomerName})"
             })
-
-            ' Inventory / Scrap / COGS entries
             If restockQty > 0 Then
                 journal.Lines.Add(New SimpleJournalLine() With {
                     .AccountCode = "1300",
@@ -571,7 +519,6 @@ Namespace UI.Warehouse
                     .LineMemo = $"Restock {restockQty} units at ${rma.OriginalUnitCost:N2}"
                 })
             End If
-
             If scrapQty > 0 Then
                 journal.Lines.Add(New SimpleJournalLine() With {
                     .AccountCode = "5300",
@@ -581,7 +528,6 @@ Namespace UI.Warehouse
                     .LineMemo = $"Scrap {scrapQty} damaged units at ${rma.OriginalUnitCost:N2}"
                 })
             End If
-
             journal.Lines.Add(New SimpleJournalLine() With {
                 .AccountCode = "5000",
                 .AccountName = "Cost of Goods Sold (COGS)",
@@ -590,7 +536,6 @@ Namespace UI.Warehouse
                 .LineMemo = $"Reverse COGS for {totalInspected} returned units"
             })
 
-            JournalHistory.Insert(0, journal)
             Return journal
         End Function
 

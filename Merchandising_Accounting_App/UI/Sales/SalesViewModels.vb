@@ -7,6 +7,11 @@ Imports System.Collections.Generic
 Imports System.ComponentModel
 Imports System.Drawing
 Imports System.Linq
+Imports Microsoft.EntityFrameworkCore
+Imports Merchandising_Accounting_App.Data
+Imports Merchandising_Accounting_App.Domain
+Imports Merchandising_Accounting_App.Domain.Models
+Imports Merchandising_Accounting_App.Services
 
 Namespace UI.Sales
 
@@ -307,170 +312,128 @@ Namespace UI.Sales
     End Class
 
     ''' <summary>
-    ''' In-memory mock data store simulating the database and Order-to-Cash service.
+    ''' Order-to-Cash data service binding to OrderToCashService and live Entity Framework repositories.
     ''' </summary>
-    Public Class MockSalesDataService
+    Public Class SalesDataService
 
-        Private Shared _instance As MockSalesDataService
-        Public Shared ReadOnly Property Instance As MockSalesDataService
-            Get
-                If _instance Is Nothing Then
-                    _instance = New MockSalesDataService()
-                End If
-                Return _instance
-            End Get
-        End Property
+        Private ReadOnly _o2cService As OrderToCashService
+        Private ReadOnly _context As ErpDbContext
 
-        Public ReadOnly Property Customers As New List(Of CustomerViewModel)()
-        Public ReadOnly Property Products As New List(Of ProductStockViewModel)()
-        Public ReadOnly Property SalesOrders As New List(Of SalesOrderViewModel)()
-        Public ReadOnly Property SalesInvoices As New List(Of SalesInvoiceViewModel)()
+        Public Property Customers As New List(Of CustomerViewModel)()
+        Public Property Products As New List(Of ProductStockViewModel)()
+        Public Property SalesOrders As New List(Of SalesOrderViewModel)()
+        Public Property SalesInvoices As New List(Of SalesInvoiceViewModel)()
 
-        Private _nextSOId As Integer = 100
-        Private _nextInvoiceId As Integer = 200
-
-        Private Sub New()
-            InitializeSeedData()
+        Public Sub New(Optional o2cService As OrderToCashService = Nothing, Optional context As ErpDbContext = Nothing)
+            _context = If(context, New ErpDbContext())
+            _o2cService = If(o2cService, New OrderToCashService(_context))
+            LoadData()
         End Sub
 
-        Private Sub InitializeSeedData()
-            ' Initialize Sample Customers
-            Customers.Add(New CustomerViewModel() With {
-                .CustomerId = 1,
-                .Code = "CUST-001",
-                .Name = "Apex Wholesale Distributors Ltd.",
-                .CreditLimit = 50000.0D,
-                .CurrentARBalance = 14250.0D
-            })
-            Customers.Add(New CustomerViewModel() With {
-                .CustomerId = 2,
-                .Code = "CUST-002",
-                .Name = "Beacon Commercial Mart Chain",
-                .CreditLimit = 35000.0D,
-                .CurrentARBalance = 6800.0D
-            })
-            Customers.Add(New CustomerViewModel() With {
-                .CustomerId = 3,
-                .Code = "CUST-003",
-                .Name = "Crestview Gourmet Foods Inc.",
-                .CreditLimit = 15000.0D,
-                .CurrentARBalance = 15000.0D ' Exactly at credit limit
-            })
-            Customers.Add(New CustomerViewModel() With {
-                .CustomerId = 4,
-                .Code = "CUST-004",
-                .Name = "Delta Express Mart",
-                .CreditLimit = 10000.0D,
-                .CurrentARBalance = 1200.0D
-            })
+        Public Sub LoadData()
+            Try
+                ' 1. Customers
+                Customers.Clear()
+                For Each c In _context.Customers.OrderBy(Function(x) x.Name).ToList()
+                    Customers.Add(New CustomerViewModel() With {
+                        .CustomerId = c.CustomerId,
+                        .Code = c.Code,
+                        .Name = c.Name,
+                        .CreditLimit = c.CreditLimit,
+                        .CurrentARBalance = c.CurrentARBalance
+                    })
+                Next
 
-            ' Initialize Sample Products (with inventory counts, reorder thresholds, and moving avg cost)
-            Products.Add(New ProductStockViewModel() With {
-                .ProductId = 101,
-                .SKU = "SKU-BEV-001",
-                .Name = "Arabica Reserve Whole Bean Coffee (1kg)",
-                .Category = "Beverages",
-                .UnitPrice = 24.5D,
-                .MovingAvgCost = 14.8D,
-                .QtyOnHand = 120,
-                .QtyReserved = 20,
-                .ReorderLevel = 25
-            })
-            Products.Add(New ProductStockViewModel() With {
-                .ProductId = 102,
-                .SKU = "SKU-BEV-002",
-                .Name = "Single Origin Matcha Ceremonial Grade (250g)",
-                .Category = "Beverages",
-                .UnitPrice = 38.0D,
-                .MovingAvgCost = 22.5D,
-                .QtyOnHand = 15,
-                .QtyReserved = 0,
-                .ReorderLevel = 20 ' LOW STOCK
-            })
-            Products.Add(New ProductStockViewModel() With {
-                .ProductId = 103,
-                .SKU = "SKU-SNK-001",
-                .Name = "Single Estate Dark Chocolate 72% (100g)",
-                .Category = "Confectionery",
-                .UnitPrice = 6.25D,
-                .MovingAvgCost = 3.4D,
-                .QtyOnHand = 0,
-                .QtyReserved = 0,
-                .ReorderLevel = 50 ' OUT OF STOCK (Hard-Stop demonstration)
-            })
-            Products.Add(New ProductStockViewModel() With {
-                .ProductId = 104,
-                .SKU = "SKU-BEV-003",
-                .Name = "Cold Brew Sparkling Citrus Tonic (330ml)",
-                .Category = "Beverages",
-                .UnitPrice = 3.5D,
-                .MovingAvgCost = 1.95D,
-                .QtyOnHand = 350,
-                .QtyReserved = 50,
-                .ReorderLevel = 60
-            })
-            Products.Add(New ProductStockViewModel() With {
-                .ProductId = 105,
-                .SKU = "SKU-SNK-002",
-                .Name = "Roasted Sea Salt & Truffle Cashews (500g)",
-                .Category = "Snacks",
-                .UnitPrice = 16.0D,
-                .MovingAvgCost = 9.75D,
-                .QtyOnHand = 8,
-                .QtyReserved = 0,
-                .ReorderLevel = 15 ' LOW STOCK
-            })
+                ' 2. Products
+                Products.Clear()
+                For Each p In _context.Products.Where(Function(x) x.IsActive).OrderBy(Function(x) x.SKU).ToList()
+                    Dim estPrice As Decimal = If(p.CurrentUnitCost > 0D, Math.Round(p.CurrentUnitCost * 1.6D, 2), 20.00D)
+                    Products.Add(New ProductStockViewModel() With {
+                        .ProductId = p.ProductId,
+                        .SKU = p.SKU,
+                        .Name = p.Name,
+                        .Category = If(p.SKU.Contains("BEV"), "Beverages", If(p.SKU.Contains("PKG"), "Packaging", "Snacks")),
+                        .UnitPrice = estPrice,
+                        .MovingAvgCost = p.CurrentUnitCost,
+                        .QtyOnHand = p.TotalQtyOnHand,
+                        .QtyReserved = p.AllocatedQty,
+                        .ReorderLevel = 25
+                    })
+                Next
 
-            ' Initialize Seed Sales Orders
-            Dim so1 As New SalesOrderViewModel() With {
-                .SOId = 1,
-                .DocumentNumber = "SO-2026-0001",
-                .CustomerId = 1,
-                .CustomerName = "Apex Wholesale Distributors Ltd.",
-                .OrderDate = DateTime.Today.AddDays(-2),
-                .Status = "Confirmed"
-            }
-            so1.Lines.Add(New SalesOrderLineViewModel() With {
-                .LineId = 1,
-                .ProductId = 101,
-                .SKU = "SKU-BEV-001",
-                .ProductName = "Arabica Reserve Whole Bean Coffee (1kg)",
-                .OrderedQty = 20,
-                .UnitPrice = 24.5D,
-                .MovingAvgCost = 14.8D,
-                .AvailableAtOrder = 140
-            })
-            so1.Lines.Add(New SalesOrderLineViewModel() With {
-                .LineId = 2,
-                .ProductId = 104,
-                .SKU = "SKU-BEV-003",
-                .ProductName = "Cold Brew Sparkling Citrus Tonic (330ml)",
-                .OrderedQty = 50,
-                .UnitPrice = 3.5D,
-                .MovingAvgCost = 1.95D,
-                .AvailableAtOrder = 400
-            })
-            SalesOrders.Add(so1)
+                ' 3. Sales Orders
+                SalesOrders.Clear()
+                Dim soEntities = _context.SalesOrders _
+                    .Include(Function(s) s.Customer) _
+                    .Include(Function(s) s.Lines).ThenInclude(Function(l) l.Product) _
+                    .OrderByDescending(Function(s) s.OrderDate) _
+                    .ToList()
 
-            Dim so2 As New SalesOrderViewModel() With {
-                .SOId = 2,
-                .DocumentNumber = "SO-2026-0002",
-                .CustomerId = 2,
-                .CustomerName = "Beacon Commercial Mart Chain",
-                .OrderDate = DateTime.Today.AddDays(-1),
-                .Status = "Draft"
-            }
-            so2.Lines.Add(New SalesOrderLineViewModel() With {
-                .LineId = 3,
-                .ProductId = 102,
-                .SKU = "SKU-BEV-002",
-                .ProductName = "Single Origin Matcha Ceremonial Grade (250g)",
-                .OrderedQty = 5,
-                .UnitPrice = 38.0D,
-                .MovingAvgCost = 22.5D,
-                .AvailableAtOrder = 15
-            })
-            SalesOrders.Add(so2)
+                For Each so In soEntities
+                    Dim soVm As New SalesOrderViewModel() With {
+                        .SOId = so.SOId,
+                        .DocumentNumber = so.DocumentNumber,
+                        .CustomerId = so.CustomerId,
+                        .CustomerName = If(so.Customer IsNot Nothing, so.Customer.Name, ""),
+                        .OrderDate = so.OrderDate,
+                        .Status = so.Status
+                    }
+
+                    For Each l In so.Lines
+                        soVm.Lines.Add(New SalesOrderLineViewModel() With {
+                            .LineId = l.SOLineId,
+                            .ProductId = l.ProductId,
+                            .SKU = If(l.Product IsNot Nothing, l.Product.SKU, ""),
+                            .ProductName = If(l.Product IsNot Nothing, l.Product.Name, ""),
+                            .OrderedQty = l.OrderedQty,
+                            .UnitPrice = l.UnitPrice,
+                            .MovingAvgCost = If(l.Product IsNot Nothing, l.Product.CurrentUnitCost, 0D),
+                            .AvailableAtOrder = If(l.Product IsNot Nothing, l.Product.TotalQtyOnHand, 0)
+                        })
+                    Next
+                    SalesOrders.Add(soVm)
+                Next
+
+                ' 4. Sales Invoices
+                SalesInvoices.Clear()
+                Dim invEntities = _context.SalesInvoices _
+                    .Include(Function(i) i.Customer) _
+                    .Include(Function(i) i.SalesOrder) _
+                    .Include(Function(i) i.Lines).ThenInclude(Function(l) l.Product) _
+                    .OrderByDescending(Function(i) i.PostingDate) _
+                    .ToList()
+
+                For Each inv In invEntities
+                    Dim invVm As New SalesInvoiceViewModel() With {
+                        .InvoiceId = inv.InvoiceId,
+                        .DocumentNumber = inv.DocumentNumber,
+                        .SOId = If(inv.SOId.HasValue, inv.SOId.Value, 0),
+                        .SODocumentNumber = If(inv.SalesOrder IsNot Nothing, inv.SalesOrder.DocumentNumber, ""),
+                        .CustomerId = inv.CustomerId,
+                        .CustomerName = If(inv.Customer IsNot Nothing, inv.Customer.Name, ""),
+                        .InvoiceDate = inv.InvoiceDate,
+                        .PostingDate = inv.PostingDate,
+                        .DueDate = inv.DueDate,
+                        .Status = inv.Status
+                    }
+
+                    For Each l In inv.Lines
+                        invVm.Lines.Add(New SalesInvoiceLineViewModel() With {
+                            .LineId = l.InvoiceLineId,
+                            .ProductId = l.ProductId,
+                            .SKU = If(l.Product IsNot Nothing, l.Product.SKU, ""),
+                            .ProductName = If(l.Product IsNot Nothing, l.Product.Name, ""),
+                            .FulfilledQty = l.FulfilledQty,
+                            .UnitPrice = l.UnitPrice,
+                            .COGSUnitCost = l.InvoicedCOGSUnitCost
+                        })
+                    Next
+                    SalesInvoices.Add(invVm)
+                Next
+
+            Catch ex As Exception
+                ' Gracefully handle if DB is uninitialized
+            End Try
         End Sub
 
         ''' <summary>
@@ -502,23 +465,23 @@ Namespace UI.Sales
                 result.IsPermitted = False
                 result.ShortfallQty = requestedQty - product.QtyOnHand
                 result.BadgeText = "HARD STOP: INSUFFICIENT STOCK"
-                result.BadgeColor = Color.FromArgb(220, 53, 69) ' Crimson Red
+                result.BadgeColor = Color.FromArgb(220, 53, 69)
                 result.WarningMessage = $"CRITICAL HARD-STOP: Requested {requestedQty} units, but physical on-hand stock is only {product.QtyOnHand} units. Deficit: {result.ShortfallQty} units. Negative inventory is strictly prohibited by ERP accounting controls."
             ElseIf requestedQty > product.QtyAvailable Then
                 result.IsPermitted = False
                 result.ShortfallQty = requestedQty - product.QtyAvailable
                 result.BadgeText = "STOCK RESERVED BY OTHER ORDERS"
-                result.BadgeColor = Color.FromArgb(253, 126, 20) ' Orange
+                result.BadgeColor = Color.FromArgb(253, 126, 20)
                 result.WarningMessage = $"Reservation conflict: {product.QtyReserved} units are allocated to other confirmed orders. Only {product.QtyAvailable} units currently free to promise."
             ElseIf (product.QtyAvailable - requestedQty) <= product.ReorderLevel Then
                 result.IsPermitted = True
                 result.BadgeText = "WARNING: REORDER THRESHOLD"
-                result.BadgeColor = Color.FromArgb(255, 193, 7) ' Warning Amber
+                result.BadgeColor = Color.FromArgb(255, 193, 7)
                 result.WarningMessage = $"Order acceptable, but remaining balance ({product.QtyAvailable - requestedQty} units) will drop below reorder threshold ({product.ReorderLevel} units)."
             Else
                 result.IsPermitted = True
                 result.BadgeText = "IN STOCK: READY"
-                result.BadgeColor = Color.FromArgb(40, 167, 69) ' Success Green
+                result.BadgeColor = Color.FromArgb(40, 167, 69)
                 result.WarningMessage = $"Sufficient stock verified. Available: {product.QtyAvailable} units. Order quantity: {requestedQty} units."
             End If
 
@@ -529,24 +492,18 @@ Namespace UI.Sales
         ''' Registers a new sales order commitment.
         ''' </summary>
         Public Function RegisterSalesOrder(so As SalesOrderViewModel) As SalesOrderViewModel
-            _nextSOId += 1
-            so.SOId = _nextSOId
-            If String.IsNullOrWhiteSpace(so.DocumentNumber) Then
-                so.DocumentNumber = $"SO-2026-{_nextSOId:D4}"
-            End If
+            If so Is Nothing Then Throw New ArgumentNullException(NameOf(so))
 
-            ' Reserve quantities if confirmed
-            If String.Equals(so.Status, "Confirmed", StringComparison.Ordinal) Then
-                For Each line As SalesOrderLineViewModel In so.Lines
-                    Dim prod As ProductStockViewModel = Products.FirstOrDefault(Function(p) p.ProductId = line.ProductId)
-                    If prod IsNot Nothing Then
-                        prod.QtyReserved += line.OrderedQty
-                    End If
-                Next
-            End If
+            Dim lines As New List(Of SOLine)()
+            For Each l In so.Lines
+                lines.Add(New SOLine(l.ProductId, l.OrderedQty, l.UnitPrice))
+            Next
 
-            SalesOrders.Insert(0, so)
-            Return so
+            Dim createdSO = _o2cService.CreateSalesOrder(so.CustomerId, lines, so.OrderDate, so.DocumentNumber)
+            LoadData()
+
+            Dim result = SalesOrders.FirstOrDefault(Function(s) s.SOId = createdSO.SOId)
+            Return If(result, so)
         End Function
 
         ''' <summary>
@@ -575,116 +532,79 @@ Namespace UI.Sales
                 Return outcome
             End If
 
-            ' --- STEP 1: HARD-STOP STOCK VALIDATION GATE ---
-            ' Check every line before modifying any state. Zero negative inventory rule.
+            ' Hard-stop stock pre-check
             For Each line As SalesOrderLineViewModel In so.Lines
                 Dim prod As ProductStockViewModel = Products.FirstOrDefault(Function(p) p.ProductId = line.ProductId)
-                If prod Is Nothing Then
-                    outcome.Success = False
-                    outcome.ErrorMessage = $"Product '{line.SKU}' could not be located in product master."
-                    Return outcome
-                End If
-
-                If line.OrderedQty > prod.QtyOnHand Then
+                If prod IsNot Nothing AndAlso line.OrderedQty > prod.QtyOnHand Then
                     outcome.Success = False
                     outcome.ErrorMessage = $"INSUFFICIENT STOCK HARD-STOP: Product '{prod.SKU}' ({prod.Name}) has only {prod.QtyOnHand} units on hand, but order requires {line.OrderedQty} units. Disallow negative inventory."
                     Return outcome
                 End If
             Next
 
-            ' --- STEP 2: ATOMIC INVENTORY DECREMENT & INVOICE GENERATION ---
-            _nextInvoiceId += 1
-            Dim inv As New SalesInvoiceViewModel() With {
-                .InvoiceId = _nextInvoiceId,
-                .DocumentNumber = $"INV-2026-{_nextInvoiceId:D4}",
-                .SOId = so.SOId,
-                .SODocumentNumber = so.DocumentNumber,
-                .CustomerId = so.CustomerId,
-                .CustomerName = so.CustomerName,
-                .InvoiceDate = invoiceDate,
-                .PostingDate = postingDate,
-                .DueDate = invoiceDate.AddDays(30),
-                .Status = "Posted"
-            }
+            Try
+                Dim inv = _o2cService.FulfillSalesInvoice(soId, postingDate)
+                LoadData()
 
-            Dim lineIndex As Integer = 0
-            For Each soLine As SalesOrderLineViewModel In so.Lines
-                lineIndex += 1
-                Dim prod As ProductStockViewModel = Products.First(Function(p) p.ProductId = soLine.ProductId)
-
-                ' Atomic decrement of physical stock
-                prod.QtyOnHand -= soLine.OrderedQty
-                ' Decrement reservation
-                If prod.QtyReserved >= soLine.OrderedQty Then
-                    prod.QtyReserved -= soLine.OrderedQty
-                Else
-                    prod.QtyReserved = 0
+                Dim invVm = SalesInvoices.FirstOrDefault(Function(i) i.InvoiceId = inv.InvoiceId)
+                If invVm Is Nothing Then
+                    invVm = New SalesInvoiceViewModel() With {
+                        .InvoiceId = inv.InvoiceId,
+                        .DocumentNumber = inv.DocumentNumber,
+                        .SOId = so.SOId,
+                        .SODocumentNumber = so.DocumentNumber,
+                        .CustomerId = so.CustomerId,
+                        .CustomerName = so.CustomerName,
+                        .InvoiceDate = inv.InvoiceDate,
+                        .PostingDate = inv.PostingDate,
+                        .DueDate = inv.DueDate,
+                        .Status = inv.Status
+                    }
                 End If
 
-                Dim invLine As New SalesInvoiceLineViewModel() With {
-                    .LineId = lineIndex,
-                    .ProductId = prod.ProductId,
-                    .SKU = prod.SKU,
-                    .ProductName = prod.Name,
-                    .FulfilledQty = soLine.OrderedQty,
-                    .UnitPrice = soLine.UnitPrice,
-                    .COGSUnitCost = prod.MovingAvgCost
-                }
-                inv.Lines.Add(invLine)
-            Next
+                ' Construct balanced double-entry preview
+                outcome.JournalLines.Add(New JournalEntryPreviewViewModel() With {
+                    .AccountCode = "1200",
+                    .AccountName = "Accounts Receivable",
+                    .DebitAmount = inv.TotalAmount,
+                    .CreditAmount = 0D,
+                    .Explanation = $"Customer invoice billing for {invVm.CustomerName} ({inv.DocumentNumber})"
+                })
+                outcome.JournalLines.Add(New JournalEntryPreviewViewModel() With {
+                    .AccountCode = "4000",
+                    .AccountName = "Sales Revenue",
+                    .DebitAmount = 0D,
+                    .CreditAmount = inv.TotalAmount,
+                    .Explanation = $"Revenue recognized from merchandise sales fulfillment ({so.DocumentNumber})"
+                })
+                outcome.JournalLines.Add(New JournalEntryPreviewViewModel() With {
+                    .AccountCode = "5000",
+                    .AccountName = "Cost of Goods Sold (COGS)",
+                    .DebitAmount = invVm.TotalCOGS,
+                    .CreditAmount = 0D,
+                    .Explanation = $"Moving average inventory cost recognized upon stock dispatch ({inv.DocumentNumber})"
+                })
+                outcome.JournalLines.Add(New JournalEntryPreviewViewModel() With {
+                    .AccountCode = "1300",
+                    .AccountName = "Merchandise Inventory",
+                    .DebitAmount = 0D,
+                    .CreditAmount = invVm.TotalCOGS,
+                    .Explanation = $"Relief of perpetual warehouse inventory asset balance ({so.DocumentNumber})"
+                })
 
-            ' Update Customer AR Exposure
-            Dim customer As CustomerViewModel = Customers.FirstOrDefault(Function(c) c.CustomerId = so.CustomerId)
-            If customer IsNot Nothing Then
-                customer.CurrentARBalance += inv.TotalAmount
-            End If
+                outcome.Success = True
+                outcome.Invoice = invVm
+                Return outcome
 
-            ' Mark Sales Order as Invoiced
-            so.Status = "Invoiced"
-
-            ' Record Invoice
-            SalesInvoices.Insert(0, inv)
-
-            ' --- STEP 3: CONSTRUCT BALANCED DOUBLE-ENTRY GL PREVIEW ---
-            ' Debit 1200 Accounts Receivable (Asset) = Total Sales Value
-            outcome.JournalLines.Add(New JournalEntryPreviewViewModel() With {
-                .AccountCode = "1200",
-                .AccountName = "Accounts Receivable",
-                .DebitAmount = inv.TotalAmount,
-                .CreditAmount = 0D,
-                .Explanation = $"Customer invoice billing for {inv.CustomerName} ({inv.DocumentNumber})"
-            })
-
-            ' Credit 4000 Sales Revenue (Revenue) = Total Sales Value
-            outcome.JournalLines.Add(New JournalEntryPreviewViewModel() With {
-                .AccountCode = "4000",
-                .AccountName = "Sales Revenue",
-                .DebitAmount = 0D,
-                .CreditAmount = inv.TotalAmount,
-                .Explanation = $"Revenue recognized from merchandise sales fulfillment ({inv.SODocumentNumber})"
-            })
-
-            ' Debit 5000 Cost of Goods Sold (Expense) = Perpetual COGS
-            outcome.JournalLines.Add(New JournalEntryPreviewViewModel() With {
-                .AccountCode = "5000",
-                .AccountName = "Cost of Goods Sold (COGS)",
-                .DebitAmount = inv.TotalCOGS,
-                .CreditAmount = 0D,
-                .Explanation = $"Moving average inventory cost recognized upon stock dispatch ({inv.DocumentNumber})"
-            })
-
-            ' Credit 1300 Merchandise Inventory (Asset) = Perpetual Inventory Reduction
-            outcome.JournalLines.Add(New JournalEntryPreviewViewModel() With {
-                .AccountCode = "1300",
-                .AccountName = "Merchandise Inventory",
-                .DebitAmount = 0D,
-                .CreditAmount = inv.TotalCOGS,
-                .Explanation = $"Relief of perpetual warehouse inventory asset balance ({inv.SODocumentNumber})"
-            })
-
-            outcome.Success = True
-            outcome.Invoice = inv
-            Return outcome
+            Catch ex As InsufficientStockException
+                outcome.Success = False
+                outcome.ErrorMessage = $"INSUFFICIENT STOCK HARD-STOP: {ex.Message}"
+                Return outcome
+            Catch ex As Exception
+                outcome.Success = False
+                outcome.ErrorMessage = ex.Message
+                Return outcome
+            End Try
         End Function
 
     End Class

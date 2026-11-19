@@ -3,6 +3,11 @@ Option Explicit On
 Option Compare Binary
 
 Imports System.Collections.Generic
+Imports System.Linq
+Imports Microsoft.EntityFrameworkCore
+Imports Merchandising_Accounting_App.Data
+Imports Merchandising_Accounting_App.Domain.Models
+Imports Merchandising_Accounting_App.Services
 
 Namespace UI.Purchasing
 
@@ -99,6 +104,9 @@ Namespace UI.Purchasing
 
     Public Class ThreeWayMatchModel
         Public Property MatchId As Integer
+        Public Property VendorId As Integer
+        Public Property GRNId As Integer
+        Public Property GRNLineId As Integer
         Public Property PONumber As String = String.Empty
         Public Property GRNNumber As String = String.Empty
         Public Property VendorName As String = String.Empty
@@ -201,17 +209,10 @@ Namespace UI.Purchasing
         End Property
     End Class
 
-    Public Class PurchasingMockRepository
+    Public Class PurchasingDataService
 
-        Private Shared _instance As PurchasingMockRepository
-        Public Shared ReadOnly Property Instance As PurchasingMockRepository
-            Get
-                If _instance Is Nothing Then
-                    _instance = New PurchasingMockRepository()
-                End If
-                Return _instance
-            End Get
-        End Property
+        Private ReadOnly _p2pService As ProcureToPayService
+        Private ReadOnly _context As ErpDbContext
 
         Public Property Vendors As New List(Of PurchasingVendorModel)()
         Public Property CatalogProducts As New List(Of PurchasingProductItem)()
@@ -220,209 +221,186 @@ Namespace UI.Purchasing
         Public Property ThreeWayMatches As New List(Of ThreeWayMatchModel)()
         Public Property JournalHistory As New List(Of PurchasingJournalEntry)()
 
-        Private _nextPONumber As Integer = 50
-        Private _nextBillNumber As Integer = 201
-
-        Public Sub New()
-            SeedInitialData()
+        Public Sub New(Optional p2pService As ProcureToPayService = Nothing, Optional context As ErpDbContext = Nothing)
+            _context = If(context, New ErpDbContext())
+            _p2pService = If(p2pService, New ProcureToPayService(_context))
+            LoadData()
         End Sub
 
-        Private Sub SeedInitialData()
-            ' Vendors
-            Vendors.Add(New PurchasingVendorModel() With {
-                .VendorId = 1,
-                .Code = "VEND-101",
-                .Name = "Global Bean Importers Ltd.",
-                .PaymentTermsDays = 30,
-                .CurrentPayableBalance = 15200.00D
-            })
-            Vendors.Add(New PurchasingVendorModel() With {
-                .VendorId = 2,
-                .Code = "VEND-102",
-                .Name = "EcoPackaging Supplies Co.",
-                .PaymentTermsDays = 15,
-                .CurrentPayableBalance = 3450.50D
-            })
-            Vendors.Add(New PurchasingVendorModel() With {
-                .VendorId = 3,
-                .Code = "VEND-103",
-                .Name = "Ceylon Tea Traders Inc.",
-                .PaymentTermsDays = 45,
-                .CurrentPayableBalance = 6800.00D
-            })
-            Vendors.Add(New PurchasingVendorModel() With {
-                .VendorId = 4,
-                .Code = "VEND-104",
-                .Name = "Pacific Freight & Logistics",
-                .PaymentTermsDays = 15,
-                .CurrentPayableBalance = 1250.00D
-            })
+        Public Sub LoadData()
+            Try
+                ' 1. Vendors
+                Vendors.Clear()
+                For Each v In _context.Vendors.OrderBy(Function(x) x.Name).ToList()
+                    Vendors.Add(New PurchasingVendorModel() With {
+                        .VendorId = v.VendorId,
+                        .Code = v.Code,
+                        .Name = v.Name,
+                        .PaymentTermsDays = v.PaymentTermsDays,
+                        .CurrentPayableBalance = v.CurrentPayableBalance
+                    })
+                Next
 
-            ' Products
-            CatalogProducts.Add(New PurchasingProductItem() With {
-                .ProductId = 1,
-                .SKU = "SKU-BEV-001",
-                .Name = "Artisan Colombian Coffee Beans (1kg)",
-                .StandardCost = 15.00D
-            })
-            CatalogProducts.Add(New PurchasingProductItem() With {
-                .ProductId = 2,
-                .SKU = "SKU-BEV-002",
-                .Name = "Organic Earl Grey Tea (500g)",
-                .StandardCost = 8.10D
-            })
-            CatalogProducts.Add(New PurchasingProductItem() With {
-                .ProductId = 3,
-                .SKU = "SKU-PKG-003",
-                .Name = "Biodegradable Hot Cups (Pack of 50)",
-                .StandardCost = 4.00D
-            })
-            CatalogProducts.Add(New PurchasingProductItem() With {
-                .ProductId = 4,
-                .SKU = "SKU-SNK-004",
-                .Name = "Almond Butter Crisps (12pk)",
-                .StandardCost = 6.50D
-            })
+                ' 2. Catalog Products
+                CatalogProducts.Clear()
+                For Each p In _context.Products.Where(Function(x) x.IsActive).OrderBy(Function(x) x.SKU).ToList()
+                    CatalogProducts.Add(New PurchasingProductItem() With {
+                        .ProductId = p.ProductId,
+                        .SKU = p.SKU,
+                        .Name = p.Name,
+                        .StandardCost = p.CurrentUnitCost
+                    })
+                Next
 
-            ' Purchase Orders
-            Dim po1 As New PurchasingPOModel() With {
-                .POId = 1,
-                .DocumentNumber = "PO-2026-0041",
-                .VendorId = 1,
-                .VendorName = "Global Bean Importers Ltd.",
-                .OrderDate = DateTime.Today.AddDays(-5),
-                .Status = "Partially Received"
-            }
-            po1.Lines.Add(New PurchasingPOLineModel() With {
-                .LineId = 1,
-                .ProductId = 1,
-                .SKU = "SKU-BEV-001",
-                .ProductName = "Artisan Colombian Coffee Beans (1kg)",
-                .OrderedQty = 100,
-                .UnitPrice = 15.00D
-            })
-            PurchaseOrders.Add(po1)
+                ' 3. Purchase Orders
+                PurchaseOrders.Clear()
+                Dim pos = _context.PurchaseOrders _
+                    .Include(Function(p) p.Vendor) _
+                    .Include(Function(p) p.Lines).ThenInclude(Function(l) l.Product) _
+                    .OrderByDescending(Function(p) p.OrderDate) _
+                    .ToList()
 
-            Dim po2 As New PurchasingPOModel() With {
-                .POId = 2,
-                .DocumentNumber = "PO-2026-0042",
-                .VendorId = 2,
-                .VendorName = "EcoPackaging Supplies Co.",
-                .OrderDate = DateTime.Today.AddDays(-4),
-                .Status = "Fully Received"
-            }
-            po2.Lines.Add(New PurchasingPOLineModel() With {
-                .LineId = 2,
-                .ProductId = 3,
-                .SKU = "SKU-PKG-003",
-                .ProductName = "Biodegradable Hot Cups (Pack of 50)",
-                .OrderedQty = 200,
-                .UnitPrice = 4.00D
-            })
-            PurchaseOrders.Add(po2)
+                For Each po In pos
+                    Dim poModel As New PurchasingPOModel() With {
+                        .POId = po.POId,
+                        .DocumentNumber = po.DocumentNumber,
+                        .VendorId = po.VendorId,
+                        .VendorName = If(po.Vendor IsNot Nothing, po.Vendor.Name, ""),
+                        .OrderDate = po.OrderDate,
+                        .Status = po.Status
+                    }
+                    For Each l In po.Lines
+                        poModel.Lines.Add(New PurchasingPOLineModel() With {
+                            .LineId = l.POLineId,
+                            .ProductId = l.ProductId,
+                            .SKU = If(l.Product IsNot Nothing, l.Product.SKU, ""),
+                            .ProductName = If(l.Product IsNot Nothing, l.Product.Name, ""),
+                            .OrderedQty = l.OrderedQty,
+                            .UnitPrice = l.UnitPrice
+                        })
+                    Next
+                    PurchaseOrders.Add(poModel)
+                Next
 
-            Dim po3 As New PurchasingPOModel() With {
-                .POId = 3,
-                .DocumentNumber = "PO-2026-0043",
-                .VendorId = 3,
-                .VendorName = "Ceylon Tea Traders Inc.",
-                .OrderDate = DateTime.Today.AddDays(-2),
-                .Status = "Approved"
-            }
-            po3.Lines.Add(New PurchasingPOLineModel() With {
-                .LineId = 3,
-                .ProductId = 2,
-                .SKU = "SKU-BEV-002",
-                .ProductName = "Organic Earl Grey Tea (500g)",
-                .OrderedQty = 75,
-                .UnitPrice = 8.10D
-            })
-            PurchaseOrders.Add(po3)
+                ' 4. Goods Receipt Notes
+                GoodsReceiptNotes.Clear()
+                Dim grns = _context.GoodsReceiptNotes _
+                    .Include(Function(g) g.PurchaseOrder).ThenInclude(Function(p) p.Vendor) _
+                    .Include(Function(g) g.Lines).ThenInclude(Function(l) l.Product) _
+                    .OrderByDescending(Function(g) g.ReceiptDate) _
+                    .ToList()
 
-            ' GRNs
-            GoodsReceiptNotes.Add(New PurchasingGRNModel() With {
-                .GRNId = 1,
-                .DocumentNumber = "GRN-2026-0088",
-                .PONumber = "PO-2026-0041",
-                .VendorName = "Global Bean Importers Ltd.",
-                .ReceiptDate = DateTime.Today.AddDays(-3),
-                .SKU = "SKU-BEV-001",
-                .ProductName = "Artisan Colombian Coffee Beans (1kg)",
-                .ReceivedQty = 50,
-                .POUnitPrice = 15.00D,
-                .Status = "Pending Bill"
-            })
+                For Each grn In grns
+                    For Each l In grn.Lines
+                        GoodsReceiptNotes.Add(New PurchasingGRNModel() With {
+                            .GRNId = grn.GRNId,
+                            .DocumentNumber = grn.DocumentNumber,
+                            .PONumber = If(grn.PurchaseOrder IsNot Nothing, grn.PurchaseOrder.DocumentNumber, ""),
+                            .VendorName = If(grn.PurchaseOrder IsNot Nothing AndAlso grn.PurchaseOrder.Vendor IsNot Nothing, grn.PurchaseOrder.Vendor.Name, ""),
+                            .ReceiptDate = grn.ReceiptDate,
+                            .SKU = If(l.Product IsNot Nothing, l.Product.SKU, ""),
+                            .ProductName = If(l.Product IsNot Nothing, l.Product.Name, ""),
+                            .ReceivedQty = l.ReceivedQty,
+                            .POUnitPrice = l.POUnitPrice,
+                            .Status = grn.Status
+                        })
+                    Next
+                Next
 
-            GoodsReceiptNotes.Add(New PurchasingGRNModel() With {
-                .GRNId = 2,
-                .DocumentNumber = "GRN-2026-0099",
-                .PONumber = "PO-2026-0042",
-                .VendorName = "EcoPackaging Supplies Co.",
-                .ReceiptDate = DateTime.Today.AddDays(-2),
-                .SKU = "SKU-PKG-003",
-                .ProductName = "Biodegradable Hot Cups (Pack of 50)",
-                .ReceivedQty = 200,
-                .POUnitPrice = 4.00D,
-                .Status = "Pending Bill"
-            })
+                ' 5. Three-Way Matches
+                ThreeWayMatches.Clear()
+                Dim billLines = _context.BillLines _
+                    .Include(Function(b) b.SupplierBill).ThenInclude(Function(sb) sb.Vendor) _
+                    .Include(Function(b) b.Product) _
+                    .ToList()
 
-            ' 3-Way Match Seed Items
-            ' 1. Exact Match Scenario
-            ThreeWayMatches.Add(New ThreeWayMatchModel() With {
-                .MatchId = 1,
-                .PONumber = "PO-2026-0042",
-                .GRNNumber = "GRN-2026-0099",
-                .VendorName = "EcoPackaging Supplies Co.",
-                .SKU = "SKU-PKG-003",
-                .ProductName = "Biodegradable Hot Cups (Pack of 50)",
-                .POQty = 200,
-                .POUnitPrice = 4.00D,
-                .GRNQty = 200,
-                .BillNumber = "BILL-2026-1088",
-                .BillQty = 200,
-                .BilledUnitPrice = 4.00D,
-                .InboundFreight = 0.00D,
-                .MatchStatus = "Exact Match",
-                .IsSettled = True
-            })
+                Dim grnLines = _context.GRNLines _
+                    .Include(Function(gl) gl.GoodsReceiptNote).ThenInclude(Function(g) g.PurchaseOrder).ThenInclude(Function(p) p.Vendor) _
+                    .Include(Function(gl) gl.POLine) _
+                    .Include(Function(gl) gl.Product) _
+                    .OrderBy(Function(gl) gl.GRNLineId) _
+                    .ToList()
 
-            ' 2. Price Variance (PPV Unfavorable) + Freight
-            ThreeWayMatches.Add(New ThreeWayMatchModel() With {
-                .MatchId = 2,
-                .PONumber = "PO-2026-0041",
-                .GRNNumber = "GRN-2026-0088",
-                .VendorName = "Global Bean Importers Ltd.",
-                .SKU = "SKU-BEV-001",
-                .ProductName = "Artisan Colombian Coffee Beans (1kg)",
-                .POQty = 100,
-                .POUnitPrice = 15.00D,
-                .GRNQty = 50,
-                .BillNumber = "BILL-2026-1092",
-                .BillQty = 50,
-                .BilledUnitPrice = 16.20D, ' +$1.20/unit variance
-                .InboundFreight = 45.00D,
-                .MatchStatus = "PPV Unfavorable (+$60.00)",
-                .IsSettled = False
-            })
+                Dim matchIdCounter As Integer = 1
+                For Each gl In grnLines
+                    Dim po = If(gl.GoodsReceiptNote IsNot Nothing, gl.GoodsReceiptNote.PurchaseOrder, Nothing)
+                    Dim vendor = If(po IsNot Nothing, po.Vendor, Nothing)
+                    Dim matchedBillLine = billLines.FirstOrDefault(Function(bl) bl.GRNLineId.HasValue AndAlso bl.GRNLineId.Value = gl.GRNLineId)
 
-            ' 3. Pending 3-Way Match (Ready for supplier bill entry)
-            ThreeWayMatches.Add(New ThreeWayMatchModel() With {
-                .MatchId = 3,
-                .PONumber = "PO-2026-0043",
-                .GRNNumber = "GRN-2026-0104",
-                .VendorName = "Ceylon Tea Traders Inc.",
-                .SKU = "SKU-BEV-002",
-                .ProductName = "Organic Earl Grey Tea (500g)",
-                .POQty = 75,
-                .POUnitPrice = 8.10D,
-                .GRNQty = 75,
-                .BillNumber = "",
-                .BillQty = 0,
-                .BilledUnitPrice = 0.00D,
-                .InboundFreight = 0.00D,
-                .MatchStatus = "Pending Bill",
-                .IsSettled = False
-            })
+                    Dim matchModel As New ThreeWayMatchModel() With {
+                        .MatchId = matchIdCounter,
+                        .VendorId = If(vendor IsNot Nothing, vendor.VendorId, 0),
+                        .GRNId = gl.GRNId,
+                        .GRNLineId = gl.GRNLineId,
+                        .PONumber = If(po IsNot Nothing, po.DocumentNumber, ""),
+                        .GRNNumber = If(gl.GoodsReceiptNote IsNot Nothing, gl.GoodsReceiptNote.DocumentNumber, ""),
+                        .VendorName = If(vendor IsNot Nothing, vendor.Name, ""),
+                        .SKU = If(gl.Product IsNot Nothing, gl.Product.SKU, ""),
+                        .ProductName = If(gl.Product IsNot Nothing, gl.Product.Name, ""),
+                        .POQty = If(gl.POLine IsNot Nothing, gl.POLine.OrderedQty, gl.ReceivedQty),
+                        .POUnitPrice = gl.POUnitPrice,
+                        .GRNQty = gl.ReceivedQty
+                    }
+
+                    If matchedBillLine IsNot Nothing AndAlso matchedBillLine.SupplierBill IsNot Nothing Then
+                        matchModel.BillNumber = matchedBillLine.SupplierBill.DocumentNumber
+                        matchModel.BillQty = matchedBillLine.BilledQty
+                        matchModel.BilledUnitPrice = matchedBillLine.BilledUnitPrice
+                        matchModel.InboundFreight = matchedBillLine.FreightAmount
+                        matchModel.IsSettled = True
+
+                        Dim ppv As Decimal = matchModel.PurchasePriceVariance
+                        If ppv > 0D Then
+                            matchModel.MatchStatus = $"PPV Unfavorable (+${ppv:N2})"
+                        ElseIf ppv < 0D Then
+                            matchModel.MatchStatus = $"PPV Favorable (-${Math.Abs(ppv):N2})"
+                        Else
+                            matchModel.MatchStatus = "Exact Match"
+                        End If
+                    Else
+                        matchModel.BillNumber = ""
+                        matchModel.BillQty = 0
+                        matchModel.BilledUnitPrice = 0D
+                        matchModel.InboundFreight = 0D
+                        matchModel.MatchStatus = "Pending Bill"
+                        matchModel.IsSettled = False
+                    End If
+
+                    ThreeWayMatches.Add(matchModel)
+                    matchIdCounter += 1
+                Next
+
+                ' 6. Journal History (Supplier Bills and GRNs)
+                JournalHistory.Clear()
+                Dim jeList = _context.JournalEntries _
+                    .Include(Function(j) j.Lines).ThenInclude(Function(l) l.Account) _
+                    .Where(Function(j) j.SourceDocType = "SupplierBill" OrElse j.SourceDocType = "Supplier Bill" OrElse j.SourceDocType = "GoodsReceiptNote" OrElse j.SourceDocType = "Goods Receipt Note") _
+                    .OrderByDescending(Function(j) j.PostingDate) _
+                    .ThenByDescending(Function(j) j.EntryId) _
+                    .ToList()
+
+                For Each entry In jeList
+                    Dim pje As New PurchasingJournalEntry() With {
+                        .DocumentNumber = $"{entry.SourceDocType} #{entry.SourceDocId}",
+                        .SourceDocType = "SupplierBill",
+                        .PostingDate = entry.PostingDate,
+                        .Description = entry.Description
+                    }
+                    For Each l In entry.Lines
+                        pje.Lines.Add(New PurchasingJournalLine() With {
+                            .AccountCode = If(l.Account IsNot Nothing, l.Account.Code, ""),
+                            .AccountName = If(l.Account IsNot Nothing, l.Account.Name, ""),
+                            .Debit = l.DebitAmount,
+                            .Credit = l.CreditAmount,
+                            .LineMemo = l.LineMemo
+                        })
+                    Next
+                    JournalHistory.Add(pje)
+                Next
+
+            Catch ex As Exception
+                ' Graceful handle if database not yet initialized
+            End Try
         End Sub
 
         Public Function CreatePurchaseOrder(vendor As PurchasingVendorModel, lines As List(Of PurchasingPOLineModel)) As PurchasingPOModel
@@ -431,24 +409,15 @@ Namespace UI.Purchasing
                 Throw New ArgumentException("PO must have at least one line item.")
             End If
 
-            Dim poDocNum As String = $"PO-2026-{_nextPONumber:D4}"
-            _nextPONumber += 1
-
-            Dim po As New PurchasingPOModel() With {
-                .POId = PurchaseOrders.Count + 1,
-                .DocumentNumber = poDocNum,
-                .VendorId = vendor.VendorId,
-                .VendorName = vendor.Name,
-                .OrderDate = DateTime.Today,
-                .Status = "Approved"
-            }
-
+            Dim poLines As New List(Of POLine)()
             For Each l In lines
-                po.Lines.Add(l)
+                poLines.Add(New POLine(l.ProductId, l.OrderedQty, l.UnitPrice))
             Next
 
-            PurchaseOrders.Insert(0, po)
-            Return po
+            Dim po = _p2pService.CreatePurchaseOrder(vendor.VendorId, poLines, DateTime.Today)
+            LoadData()
+
+            Return PurchaseOrders.FirstOrDefault(Function(p) p.POId = po.POId)
         End Function
 
         Public Function PostThreeWayMatch(match As ThreeWayMatchModel, billNumber As String, billQty As Integer, billedPrice As Decimal, inboundFreight As Decimal) As PurchasingJournalEntry
@@ -466,92 +435,34 @@ Namespace UI.Purchasing
                 Throw New ArgumentException("Inbound freight cannot be negative.", NameOf(inboundFreight))
             End If
 
-            match.BillNumber = billNumber.Trim()
-            match.BillQty = billQty
-            match.BilledUnitPrice = billedPrice
-            match.InboundFreight = inboundFreight
-            match.IsSettled = True
-
-            Dim ppv As Decimal = match.PurchasePriceVariance
-            If ppv > 0D Then
-                match.MatchStatus = $"PPV Unfavorable (+${ppv:N2})"
-            ElseIf ppv < 0D Then
-                match.MatchStatus = $"PPV Favorable (-${Math.Abs(ppv):N2})"
-            Else
-                match.MatchStatus = "Exact Match"
+            Dim grnLineId As Integer = match.GRNLineId
+            If grnLineId <= 0 Then
+                Dim gl = _context.GRNLines.FirstOrDefault(Function(l) l.GRNId = match.GRNId)
+                If gl IsNot Nothing Then grnLineId = gl.GRNLineId
             End If
 
-            ' 3-Way Match Balanced General Ledger Posting
-            ' 1. Clear GRNI at PO price: Debit 2100 GRNI = (BillQty * POUnitPrice)
-            ' 2. Price Variance: Debit 5100 PPV if Unfavorable, or Credit 5100 PPV if Favorable
-            ' 3. Inbound Freight: Debit 5200 Inbound Freight Variance = InboundFreight
-            ' 4. Accounts Payable: Credit 2000 Accounts Payable = (BillQty * BilledUnitPrice) + InboundFreight
-
-            Dim grniAmount As Decimal = CDec(billQty) * match.POUnitPrice
-            Dim apAmount As Decimal = (CDec(billQty) * billedPrice) + inboundFreight
-
-            Dim journal As New PurchasingJournalEntry() With {
-                .DocumentNumber = billNumber,
-                .SourceDocType = "SupplierBill",
-                .PostingDate = DateTime.Today,
-                .Description = $"3-Way Match Clearing for {match.VendorName} (PO {match.PONumber}, GRN {match.GRNNumber}, Bill {billNumber})"
+            Dim billLines As New List(Of BillLine) From {
+                New BillLine() With {
+                    .GRNLineId = grnLineId,
+                    .BilledQty = billQty,
+                    .BilledUnitPrice = billedPrice,
+                    .LineTotal = CDec(billQty) * billedPrice,
+                    .FreightAmount = inboundFreight
+                }
             }
 
-            ' 2100 GRNI Clearing
-            journal.Lines.Add(New PurchasingJournalLine() With {
-                .AccountCode = "2100",
-                .AccountName = "Goods Received Not Invoiced (GRNI)",
-                .Debit = grniAmount,
-                .Credit = 0D,
-                .LineMemo = $"Clear GRNI at PO Unit Price ${match.POUnitPrice:N2} x {billQty}"
-            })
+            Dim bill = _p2pService.MatchSupplierBill(match.VendorId, match.GRNId, billLines, billNumber.Trim(), DateTime.Today, DateTime.Today)
+            LoadData()
 
-            ' 5100 PPV (Debit if Billed > PO, Credit if Billed < PO)
-            If ppv > 0D Then
-                journal.Lines.Add(New PurchasingJournalLine() With {
-                    .AccountCode = "5100",
-                    .AccountName = "Purchase Price Variance (PPV)",
-                    .Debit = ppv,
-                    .Credit = 0D,
-                    .LineMemo = $"Unfavorable price variance on {match.SKU} (${billedPrice:N2} vs ${match.POUnitPrice:N2})"
-                })
-            ElseIf ppv < 0D Then
-                journal.Lines.Add(New PurchasingJournalLine() With {
-                    .AccountCode = "5100",
-                    .AccountName = "Purchase Price Variance (PPV)",
-                    .Debit = 0D,
-                    .Credit = Math.Abs(ppv),
-                    .LineMemo = $"Favorable price variance on {match.SKU} (${billedPrice:N2} vs ${match.POUnitPrice:N2})"
-                })
+            Dim journal = JournalHistory.FirstOrDefault()
+            If journal Is Nothing Then
+                journal = New PurchasingJournalEntry() With {
+                    .DocumentNumber = billNumber,
+                    .SourceDocType = "SupplierBill",
+                    .PostingDate = DateTime.Today,
+                    .Description = $"3-Way Match Clearing for {match.VendorName} (Bill {billNumber})"
+                }
             End If
-
-            ' 5200 Inbound Freight
-            If inboundFreight > 0D Then
-                journal.Lines.Add(New PurchasingJournalLine() With {
-                    .AccountCode = "5200",
-                    .AccountName = "Inbound Freight Variance",
-                    .Debit = inboundFreight,
-                    .Credit = 0D,
-                    .LineMemo = $"Inbound carrier freight charge on {billNumber}"
-                })
-            End If
-
-            ' 2000 Accounts Payable
-            journal.Lines.Add(New PurchasingJournalLine() With {
-                .AccountCode = "2000",
-                .AccountName = "Accounts Payable",
-                .Debit = 0D,
-                .Credit = apAmount,
-                .LineMemo = $"Supplier liability to {match.VendorName} due on Net-30"
-            })
-
-            ' Update vendor balance
-            Dim v = Vendors.Find(Function(vend) vend.Name.Equals(match.VendorName, StringComparison.OrdinalIgnoreCase))
-            If v IsNot Nothing Then
-                v.CurrentPayableBalance += apAmount
-            End If
-
-            JournalHistory.Insert(0, journal)
             Return journal
         End Function
 

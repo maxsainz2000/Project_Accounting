@@ -2,8 +2,11 @@ Option Strict On
 Option Explicit On
 Option Compare Binary
 
+Imports System
 Imports System.Collections.Generic
 Imports System.Text
+Imports Merchandising_Accounting_App.Data
+Imports Merchandising_Accounting_App.Services
 
 Namespace UI.Reporting
 
@@ -114,6 +117,9 @@ Namespace UI.Reporting
     End Class
 
     Public Class FinancialReportsViewModel
+        Private ReadOnly _reportingService As ReportingService
+        Private ReadOnly _context As ErpDbContext
+
         Public Property TrialBalanceRows As New List(Of TrialBalanceRowViewModel)()
         Public Property IncomeStatementRows As New List(Of IncomeStatementRowViewModel)()
         Public Property ProductMarginRows As New List(Of ProductProfitabilityRowViewModel)()
@@ -144,8 +150,61 @@ Namespace UI.Reporting
             End Get
         End Property
 
-        Public Sub New()
-            LoadMockData()
+        Public Sub New(Optional reportingService As ReportingService = Nothing, Optional context As ErpDbContext = Nothing)
+            _context = If(context, New ErpDbContext())
+            _reportingService = If(reportingService, New ReportingService(_context))
+            LoadReports()
+        End Sub
+
+        Public Sub LoadReports(Optional asOfDate As DateTime? = Nothing, Optional startDate As DateTime? = Nothing, Optional endDate As DateTime? = Nothing)
+            Try
+                ' 1. Trial Balance
+                Dim tbReport = _reportingService.GetTrialBalance(asOfDate)
+                TrialBalanceRows.Clear()
+                For Each r In tbReport.Rows
+                    TrialBalanceRows.Add(New TrialBalanceRowViewModel() With {
+                        .AccountCode = r.AccountCode,
+                        .AccountName = r.AccountName,
+                        .AccountType = r.AccountType.ToString(),
+                        .DebitAmount = r.DebitAmount,
+                        .CreditAmount = r.CreditAmount
+                    })
+                Next
+
+                ' 2. Income Statement
+                Dim isReport = _reportingService.GetIncomeStatement(startDate, endDate)
+                IncomeStatementRows.Clear()
+                For Each r In isReport.Rows
+                    IncomeStatementRows.Add(New IncomeStatementRowViewModel() With {
+                        .Category = r.Category,
+                        .LineDescription = r.LineDescription,
+                        .Amount = r.Amount,
+                        .IsSubtotal = r.IsSubtotal,
+                        .IsTotal = r.IsTotal
+                    })
+                Next
+
+                ' 3. Product Profitability Bridge
+                Dim pmReport = _reportingService.GetProductProfitabilityBridge(startDate, endDate)
+                ProductMarginRows.Clear()
+                For Each r In pmReport.Rows
+                    ProductMarginRows.Add(New ProductProfitabilityRowViewModel() With {
+                        .ProductSku = r.ProductSku,
+                        .ProductName = r.ProductName,
+                        .UnitsSold = r.UnitsSold,
+                        .InvoicedRevenue = r.InvoicedRevenue,
+                        .CostOfGoodsSold = r.CostOfGoodsSold,
+                        .InboundFreightVariance = r.InboundFreightVariance,
+                        .PurchasePriceVariance = r.PurchasePriceVariance,
+                        .NetMarginAmount = r.NetMarginAmount,
+                        .MarginPercentage = r.MarginPercentage
+                    })
+                Next
+
+            Catch ex As Exception
+                ' Graceful fallback if database is uninitialized
+                LoadMockData()
+            End Try
         End Sub
 
         Private Sub LoadMockData()

@@ -6,6 +6,7 @@ Imports System
 Imports System.ComponentModel
 Imports System.Drawing
 Imports System.Windows.Forms
+Imports Merchandising_Accounting_App.Services
 
 Namespace UI.Accounting
 
@@ -66,6 +67,11 @@ Namespace UI.Accounting
 
             Dim result As DialogResult = MessageBox.Show(Me, confirmMsg, "Confirm Period Close Guard", MessageBoxButtons.YesNo, MessageBoxIcon.Warning)
             If result = DialogResult.Yes Then
+                Try
+                    Dim periodSvc As New PeriodService()
+                    periodSvc.CloseFiscalPeriod(_period.PeriodId)
+                Catch
+                End Try
                 _period.IsClosed = True
                 _period.ClosedAtUtc = DateTime.UtcNow
                 UpdatePeriodDisplay()

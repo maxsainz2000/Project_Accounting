@@ -15,8 +15,34 @@ Namespace UI.Reporting
         Private Sub FinancialReportsForm_Load(sender As Object, e As EventArgs) Handles Me.Load
             If cmbPeriod.Items.Count > 0 Then
                 cmbPeriod.SelectedIndex = 0
+            Else
+                RefreshAllReports()
+            End If
+        End Sub
+
+        Private Sub RefreshAllReports()
+            Dim asOfDate As DateTime? = Nothing
+            Dim startDate As DateTime? = Nothing
+            Dim endDate As DateTime? = Nothing
+
+            If cmbPeriod.SelectedItem IsNot Nothing Then
+                Dim selectedText As String = cmbPeriod.SelectedItem.ToString()
+                If selectedText.Contains("P11") Then
+                    startDate = New DateTime(2026, 11, 1)
+                    endDate = New DateTime(2026, 11, 30, 23, 59, 59)
+                    asOfDate = endDate
+                ElseIf selectedText.Contains("P10") Then
+                    startDate = New DateTime(2026, 10, 1)
+                    endDate = New DateTime(2026, 10, 31, 23, 59, 59)
+                    asOfDate = endDate
+                ElseIf selectedText.Contains("YTD") Then
+                    startDate = New DateTime(2026, 1, 1)
+                    endDate = New DateTime(2026, 12, 31, 23, 59, 59)
+                    asOfDate = endDate
+                End If
             End If
 
+            _viewModel.LoadReports(asOfDate, startDate, endDate)
             LoadTrialBalanceGrid()
             LoadProfitLossGrid()
             LoadProductMarginsGrid()
@@ -156,9 +182,7 @@ Namespace UI.Reporting
         End Sub
 
         Private Sub cmbPeriod_SelectedIndexChanged(sender As Object, e As EventArgs) Handles cmbPeriod.SelectedIndexChanged
-            LoadTrialBalanceGrid()
-            LoadProfitLossGrid()
-            LoadProductMarginsGrid()
+            RefreshAllReports()
         End Sub
 
     End Class

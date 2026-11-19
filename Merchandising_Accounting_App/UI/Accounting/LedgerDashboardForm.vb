@@ -185,6 +185,8 @@ Namespace UI.Accounting
         End Sub
 
         Private Sub btnRefresh_Click(sender As Object, e As EventArgs) Handles btnRefresh.Click
+            _viewModel.LoadData()
+            InitializePeriodIndicator()
             RefreshAccountsGrid()
             RefreshJournalGrid()
         End Sub
@@ -193,6 +195,9 @@ Namespace UI.Accounting
             Using dlg As New FiscalPeriodForm(_viewModel.CurrentPeriod)
                 dlg.ShowDialog(Me)
             End Using
+            _viewModel.LoadData()
+            InitializePeriodIndicator()
+            RefreshJournalGrid()
         End Sub
 
         Private Sub LedgerDashboardForm_Resize(sender As Object, e As EventArgs) Handles Me.Resize

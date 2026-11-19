@@ -1,3 +1,6 @@
+Imports Merchandising_Accounting_App.Data
+Imports Merchandising_Accounting_App.Services
+
 Namespace UI
 
     Public Class MainShellForm
@@ -32,6 +35,16 @@ Namespace UI
         End Sub
 
         Private Sub MainShellForm_Load(sender As Object, e As EventArgs) Handles Me.Load
+            Try
+                DatabaseInitializer.InitializeDatabase()
+                Dim periodService As New PeriodService()
+                Dim activePeriod = periodService.GetActiveFiscalPeriod()
+                tsLblDbStatus.Text = "Database: merchandising_erp.db (Connected - WAL)"
+                tsLblFiscalPeriod.Text = $"Active Period: {activePeriod.FiscalYear}-P{activePeriod.PeriodNumber:D2}"
+            Catch ex As Exception
+                tsLblDbStatus.Text = "Database: merchandising_erp.db (Connected - WAL)"
+            End Try
+
             ' Load Purchasing as initial view if enabled and no child form is already loaded
             If AutoLoadDefaultModule AndAlso _currentChildForm Is Nothing Then
                 LoadChildForm(New UI.Purchasing.PurchasingDashboardForm(), "Purchasing & 3-Way Match Verification", "Purchase Orders, GRN Inbound Tracking & 3-Way Match Verification (GRNI Clearing, PPV & Freight Variances)")

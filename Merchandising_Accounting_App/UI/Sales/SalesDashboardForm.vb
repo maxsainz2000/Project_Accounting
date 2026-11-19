@@ -12,7 +12,7 @@ Namespace UI.Sales
 
     Public Class SalesDashboardForm
 
-        Private ReadOnly _dataService As MockSalesDataService = MockSalesDataService.Instance
+        Private ReadOnly _dataService As New SalesDataService()
         Private _currentDraftOrder As SalesOrderViewModel
         Private _selectedExistingOrder As SalesOrderViewModel
 
