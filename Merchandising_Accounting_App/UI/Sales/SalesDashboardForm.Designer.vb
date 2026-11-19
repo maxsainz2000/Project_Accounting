@@ -30,6 +30,9 @@ Namespace UI.Sales
         Friend WithEvents pnlKpiStockGuard As System.Windows.Forms.Panel
         Friend WithEvents lblKpiStockGuardValue As System.Windows.Forms.Label
         Friend WithEvents lblKpiStockGuardTitle As System.Windows.Forms.Label
+        Friend WithEvents pnlKpiLowStock As System.Windows.Forms.Panel
+        Friend WithEvents lblKpiLowStockValue As System.Windows.Forms.Label
+        Friend WithEvents lblKpiLowStockTitle As System.Windows.Forms.Label
 
         Friend WithEvents tabMain As System.Windows.Forms.TabControl
         Friend WithEvents tabOrders As System.Windows.Forms.TabPage
@@ -39,6 +42,7 @@ Namespace UI.Sales
         ' Tab 1: Sales Orders Controls
         Friend WithEvents splitOrders As System.Windows.Forms.SplitContainer
         Friend WithEvents grpCustomer As System.Windows.Forms.GroupBox
+        Friend WithEvents tblCustomerCredit As System.Windows.Forms.TableLayoutPanel
         Friend WithEvents lblCustomerPrompt As System.Windows.Forms.Label
         Friend WithEvents cmbCustomer As System.Windows.Forms.ComboBox
         Friend WithEvents lblCreditLimitTitle As System.Windows.Forms.Label
@@ -117,6 +121,9 @@ Namespace UI.Sales
             Me.pnlKpiOrders = New System.Windows.Forms.Panel()
             Me.lblKpiOrdersValue = New System.Windows.Forms.Label()
             Me.lblKpiOrdersTitle = New System.Windows.Forms.Label()
+            Me.pnlKpiLowStock = New System.Windows.Forms.Panel()
+            Me.lblKpiLowStockValue = New System.Windows.Forms.Label()
+            Me.lblKpiLowStockTitle = New System.Windows.Forms.Label()
             Me.lblHeaderSubtitle = New System.Windows.Forms.Label()
             Me.lblHeaderTitle = New System.Windows.Forms.Label()
             Me.tabMain = New System.Windows.Forms.TabControl()
@@ -142,6 +149,7 @@ Namespace UI.Sales
             Me.cmbProduct = New System.Windows.Forms.ComboBox()
             Me.lblProductPrompt = New System.Windows.Forms.Label()
             Me.grpCustomer = New System.Windows.Forms.GroupBox()
+            Me.tblCustomerCredit = New System.Windows.Forms.TableLayoutPanel()
             Me.lblCustomerBadge = New System.Windows.Forms.Label()
             Me.lblAvailCreditVal = New System.Windows.Forms.Label()
             Me.lblAvailCreditTitle = New System.Windows.Forms.Label()
@@ -187,6 +195,7 @@ Namespace UI.Sales
             Me.pnlKpiStockGuard.SuspendLayout()
             Me.pnlKpiInvoices.SuspendLayout()
             Me.pnlKpiOrders.SuspendLayout()
+            Me.pnlKpiLowStock.SuspendLayout()
             Me.tabMain.SuspendLayout()
             Me.tabOrders.SuspendLayout()
             CType(Me.splitOrders, System.ComponentModel.ISupportInitialize).BeginInit()
@@ -200,6 +209,7 @@ Namespace UI.Sales
             CType(Me.numUnitPrice, System.ComponentModel.ISupportInitialize).BeginInit()
             CType(Me.numQuantity, System.ComponentModel.ISupportInitialize).BeginInit()
             Me.grpCustomer.SuspendLayout()
+            Me.tblCustomerCredit.SuspendLayout()
             Me.grpSelectedOrderLines.SuspendLayout()
             CType(Me.dgvSelectedOrderLines, System.ComponentModel.ISupportInitialize).BeginInit()
             Me.pnlOrderActions.SuspendLayout()
@@ -242,19 +252,53 @@ Namespace UI.Sales
             Me.pnlHeader.Location = New System.Drawing.Point(0, 0)
             Me.pnlHeader.Name = "pnlHeader"
             Me.pnlHeader.Padding = New System.Windows.Forms.Padding(16, 6, 16, 6)
-            Me.pnlHeader.Size = New System.Drawing.Size(1200, 52)
+            Me.pnlHeader.Size = New System.Drawing.Size(1200, 74)
             Me.pnlHeader.TabIndex = 0
             '
             'pnlKpiContainer
             '
+            Me.pnlKpiContainer.Controls.Add(Me.pnlKpiLowStock)
             Me.pnlKpiContainer.Controls.Add(Me.pnlKpiStockGuard)
             Me.pnlKpiContainer.Controls.Add(Me.pnlKpiInvoices)
             Me.pnlKpiContainer.Controls.Add(Me.pnlKpiOrders)
             Me.pnlKpiContainer.Dock = System.Windows.Forms.DockStyle.Right
-            Me.pnlKpiContainer.Location = New System.Drawing.Point(580, 6)
+            Me.pnlKpiContainer.Location = New System.Drawing.Point(420, 6)
             Me.pnlKpiContainer.Name = "pnlKpiContainer"
-            Me.pnlKpiContainer.Size = New System.Drawing.Size(604, 40)
+            Me.pnlKpiContainer.Size = New System.Drawing.Size(770, 62)
             Me.pnlKpiContainer.TabIndex = 2
+            '
+            'pnlKpiLowStock
+            '
+            Me.pnlKpiLowStock.BackColor = System.Drawing.Color.FromArgb(CType(CType(255, Byte), Integer), CType(CType(248, Byte), Integer), CType(CType(235, Byte), Integer))
+            Me.pnlKpiLowStock.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle
+            Me.pnlKpiLowStock.Controls.Add(Me.lblKpiLowStockValue)
+            Me.pnlKpiLowStock.Controls.Add(Me.lblKpiLowStockTitle)
+            Me.pnlKpiLowStock.Location = New System.Drawing.Point(574, 1)
+            Me.pnlKpiLowStock.Name = "pnlKpiLowStock"
+            Me.pnlKpiLowStock.Size = New System.Drawing.Size(185, 60)
+            Me.pnlKpiLowStock.TabIndex = 3
+            '
+            'lblKpiLowStockValue
+            '
+            Me.lblKpiLowStockValue.Font = New System.Drawing.Font("Segoe UI", 10.5!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+            Me.lblKpiLowStockValue.ForeColor = System.Drawing.Color.FromArgb(CType(CType(217, Byte), Integer), CType(CType(119, Byte), Integer), CType(CType(6, Byte), Integer))
+            Me.lblKpiLowStockValue.Location = New System.Drawing.Point(4, 25)
+            Me.lblKpiLowStockValue.Name = "lblKpiLowStockValue"
+            Me.lblKpiLowStockValue.Size = New System.Drawing.Size(175, 30)
+            Me.lblKpiLowStockValue.TabIndex = 1
+            Me.lblKpiLowStockValue.Text = "0 Items"
+            Me.lblKpiLowStockValue.TextAlign = System.Drawing.ContentAlignment.MiddleCenter
+            '
+            'lblKpiLowStockTitle
+            '
+            Me.lblKpiLowStockTitle.Font = New System.Drawing.Font("Segoe UI", 8.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+            Me.lblKpiLowStockTitle.ForeColor = System.Drawing.Color.FromArgb(CType(CType(108, Byte), Integer), CType(CType(117, Byte), Integer), CType(CType(125, Byte), Integer))
+            Me.lblKpiLowStockTitle.Location = New System.Drawing.Point(4, 4)
+            Me.lblKpiLowStockTitle.Name = "lblKpiLowStockTitle"
+            Me.lblKpiLowStockTitle.Size = New System.Drawing.Size(175, 18)
+            Me.lblKpiLowStockTitle.TabIndex = 0
+            Me.lblKpiLowStockTitle.Text = "LOW STOCK ALERTS"
+            Me.lblKpiLowStockTitle.TextAlign = System.Drawing.ContentAlignment.MiddleCenter
             '
             'pnlKpiStockGuard
             '
@@ -262,29 +306,29 @@ Namespace UI.Sales
             Me.pnlKpiStockGuard.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle
             Me.pnlKpiStockGuard.Controls.Add(Me.lblKpiStockGuardValue)
             Me.pnlKpiStockGuard.Controls.Add(Me.lblKpiStockGuardTitle)
-            Me.pnlKpiStockGuard.Location = New System.Drawing.Point(404, 2)
+            Me.pnlKpiStockGuard.Location = New System.Drawing.Point(384, 1)
             Me.pnlKpiStockGuard.Name = "pnlKpiStockGuard"
-            Me.pnlKpiStockGuard.Size = New System.Drawing.Size(195, 56)
+            Me.pnlKpiStockGuard.Size = New System.Drawing.Size(185, 60)
             Me.pnlKpiStockGuard.TabIndex = 2
             '
             'lblKpiStockGuardValue
             '
-            Me.lblKpiStockGuardValue.Font = New System.Drawing.Font("Segoe UI Variable Text", 10.5!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point)
+            Me.lblKpiStockGuardValue.Font = New System.Drawing.Font("Segoe UI", 10.5!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
             Me.lblKpiStockGuardValue.ForeColor = System.Drawing.Color.FromArgb(CType(CType(40, Byte), Integer), CType(CType(167, Byte), Integer), CType(CType(69, Byte), Integer))
-            Me.lblKpiStockGuardValue.Location = New System.Drawing.Point(6, 26)
+            Me.lblKpiStockGuardValue.Location = New System.Drawing.Point(4, 25)
             Me.lblKpiStockGuardValue.Name = "lblKpiStockGuardValue"
-            Me.lblKpiStockGuardValue.Size = New System.Drawing.Size(181, 22)
+            Me.lblKpiStockGuardValue.Size = New System.Drawing.Size(175, 30)
             Me.lblKpiStockGuardValue.TabIndex = 1
             Me.lblKpiStockGuardValue.Text = "ENFORCING ZERO <= 0"
             Me.lblKpiStockGuardValue.TextAlign = System.Drawing.ContentAlignment.MiddleCenter
             '
             'lblKpiStockGuardTitle
             '
-            Me.lblKpiStockGuardTitle.Font = New System.Drawing.Font("Segoe UI Variable Text", 8.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point)
+            Me.lblKpiStockGuardTitle.Font = New System.Drawing.Font("Segoe UI", 8.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
             Me.lblKpiStockGuardTitle.ForeColor = System.Drawing.Color.FromArgb(CType(CType(108, Byte), Integer), CType(CType(117, Byte), Integer), CType(CType(125, Byte), Integer))
-            Me.lblKpiStockGuardTitle.Location = New System.Drawing.Point(6, 4)
+            Me.lblKpiStockGuardTitle.Location = New System.Drawing.Point(4, 4)
             Me.lblKpiStockGuardTitle.Name = "lblKpiStockGuardTitle"
-            Me.lblKpiStockGuardTitle.Size = New System.Drawing.Size(181, 18)
+            Me.lblKpiStockGuardTitle.Size = New System.Drawing.Size(175, 18)
             Me.lblKpiStockGuardTitle.TabIndex = 0
             Me.lblKpiStockGuardTitle.Text = "STOCK GUARD INVARIANT"
             Me.lblKpiStockGuardTitle.TextAlign = System.Drawing.ContentAlignment.MiddleCenter
@@ -295,29 +339,29 @@ Namespace UI.Sales
             Me.pnlKpiInvoices.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle
             Me.pnlKpiInvoices.Controls.Add(Me.lblKpiInvoicesValue)
             Me.pnlKpiInvoices.Controls.Add(Me.lblKpiInvoicesTitle)
-            Me.pnlKpiInvoices.Location = New System.Drawing.Point(204, 2)
+            Me.pnlKpiInvoices.Location = New System.Drawing.Point(194, 1)
             Me.pnlKpiInvoices.Name = "pnlKpiInvoices"
-            Me.pnlKpiInvoices.Size = New System.Drawing.Size(195, 56)
+            Me.pnlKpiInvoices.Size = New System.Drawing.Size(185, 60)
             Me.pnlKpiInvoices.TabIndex = 1
             '
             'lblKpiInvoicesValue
             '
-            Me.lblKpiInvoicesValue.Font = New System.Drawing.Font("Segoe UI Variable Text", 11.0!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point)
+            Me.lblKpiInvoicesValue.Font = New System.Drawing.Font("Segoe UI", 11.0!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
             Me.lblKpiInvoicesValue.ForeColor = System.Drawing.Color.FromArgb(CType(CType(13, Byte), Integer), CType(CType(110, Byte), Integer), CType(CType(253, Byte), Integer))
-            Me.lblKpiInvoicesValue.Location = New System.Drawing.Point(6, 26)
+            Me.lblKpiInvoicesValue.Location = New System.Drawing.Point(4, 25)
             Me.lblKpiInvoicesValue.Name = "lblKpiInvoicesValue"
-            Me.lblKpiInvoicesValue.Size = New System.Drawing.Size(181, 22)
+            Me.lblKpiInvoicesValue.Size = New System.Drawing.Size(175, 30)
             Me.lblKpiInvoicesValue.TabIndex = 1
             Me.lblKpiInvoicesValue.Text = "$0.00"
             Me.lblKpiInvoicesValue.TextAlign = System.Drawing.ContentAlignment.MiddleCenter
             '
             'lblKpiInvoicesTitle
             '
-            Me.lblKpiInvoicesTitle.Font = New System.Drawing.Font("Segoe UI Variable Text", 8.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point)
+            Me.lblKpiInvoicesTitle.Font = New System.Drawing.Font("Segoe UI", 8.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
             Me.lblKpiInvoicesTitle.ForeColor = System.Drawing.Color.FromArgb(CType(CType(108, Byte), Integer), CType(CType(117, Byte), Integer), CType(CType(125, Byte), Integer))
-            Me.lblKpiInvoicesTitle.Location = New System.Drawing.Point(6, 4)
+            Me.lblKpiInvoicesTitle.Location = New System.Drawing.Point(4, 4)
             Me.lblKpiInvoicesTitle.Name = "lblKpiInvoicesTitle"
-            Me.lblKpiInvoicesTitle.Size = New System.Drawing.Size(181, 18)
+            Me.lblKpiInvoicesTitle.Size = New System.Drawing.Size(175, 18)
             Me.lblKpiInvoicesTitle.TabIndex = 0
             Me.lblKpiInvoicesTitle.Text = "POSTED INVOICES MTD"
             Me.lblKpiInvoicesTitle.TextAlign = System.Drawing.ContentAlignment.MiddleCenter
@@ -328,29 +372,29 @@ Namespace UI.Sales
             Me.pnlKpiOrders.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle
             Me.pnlKpiOrders.Controls.Add(Me.lblKpiOrdersValue)
             Me.pnlKpiOrders.Controls.Add(Me.lblKpiOrdersTitle)
-            Me.pnlKpiOrders.Location = New System.Drawing.Point(4, 2)
+            Me.pnlKpiOrders.Location = New System.Drawing.Point(4, 1)
             Me.pnlKpiOrders.Name = "pnlKpiOrders"
-            Me.pnlKpiOrders.Size = New System.Drawing.Size(195, 56)
+            Me.pnlKpiOrders.Size = New System.Drawing.Size(185, 60)
             Me.pnlKpiOrders.TabIndex = 0
             '
             'lblKpiOrdersValue
             '
-            Me.lblKpiOrdersValue.Font = New System.Drawing.Font("Segoe UI Variable Text", 11.0!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point)
+            Me.lblKpiOrdersValue.Font = New System.Drawing.Font("Segoe UI", 10.5!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
             Me.lblKpiOrdersValue.ForeColor = System.Drawing.Color.FromArgb(CType(CType(33, Byte), Integer), CType(CType(37, Byte), Integer), CType(CType(41, Byte), Integer))
-            Me.lblKpiOrdersValue.Location = New System.Drawing.Point(6, 26)
+            Me.lblKpiOrdersValue.Location = New System.Drawing.Point(4, 25)
             Me.lblKpiOrdersValue.Name = "lblKpiOrdersValue"
-            Me.lblKpiOrdersValue.Size = New System.Drawing.Size(181, 22)
+            Me.lblKpiOrdersValue.Size = New System.Drawing.Size(175, 30)
             Me.lblKpiOrdersValue.TabIndex = 1
             Me.lblKpiOrdersValue.Text = "2 Orders ($665.00)"
             Me.lblKpiOrdersValue.TextAlign = System.Drawing.ContentAlignment.MiddleCenter
             '
             'lblKpiOrdersTitle
             '
-            Me.lblKpiOrdersTitle.Font = New System.Drawing.Font("Segoe UI Variable Text", 8.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point)
+            Me.lblKpiOrdersTitle.Font = New System.Drawing.Font("Segoe UI", 8.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
             Me.lblKpiOrdersTitle.ForeColor = System.Drawing.Color.FromArgb(CType(CType(108, Byte), Integer), CType(CType(117, Byte), Integer), CType(CType(125, Byte), Integer))
-            Me.lblKpiOrdersTitle.Location = New System.Drawing.Point(6, 4)
+            Me.lblKpiOrdersTitle.Location = New System.Drawing.Point(4, 4)
             Me.lblKpiOrdersTitle.Name = "lblKpiOrdersTitle"
-            Me.lblKpiOrdersTitle.Size = New System.Drawing.Size(181, 18)
+            Me.lblKpiOrdersTitle.Size = New System.Drawing.Size(175, 18)
             Me.lblKpiOrdersTitle.TabIndex = 0
             Me.lblKpiOrdersTitle.Text = "ACTIVE SALES ORDERS"
             Me.lblKpiOrdersTitle.TextAlign = System.Drawing.ContentAlignment.MiddleCenter
@@ -369,7 +413,6 @@ Namespace UI.Sales
             Me.tabMain.Controls.Add(Me.tabInvoices)
             Me.tabMain.Controls.Add(Me.tabStockMonitor)
             Me.tabMain.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.tabMain.Font = New System.Drawing.Font("Segoe UI Variable Text", 9.5!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point)
             Me.tabMain.Location = New System.Drawing.Point(0, 52)
             Me.tabMain.Name = "tabMain"
             Me.tabMain.SelectedIndex = 0
@@ -390,24 +433,26 @@ Namespace UI.Sales
             'splitOrders
             '
             Me.splitOrders.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.splitOrders.FixedPanel = System.Windows.Forms.FixedPanel.Panel1
+            Me.splitOrders.FixedPanel = System.Windows.Forms.FixedPanel.None
             Me.splitOrders.Location = New System.Drawing.Point(8, 8)
             Me.splitOrders.Name = "splitOrders"
             '
             'splitOrders.Panel1
             '
+            Me.splitOrders.Panel1.AutoScroll = True
             Me.splitOrders.Panel1.Controls.Add(Me.grpOrderLines)
             Me.splitOrders.Panel1.Controls.Add(Me.grpAddItem)
             Me.splitOrders.Panel1.Controls.Add(Me.grpCustomer)
-            Me.splitOrders.Panel1MinSize = 480
+            Me.splitOrders.Panel1MinSize = 540
             '
             'splitOrders.Panel2
             '
             Me.splitOrders.Panel2.Controls.Add(Me.grpSelectedOrderLines)
             Me.splitOrders.Panel2.Controls.Add(Me.pnlOrderActions)
             Me.splitOrders.Panel2.Controls.Add(Me.grpExistingOrders)
+            Me.splitOrders.Panel2MinSize = 400
             Me.splitOrders.Size = New System.Drawing.Size(1176, 589)
-            Me.splitOrders.SplitterDistance = 530
+            Me.splitOrders.SplitterDistance = 560
             Me.splitOrders.TabIndex = 0
             '
             'grpOrderLines
@@ -458,7 +503,7 @@ Namespace UI.Sales
             '
             Me.btnConfirmOrder.BackColor = System.Drawing.Color.FromArgb(CType(CType(40, Byte), Integer), CType(CType(167, Byte), Integer), CType(CType(69, Byte), Integer))
             Me.btnConfirmOrder.FlatStyle = System.Windows.Forms.FlatStyle.Flat
-            Me.btnConfirmOrder.Font = New System.Drawing.Font("Segoe UI Variable Text", 9.5!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point)
+            Me.btnConfirmOrder.Font = New System.Drawing.Font("Segoe UI", 9.5!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
             Me.btnConfirmOrder.ForeColor = System.Drawing.Color.White
             Me.btnConfirmOrder.Location = New System.Drawing.Point(368, 40)
             Me.btnConfirmOrder.Name = "btnConfirmOrder"
@@ -471,7 +516,6 @@ Namespace UI.Sales
             '
             Me.btnSaveOrderDraft.BackColor = System.Drawing.Color.FromArgb(CType(CType(108, Byte), Integer), CType(CType(117, Byte), Integer), CType(CType(125, Byte), Integer))
             Me.btnSaveOrderDraft.FlatStyle = System.Windows.Forms.FlatStyle.Flat
-            Me.btnSaveOrderDraft.Font = New System.Drawing.Font("Segoe UI Variable Text", 9.5!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point)
             Me.btnSaveOrderDraft.ForeColor = System.Drawing.Color.White
             Me.btnSaveOrderDraft.Location = New System.Drawing.Point(232, 40)
             Me.btnSaveOrderDraft.Name = "btnSaveOrderDraft"
@@ -500,7 +544,7 @@ Namespace UI.Sales
             '
             'lblOrderTotalDisplay
             '
-            Me.lblOrderTotalDisplay.Font = New System.Drawing.Font("Segoe UI Variable Text", 11.5!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point)
+            Me.lblOrderTotalDisplay.Font = New System.Drawing.Font("Segoe UI", 11.5!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
             Me.lblOrderTotalDisplay.ForeColor = System.Drawing.Color.FromArgb(CType(CType(33, Byte), Integer), CType(CType(37, Byte), Integer), CType(CType(41, Byte), Integer))
             Me.lblOrderTotalDisplay.Location = New System.Drawing.Point(8, 8)
             Me.lblOrderTotalDisplay.Name = "lblOrderTotalDisplay"
@@ -525,74 +569,79 @@ Namespace UI.Sales
             Me.grpAddItem.Location = New System.Drawing.Point(0, 126)
             Me.grpAddItem.Name = "grpAddItem"
             Me.grpAddItem.Padding = New System.Windows.Forms.Padding(12, 24, 12, 8)
-            Me.grpAddItem.Size = New System.Drawing.Size(530, 212)
+            Me.grpAddItem.Size = New System.Drawing.Size(530, 218)
             Me.grpAddItem.TabIndex = 1
             Me.grpAddItem.TabStop = False
             Me.grpAddItem.Text = "2. Add Line Item & Real-Time Stock Check"
             '
             'lblStockWarningNotice
             '
+            Me.lblStockWarningNotice.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left) Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
             Me.lblStockWarningNotice.BackColor = System.Drawing.Color.FromArgb(CType(CType(255, Byte), Integer), CType(CType(243, Byte), Integer), CType(CType(205, Byte), Integer))
             Me.lblStockWarningNotice.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle
-            Me.lblStockWarningNotice.Font = New System.Drawing.Font("Segoe UI Variable Text", 8.5!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point)
+            Me.lblStockWarningNotice.Font = New System.Drawing.Font("Segoe UI", 8.5!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
             Me.lblStockWarningNotice.ForeColor = System.Drawing.Color.FromArgb(CType(CType(133, Byte), Integer), CType(CType(100, Byte), Integer), CType(CType(4, Byte), Integer))
-            Me.lblStockWarningNotice.Location = New System.Drawing.Point(12, 158)
+            Me.lblStockWarningNotice.Location = New System.Drawing.Point(12, 156)
             Me.lblStockWarningNotice.Name = "lblStockWarningNotice"
             Me.lblStockWarningNotice.Padding = New System.Windows.Forms.Padding(4)
-            Me.lblStockWarningNotice.Size = New System.Drawing.Size(506, 44)
+            Me.lblStockWarningNotice.Size = New System.Drawing.Size(506, 52)
             Me.lblStockWarningNotice.TabIndex = 9
             Me.lblStockWarningNotice.Text = "Stock guard status message"
             '
             'btnAddLineItem
             '
+            Me.btnAddLineItem.Anchor = CType((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
             Me.btnAddLineItem.BackColor = System.Drawing.Color.FromArgb(CType(CType(13, Byte), Integer), CType(CType(110, Byte), Integer), CType(CType(253, Byte), Integer))
             Me.btnAddLineItem.FlatStyle = System.Windows.Forms.FlatStyle.Flat
-            Me.btnAddLineItem.Font = New System.Drawing.Font("Segoe UI Variable Text", 9.5!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point)
+            Me.btnAddLineItem.Font = New System.Drawing.Font("Segoe UI", 9.5!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
             Me.btnAddLineItem.ForeColor = System.Drawing.Color.White
-            Me.btnAddLineItem.Location = New System.Drawing.Point(366, 110)
+            Me.btnAddLineItem.Location = New System.Drawing.Point(315, 112)
             Me.btnAddLineItem.Name = "btnAddLineItem"
-            Me.btnAddLineItem.Size = New System.Drawing.Size(152, 42)
+            Me.btnAddLineItem.Size = New System.Drawing.Size(203, 36)
             Me.btnAddLineItem.TabIndex = 8
             Me.btnAddLineItem.Text = "+ Add Line"
             Me.btnAddLineItem.UseVisualStyleBackColor = False
             '
             'lblStockBadgeItem
             '
+            Me.lblStockBadgeItem.Anchor = CType((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
+            Me.lblStockBadgeItem.AutoSize = True
             Me.lblStockBadgeItem.BackColor = System.Drawing.Color.FromArgb(CType(CType(40, Byte), Integer), CType(CType(167, Byte), Integer), CType(CType(69, Byte), Integer))
-            Me.lblStockBadgeItem.Font = New System.Drawing.Font("Segoe UI Variable Text", 8.5!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point)
+            Me.lblStockBadgeItem.Font = New System.Drawing.Font("Segoe UI", 8.0!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
             Me.lblStockBadgeItem.ForeColor = System.Drawing.Color.White
-            Me.lblStockBadgeItem.Location = New System.Drawing.Point(366, 74)
+            Me.lblStockBadgeItem.Location = New System.Drawing.Point(360, 72)
             Me.lblStockBadgeItem.Name = "lblStockBadgeItem"
-            Me.lblStockBadgeItem.Size = New System.Drawing.Size(152, 24)
+            Me.lblStockBadgeItem.Padding = New System.Windows.Forms.Padding(6, 3, 6, 3)
+            Me.lblStockBadgeItem.Size = New System.Drawing.Size(70, 20)
             Me.lblStockBadgeItem.TabIndex = 7
             Me.lblStockBadgeItem.Text = "IN STOCK"
             Me.lblStockBadgeItem.TextAlign = System.Drawing.ContentAlignment.MiddleCenter
+            Me.lblStockBadgeItem.UseMnemonic = False
             '
             'lblItemStockInfo
             '
             Me.lblItemStockInfo.AutoSize = True
-            Me.lblItemStockInfo.Font = New System.Drawing.Font("Segoe UI Variable Text", 8.5!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point)
             Me.lblItemStockInfo.ForeColor = System.Drawing.Color.FromArgb(CType(CType(108, Byte), Integer), CType(CType(117, Byte), Integer), CType(CType(125, Byte), Integer))
-            Me.lblItemStockInfo.Location = New System.Drawing.Point(12, 78)
+            Me.lblItemStockInfo.Location = New System.Drawing.Point(12, 76)
             Me.lblItemStockInfo.Name = "lblItemStockInfo"
-            Me.lblItemStockInfo.Size = New System.Drawing.Size(262, 15)
+            Me.lblItemStockInfo.Size = New System.Drawing.Size(248, 17)
             Me.lblItemStockInfo.TabIndex = 6
-            Me.lblItemStockInfo.Text = "On Hand: 0  |  Reserved: 0  |  Free to Promise: 0"
+            Me.lblItemStockInfo.Text = "On Hand: 0 | Reserved: 0 | Free to Promise: 0"
             '
             'numUnitPrice
             '
             Me.numUnitPrice.DecimalPlaces = 2
-            Me.numUnitPrice.Location = New System.Drawing.Point(180, 124)
+            Me.numUnitPrice.Location = New System.Drawing.Point(180, 122)
             Me.numUnitPrice.Maximum = New Decimal(New Integer() {100000, 0, 0, 0})
             Me.numUnitPrice.Name = "numUnitPrice"
-            Me.numUnitPrice.Size = New System.Drawing.Size(140, 24)
+            Me.numUnitPrice.Size = New System.Drawing.Size(120, 26)
             Me.numUnitPrice.TabIndex = 5
             Me.numUnitPrice.ThousandsSeparator = True
             '
             'lblPricePrompt
             '
             Me.lblPricePrompt.AutoSize = True
-            Me.lblPricePrompt.Location = New System.Drawing.Point(180, 104)
+            Me.lblPricePrompt.Location = New System.Drawing.Point(180, 102)
             Me.lblPricePrompt.Name = "lblPricePrompt"
             Me.lblPricePrompt.Size = New System.Drawing.Size(92, 17)
             Me.lblPricePrompt.TabIndex = 4
@@ -600,18 +649,18 @@ Namespace UI.Sales
             '
             'numQuantity
             '
-            Me.numQuantity.Location = New System.Drawing.Point(12, 124)
+            Me.numQuantity.Location = New System.Drawing.Point(12, 122)
             Me.numQuantity.Maximum = New Decimal(New Integer() {100000, 0, 0, 0})
             Me.numQuantity.Minimum = New Decimal(New Integer() {1, 0, 0, 0})
             Me.numQuantity.Name = "numQuantity"
-            Me.numQuantity.Size = New System.Drawing.Size(140, 24)
+            Me.numQuantity.Size = New System.Drawing.Size(140, 26)
             Me.numQuantity.TabIndex = 3
             Me.numQuantity.Value = New Decimal(New Integer() {1, 0, 0, 0})
             '
             'lblQtyPrompt
             '
             Me.lblQtyPrompt.AutoSize = True
-            Me.lblQtyPrompt.Location = New System.Drawing.Point(12, 104)
+            Me.lblQtyPrompt.Location = New System.Drawing.Point(12, 102)
             Me.lblQtyPrompt.Name = "lblQtyPrompt"
             Me.lblQtyPrompt.Size = New System.Drawing.Size(107, 17)
             Me.lblQtyPrompt.TabIndex = 2
@@ -619,6 +668,7 @@ Namespace UI.Sales
             '
             'cmbProduct
             '
+            Me.cmbProduct.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left) Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
             Me.cmbProduct.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList
             Me.cmbProduct.FormattingEnabled = True
             Me.cmbProduct.Location = New System.Drawing.Point(12, 44)
@@ -634,110 +684,148 @@ Namespace UI.Sales
             Me.lblProductPrompt.Size = New System.Drawing.Size(130, 17)
             Me.lblProductPrompt.TabIndex = 0
             Me.lblProductPrompt.Text = "Select Product / SKU:"
-            Me.lblProductPrompt.Name = "lblProductPrompt"
-            Me.lblProductPrompt.Size = New System.Drawing.Size(130, 17)
-            Me.lblProductPrompt.TabIndex = 0
-            Me.lblProductPrompt.Text = "Select Product / SKU:"
             '
             'grpCustomer
             '
-            Me.grpCustomer.Controls.Add(Me.lblCustomerBadge)
-            Me.grpCustomer.Controls.Add(Me.lblAvailCreditVal)
-            Me.grpCustomer.Controls.Add(Me.lblAvailCreditTitle)
-            Me.grpCustomer.Controls.Add(Me.lblCurrentARVal)
-            Me.grpCustomer.Controls.Add(Me.lblCurrentARTitle)
-            Me.grpCustomer.Controls.Add(Me.lblCreditLimitVal)
-            Me.grpCustomer.Controls.Add(Me.lblCreditLimitTitle)
+            Me.grpCustomer.Controls.Add(Me.tblCustomerCredit)
             Me.grpCustomer.Controls.Add(Me.cmbCustomer)
             Me.grpCustomer.Controls.Add(Me.lblCustomerPrompt)
             Me.grpCustomer.Dock = System.Windows.Forms.DockStyle.Top
             Me.grpCustomer.Location = New System.Drawing.Point(0, 0)
             Me.grpCustomer.Name = "grpCustomer"
             Me.grpCustomer.Padding = New System.Windows.Forms.Padding(12, 24, 12, 8)
-            Me.grpCustomer.Size = New System.Drawing.Size(530, 126)
+            Me.grpCustomer.Size = New System.Drawing.Size(530, 135)
             Me.grpCustomer.TabIndex = 0
             Me.grpCustomer.TabStop = False
             Me.grpCustomer.Text = "1. Customer Selection & AR Credit Status"
             '
+            'tblCustomerCredit
+            '
+            Me.tblCustomerCredit.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left) _
+            Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
+            Me.tblCustomerCredit.ColumnCount = 4
+            Me.tblCustomerCredit.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 26.0!))
+            Me.tblCustomerCredit.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 26.0!))
+            Me.tblCustomerCredit.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 26.0!))
+            Me.tblCustomerCredit.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 22.0!))
+            Me.tblCustomerCredit.Controls.Add(Me.lblCreditLimitTitle, 0, 0)
+            Me.tblCustomerCredit.Controls.Add(Me.lblCreditLimitVal, 0, 1)
+            Me.tblCustomerCredit.Controls.Add(Me.lblCurrentARTitle, 1, 0)
+            Me.tblCustomerCredit.Controls.Add(Me.lblCurrentARVal, 1, 1)
+            Me.tblCustomerCredit.Controls.Add(Me.lblAvailCreditTitle, 2, 0)
+            Me.tblCustomerCredit.Controls.Add(Me.lblAvailCreditVal, 2, 1)
+            Me.tblCustomerCredit.Controls.Add(Me.lblCustomerBadge, 3, 0)
+            Me.tblCustomerCredit.Location = New System.Drawing.Point(12, 75)
+            Me.tblCustomerCredit.Name = "tblCustomerCredit"
+            Me.tblCustomerCredit.RowCount = 2
+            Me.tblCustomerCredit.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20.0!))
+            Me.tblCustomerCredit.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 28.0!))
+            Me.tblCustomerCredit.SetRowSpan(Me.lblCustomerBadge, 2)
+            Me.tblCustomerCredit.Size = New System.Drawing.Size(506, 48)
+            Me.tblCustomerCredit.TabIndex = 2
+            '
             'lblCustomerBadge
             '
             Me.lblCustomerBadge.BackColor = System.Drawing.Color.FromArgb(CType(CType(40, Byte), Integer), CType(CType(167, Byte), Integer), CType(CType(69, Byte), Integer))
-            Me.lblCustomerBadge.Font = New System.Drawing.Font("Segoe UI Variable Text", 8.0!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point)
+            Me.lblCustomerBadge.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.lblCustomerBadge.Font = New System.Drawing.Font("Segoe UI", 8.0!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
             Me.lblCustomerBadge.ForeColor = System.Drawing.Color.White
-            Me.lblCustomerBadge.Location = New System.Drawing.Point(366, 84)
+            Me.lblCustomerBadge.Location = New System.Drawing.Point(397, 0)
+            Me.lblCustomerBadge.Margin = New System.Windows.Forms.Padding(3, 4, 3, 4)
             Me.lblCustomerBadge.Name = "lblCustomerBadge"
-            Me.lblCustomerBadge.Size = New System.Drawing.Size(152, 26)
-            Me.lblCustomerBadge.TabIndex = 8
+            Me.lblCustomerBadge.Size = New System.Drawing.Size(106, 40)
+            Me.lblCustomerBadge.TabIndex = 6
             Me.lblCustomerBadge.Text = "CREDIT APPROVED"
             Me.lblCustomerBadge.TextAlign = System.Drawing.ContentAlignment.MiddleCenter
+            Me.lblCustomerBadge.UseMnemonic = False
             '
             'lblAvailCreditVal
             '
-            Me.lblAvailCreditVal.AutoSize = True
-            Me.lblAvailCreditVal.Font = New System.Drawing.Font("Segoe UI Variable Text", 9.0!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point)
+            Me.lblAvailCreditVal.AutoEllipsis = True
+            Me.lblAvailCreditVal.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.lblAvailCreditVal.Font = New System.Drawing.Font("Segoe UI", 9.0!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
             Me.lblAvailCreditVal.ForeColor = System.Drawing.Color.FromArgb(CType(CType(40, Byte), Integer), CType(CType(167, Byte), Integer), CType(CType(69, Byte), Integer))
-            Me.lblAvailCreditVal.Location = New System.Drawing.Point(250, 94)
+            Me.lblAvailCreditVal.Location = New System.Drawing.Point(265, 20)
+            Me.lblAvailCreditVal.Margin = New System.Windows.Forms.Padding(3, 0, 3, 0)
             Me.lblAvailCreditVal.Name = "lblAvailCreditVal"
-            Me.lblAvailCreditVal.Size = New System.Drawing.Size(38, 16)
-            Me.lblAvailCreditVal.TabIndex = 7
+            Me.lblAvailCreditVal.Size = New System.Drawing.Size(126, 28)
+            Me.lblAvailCreditVal.TabIndex = 5
             Me.lblAvailCreditVal.Text = "$0.00"
+            Me.lblAvailCreditVal.TextAlign = System.Drawing.ContentAlignment.MiddleLeft
             '
             'lblAvailCreditTitle
             '
-            Me.lblAvailCreditTitle.AutoSize = True
-            Me.lblAvailCreditTitle.Font = New System.Drawing.Font("Segoe UI Variable Text", 8.5!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point)
+            Me.lblAvailCreditTitle.AutoEllipsis = True
+            Me.lblAvailCreditTitle.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.lblAvailCreditTitle.Font = New System.Drawing.Font("Segoe UI", 8.5!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
             Me.lblAvailCreditTitle.ForeColor = System.Drawing.Color.FromArgb(CType(CType(108, Byte), Integer), CType(CType(117, Byte), Integer), CType(CType(125, Byte), Integer))
-            Me.lblAvailCreditTitle.Location = New System.Drawing.Point(250, 74)
+            Me.lblAvailCreditTitle.Location = New System.Drawing.Point(265, 0)
+            Me.lblAvailCreditTitle.Margin = New System.Windows.Forms.Padding(3, 0, 3, 0)
             Me.lblAvailCreditTitle.Name = "lblAvailCreditTitle"
-            Me.lblAvailCreditTitle.Size = New System.Drawing.Size(73, 15)
-            Me.lblAvailCreditTitle.TabIndex = 6
+            Me.lblAvailCreditTitle.Size = New System.Drawing.Size(126, 20)
+            Me.lblAvailCreditTitle.TabIndex = 2
             Me.lblAvailCreditTitle.Text = "Avail. Credit:"
+            Me.lblAvailCreditTitle.TextAlign = System.Drawing.ContentAlignment.BottomLeft
             '
             'lblCurrentARVal
             '
-            Me.lblCurrentARVal.AutoSize = True
-            Me.lblCurrentARVal.Font = New System.Drawing.Font("Segoe UI Variable Text", 9.0!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point)
+            Me.lblCurrentARVal.AutoEllipsis = True
+            Me.lblCurrentARVal.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.lblCurrentARVal.Font = New System.Drawing.Font("Segoe UI", 9.0!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
             Me.lblCurrentARVal.ForeColor = System.Drawing.Color.FromArgb(CType(CType(220, Byte), Integer), CType(CType(53, Byte), Integer), CType(CType(69, Byte), Integer))
-            Me.lblCurrentARVal.Location = New System.Drawing.Point(130, 94)
+            Me.lblCurrentARVal.Location = New System.Drawing.Point(134, 20)
+            Me.lblCurrentARVal.Margin = New System.Windows.Forms.Padding(3, 0, 3, 0)
             Me.lblCurrentARVal.Name = "lblCurrentARVal"
-            Me.lblCurrentARVal.Size = New System.Drawing.Size(38, 16)
-            Me.lblCurrentARVal.TabIndex = 5
+            Me.lblCurrentARVal.Size = New System.Drawing.Size(125, 28)
+            Me.lblCurrentARVal.TabIndex = 4
             Me.lblCurrentARVal.Text = "$0.00"
+            Me.lblCurrentARVal.TextAlign = System.Drawing.ContentAlignment.MiddleLeft
             '
             'lblCurrentARTitle
             '
-            Me.lblCurrentARTitle.AutoSize = True
-            Me.lblCurrentARTitle.Font = New System.Drawing.Font("Segoe UI Variable Text", 8.5!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point)
+            Me.lblCurrentARTitle.AutoEllipsis = True
+            Me.lblCurrentARTitle.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.lblCurrentARTitle.Font = New System.Drawing.Font("Segoe UI", 8.5!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
             Me.lblCurrentARTitle.ForeColor = System.Drawing.Color.FromArgb(CType(CType(108, Byte), Integer), CType(CType(117, Byte), Integer), CType(CType(125, Byte), Integer))
-            Me.lblCurrentARTitle.Location = New System.Drawing.Point(130, 74)
+            Me.lblCurrentARTitle.Location = New System.Drawing.Point(134, 0)
+            Me.lblCurrentARTitle.Margin = New System.Windows.Forms.Padding(3, 0, 3, 0)
             Me.lblCurrentARTitle.Name = "lblCurrentARTitle"
-            Me.lblCurrentARTitle.Size = New System.Drawing.Size(70, 15)
-            Me.lblCurrentARTitle.TabIndex = 4
+            Me.lblCurrentARTitle.Size = New System.Drawing.Size(125, 20)
+            Me.lblCurrentARTitle.TabIndex = 1
             Me.lblCurrentARTitle.Text = "Current AR:"
+            Me.lblCurrentARTitle.TextAlign = System.Drawing.ContentAlignment.BottomLeft
             '
             'lblCreditLimitVal
             '
-            Me.lblCreditLimitVal.AutoSize = True
-            Me.lblCreditLimitVal.Font = New System.Drawing.Font("Segoe UI Variable Text", 9.0!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point)
-            Me.lblCreditLimitVal.Location = New System.Drawing.Point(12, 94)
+            Me.lblCreditLimitVal.AutoEllipsis = True
+            Me.lblCreditLimitVal.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.lblCreditLimitVal.Font = New System.Drawing.Font("Segoe UI", 9.0!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+            Me.lblCreditLimitVal.Location = New System.Drawing.Point(3, 20)
+            Me.lblCreditLimitVal.Margin = New System.Windows.Forms.Padding(3, 0, 3, 0)
             Me.lblCreditLimitVal.Name = "lblCreditLimitVal"
-            Me.lblCreditLimitVal.Size = New System.Drawing.Size(38, 16)
+            Me.lblCreditLimitVal.Size = New System.Drawing.Size(125, 28)
             Me.lblCreditLimitVal.TabIndex = 3
             Me.lblCreditLimitVal.Text = "$0.00"
+            Me.lblCreditLimitVal.TextAlign = System.Drawing.ContentAlignment.MiddleLeft
             '
             'lblCreditLimitTitle
             '
-            Me.lblCreditLimitTitle.AutoSize = True
-            Me.lblCreditLimitTitle.Font = New System.Drawing.Font("Segoe UI Variable Text", 8.5!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point)
+            Me.lblCreditLimitTitle.AutoEllipsis = True
+            Me.lblCreditLimitTitle.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.lblCreditLimitTitle.Font = New System.Drawing.Font("Segoe UI", 8.5!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
             Me.lblCreditLimitTitle.ForeColor = System.Drawing.Color.FromArgb(CType(CType(108, Byte), Integer), CType(CType(117, Byte), Integer), CType(CType(125, Byte), Integer))
-            Me.lblCreditLimitTitle.Location = New System.Drawing.Point(12, 74)
+            Me.lblCreditLimitTitle.Location = New System.Drawing.Point(3, 0)
+            Me.lblCreditLimitTitle.Margin = New System.Windows.Forms.Padding(3, 0, 3, 0)
             Me.lblCreditLimitTitle.Name = "lblCreditLimitTitle"
-            Me.lblCreditLimitTitle.Size = New System.Drawing.Size(71, 15)
-            Me.lblCreditLimitTitle.TabIndex = 2
+            Me.lblCreditLimitTitle.Size = New System.Drawing.Size(125, 20)
+            Me.lblCreditLimitTitle.TabIndex = 0
             Me.lblCreditLimitTitle.Text = "Credit Limit:"
+            Me.lblCreditLimitTitle.TextAlign = System.Drawing.ContentAlignment.BottomLeft
             '
             'cmbCustomer
             '
+            Me.cmbCustomer.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left) _
+            Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
             Me.cmbCustomer.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList
             Me.cmbCustomer.FormattingEnabled = True
             Me.cmbCustomer.Location = New System.Drawing.Point(12, 44)
@@ -792,31 +880,34 @@ Namespace UI.Sales
             Me.pnlOrderActions.Location = New System.Drawing.Point(0, 305)
             Me.pnlOrderActions.Name = "pnlOrderActions"
             Me.pnlOrderActions.Padding = New System.Windows.Forms.Padding(8)
-            Me.pnlOrderActions.Size = New System.Drawing.Size(642, 70)
+            Me.pnlOrderActions.Size = New System.Drawing.Size(642, 78)
             Me.pnlOrderActions.TabIndex = 1
             '
             'lblSelectedOrderSummary
             '
-            Me.lblSelectedOrderSummary.Font = New System.Drawing.Font("Segoe UI Variable Text", 9.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point)
-            Me.lblSelectedOrderSummary.Location = New System.Drawing.Point(8, 8)
+            Me.lblSelectedOrderSummary.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left) _
+            Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
+            Me.lblSelectedOrderSummary.Location = New System.Drawing.Point(8, 4)
             Me.lblSelectedOrderSummary.Name = "lblSelectedOrderSummary"
-            Me.lblSelectedOrderSummary.Size = New System.Drawing.Size(350, 52)
+            Me.lblSelectedOrderSummary.Size = New System.Drawing.Size(620, 20)
             Me.lblSelectedOrderSummary.TabIndex = 1
             Me.lblSelectedOrderSummary.Text = "Selected Order: None"
             Me.lblSelectedOrderSummary.TextAlign = System.Drawing.ContentAlignment.MiddleLeft
             '
             'btnGenerateInvoiceFromSO
             '
-            Me.btnGenerateInvoiceFromSO.Anchor = CType((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
+            Me.btnGenerateInvoiceFromSO.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left) _
+            Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
             Me.btnGenerateInvoiceFromSO.BackColor = System.Drawing.Color.FromArgb(CType(CType(13, Byte), Integer), CType(CType(110, Byte), Integer), CType(CType(253, Byte), Integer))
             Me.btnGenerateInvoiceFromSO.FlatStyle = System.Windows.Forms.FlatStyle.Flat
-            Me.btnGenerateInvoiceFromSO.Font = New System.Drawing.Font("Segoe UI Variable Text", 10.0!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point)
+            Me.btnGenerateInvoiceFromSO.Font = New System.Drawing.Font("Segoe UI", 9.5!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
             Me.btnGenerateInvoiceFromSO.ForeColor = System.Drawing.Color.White
-            Me.btnGenerateInvoiceFromSO.Location = New System.Drawing.Point(368, 12)
+            Me.btnGenerateInvoiceFromSO.Location = New System.Drawing.Point(8, 28)
             Me.btnGenerateInvoiceFromSO.Name = "btnGenerateInvoiceFromSO"
-            Me.btnGenerateInvoiceFromSO.Size = New System.Drawing.Size(262, 44)
+            Me.btnGenerateInvoiceFromSO.Size = New System.Drawing.Size(430, 42)
             Me.btnGenerateInvoiceFromSO.TabIndex = 0
-            Me.btnGenerateInvoiceFromSO.Text = "⚡ Fulfill & Generate Invoice"
+            Me.btnGenerateInvoiceFromSO.Text = "⚡ Fulfill & Generate Sales Invoice"
+            Me.btnGenerateInvoiceFromSO.UseMnemonic = False
             Me.btnGenerateInvoiceFromSO.UseVisualStyleBackColor = False
             '
             'grpExistingOrders
@@ -982,7 +1073,6 @@ Namespace UI.Sales
             '
             Me.lblGlNotice.BackColor = System.Drawing.Color.FromArgb(CType(CType(248, Byte), Integer), CType(CType(249, Byte), Integer), CType(CType(250, Byte), Integer))
             Me.lblGlNotice.Dock = System.Windows.Forms.DockStyle.Bottom
-            Me.lblGlNotice.Font = New System.Drawing.Font("Segoe UI Variable Text", 8.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point)
             Me.lblGlNotice.ForeColor = System.Drawing.Color.FromArgb(CType(CType(108, Byte), Integer), CType(CType(117, Byte), Integer), CType(CType(125, Byte), Integer))
             Me.lblGlNotice.Location = New System.Drawing.Point(3, 277)
             Me.lblGlNotice.Name = "lblGlNotice"
@@ -1074,7 +1164,6 @@ Namespace UI.Sales
             Me.lblStockGuardPolicy.BackColor = System.Drawing.Color.FromArgb(CType(CType(248, Byte), Integer), CType(CType(249, Byte), Integer), CType(CType(250, Byte), Integer))
             Me.lblStockGuardPolicy.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle
             Me.lblStockGuardPolicy.Dock = System.Windows.Forms.DockStyle.Bottom
-            Me.lblStockGuardPolicy.Font = New System.Drawing.Font("Segoe UI Variable Text", 8.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point)
             Me.lblStockGuardPolicy.ForeColor = System.Drawing.Color.FromArgb(CType(CType(73, Byte), Integer), CType(CType(80, Byte), Integer), CType(CType(87, Byte), Integer))
             Me.lblStockGuardPolicy.Location = New System.Drawing.Point(12, 459)
             Me.lblStockGuardPolicy.Name = "lblStockGuardPolicy"
@@ -1090,7 +1179,6 @@ Namespace UI.Sales
             '
             Me.lblSimExplanation.BackColor = System.Drawing.Color.White
             Me.lblSimExplanation.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle
-            Me.lblSimExplanation.Font = New System.Drawing.Font("Segoe UI Variable Text", 9.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point)
             Me.lblSimExplanation.ForeColor = System.Drawing.Color.FromArgb(CType(CType(33, Byte), Integer), CType(CType(37, Byte), Integer), CType(CType(41, Byte), Integer))
             Me.lblSimExplanation.Location = New System.Drawing.Point(15, 260)
             Me.lblSimExplanation.Name = "lblSimExplanation"
@@ -1111,7 +1199,7 @@ Namespace UI.Sales
             '
             Me.lblSimBadge.BackColor = System.Drawing.Color.FromArgb(CType(CType(108, Byte), Integer), CType(CType(117, Byte), Integer), CType(CType(125, Byte), Integer))
             Me.lblSimBadge.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.lblSimBadge.Font = New System.Drawing.Font("Segoe UI Variable Text", 10.5!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point)
+            Me.lblSimBadge.Font = New System.Drawing.Font("Segoe UI", 10.5!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
             Me.lblSimBadge.ForeColor = System.Drawing.Color.White
             Me.lblSimBadge.Location = New System.Drawing.Point(0, 0)
             Me.lblSimBadge.Name = "lblSimBadge"
@@ -1124,7 +1212,7 @@ Namespace UI.Sales
             '
             Me.btnRunSim.BackColor = System.Drawing.Color.FromArgb(CType(CType(33, Byte), Integer), CType(CType(37, Byte), Integer), CType(CType(41, Byte), Integer))
             Me.btnRunSim.FlatStyle = System.Windows.Forms.FlatStyle.Flat
-            Me.btnRunSim.Font = New System.Drawing.Font("Segoe UI Variable Text", 9.5!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point)
+            Me.btnRunSim.Font = New System.Drawing.Font("Segoe UI", 9.5!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
             Me.btnRunSim.ForeColor = System.Drawing.Color.White
             Me.btnRunSim.Location = New System.Drawing.Point(15, 150)
             Me.btnRunSim.Name = "btnRunSim"
@@ -1173,12 +1261,11 @@ Namespace UI.Sales
             'SalesDashboardForm
             '
             Me.AutoScaleDimensions = New System.Drawing.SizeF(7.0!, 17.0!)
-            Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Inherit
+            Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
             Me.BackColor = System.Drawing.Color.FromArgb(CType(CType(248, Byte), Integer), CType(CType(249, Byte), Integer), CType(CType(250, Byte), Integer))
             Me.ClientSize = New System.Drawing.Size(1200, 720)
             Me.Controls.Add(Me.tabMain)
             Me.Controls.Add(Me.pnlHeader)
-            Me.Font = New System.Drawing.Font("Segoe UI Variable Text", 9.5!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point)
             Me.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None
             Me.Name = "SalesDashboardForm"
             Me.Text = "Sales Dashboard & Order Fulfillment"
@@ -1188,6 +1275,7 @@ Namespace UI.Sales
             Me.pnlKpiStockGuard.ResumeLayout(False)
             Me.pnlKpiInvoices.ResumeLayout(False)
             Me.pnlKpiOrders.ResumeLayout(False)
+            Me.pnlKpiLowStock.ResumeLayout(False)
             Me.tabMain.ResumeLayout(False)
             Me.tabOrders.ResumeLayout(False)
             Me.splitOrders.Panel1.ResumeLayout(False)
@@ -1201,6 +1289,8 @@ Namespace UI.Sales
             Me.grpAddItem.PerformLayout()
             CType(Me.numUnitPrice, System.ComponentModel.ISupportInitialize).EndInit()
             CType(Me.numQuantity, System.ComponentModel.ISupportInitialize).EndInit()
+            Me.tblCustomerCredit.ResumeLayout(False)
+            Me.tblCustomerCredit.PerformLayout()
             Me.grpCustomer.ResumeLayout(False)
             Me.grpCustomer.PerformLayout()
             Me.grpSelectedOrderLines.ResumeLayout(False)

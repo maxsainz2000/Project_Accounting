@@ -33,6 +33,7 @@ Namespace UI.Purchasing
             Me.dgvThreeWayMatch = New System.Windows.Forms.DataGridView()
             Me.pnlBillEntry = New System.Windows.Forms.Panel()
             Me.grpBillEntry = New System.Windows.Forms.GroupBox()
+            Me.tlpBillControls = New System.Windows.Forms.TableLayoutPanel()
             Me.btnPostThreeWayMatch = New System.Windows.Forms.Button()
             Me.lblVariancePreview = New System.Windows.Forms.Label()
             Me.numFreightAmount = New System.Windows.Forms.NumericUpDown()
@@ -78,6 +79,7 @@ Namespace UI.Purchasing
             CType(Me.dgvThreeWayMatch, System.ComponentModel.ISupportInitialize).BeginInit()
             Me.pnlBillEntry.SuspendLayout()
             Me.grpBillEntry.SuspendLayout()
+            Me.tlpBillControls.SuspendLayout()
             CType(Me.numFreightAmount, System.ComponentModel.ISupportInitialize).BeginInit()
             CType(Me.numBilledUnitPrice, System.ComponentModel.ISupportInitialize).BeginInit()
             CType(Me.numBillQty, System.ComponentModel.ISupportInitialize).BeginInit()
@@ -117,24 +119,25 @@ Namespace UI.Purchasing
             'lblSubtitle
             '
             Me.lblSubtitle.AutoSize = True
-            Me.lblSubtitle.Font = New System.Drawing.Font("Segoe UI Variable Text", 9.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point)
             Me.lblSubtitle.ForeColor = System.Drawing.Color.FromArgb(CType(CType(108, Byte), Integer), CType(CType(117, Byte), Integer), CType(CType(125, Byte), Integer))
             Me.lblSubtitle.Location = New System.Drawing.Point(16, 33)
             Me.lblSubtitle.Name = "lblSubtitle"
             Me.lblSubtitle.Size = New System.Drawing.Size(730, 20)
             Me.lblSubtitle.TabIndex = 1
             Me.lblSubtitle.Text = "Purchase Orders, GRN Inbound Tracking & 3-Way Match Verification (GRNI Clearing, PPV & Freight Variances)"
+            Me.lblSubtitle.UseMnemonic = False
             '
             'lblTitle
             '
             Me.lblTitle.AutoSize = True
-            Me.lblTitle.Font = New System.Drawing.Font("Segoe UI Variable Display", 11.5!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point)
+            Me.lblTitle.Font = New System.Drawing.Font("Segoe UI", 11.5!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
             Me.lblTitle.ForeColor = System.Drawing.Color.FromArgb(CType(CType(33, Byte), Integer), CType(CType(37, Byte), Integer), CType(CType(41, Byte), Integer))
             Me.lblTitle.Location = New System.Drawing.Point(16, 8)
             Me.lblTitle.Name = "lblTitle"
             Me.lblTitle.Size = New System.Drawing.Size(430, 27)
             Me.lblTitle.TabIndex = 0
             Me.lblTitle.Text = "Purchasing Dashboard & 3-Way Match Clearing"
+            Me.lblTitle.UseMnemonic = False
             '
             'tabPurchasing
             '
@@ -142,7 +145,6 @@ Namespace UI.Purchasing
             Me.tabPurchasing.Controls.Add(Me.tabPurchaseOrders)
             Me.tabPurchasing.Controls.Add(Me.tabGRNList)
             Me.tabPurchasing.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.tabPurchasing.Font = New System.Drawing.Font("Segoe UI Variable Text", 9.5!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point)
             Me.tabPurchasing.Location = New System.Drawing.Point(0, 0)
             Me.tabPurchasing.Name = "tabPurchasing"
             Me.tabPurchasing.SelectedIndex = 0
@@ -171,23 +173,25 @@ Namespace UI.Purchasing
             '
             Me.splitThreeWay.Panel1.Controls.Add(Me.grpMatchGrid)
             Me.splitThreeWay.Panel1.Controls.Add(Me.pnlBillEntry)
+            Me.splitThreeWay.Panel1MinSize = 240
             '
             'splitThreeWay.Panel2
             '
             Me.splitThreeWay.Panel2.Controls.Add(Me.grpThreeWayJournal)
+            Me.splitThreeWay.Panel2MinSize = 160
             Me.splitThreeWay.Size = New System.Drawing.Size(1008, 620)
-            Me.splitThreeWay.SplitterDistance = 330
+            Me.splitThreeWay.SplitterDistance = 385
             Me.splitThreeWay.TabIndex = 0
             '
             'grpMatchGrid
             '
             Me.grpMatchGrid.Controls.Add(Me.dgvThreeWayMatch)
             Me.grpMatchGrid.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.grpMatchGrid.Font = New System.Drawing.Font("Segoe UI Variable Text", 9.5!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point)
+            Me.grpMatchGrid.Font = New System.Drawing.Font("Segoe UI", 9.5!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
             Me.grpMatchGrid.Location = New System.Drawing.Point(0, 0)
             Me.grpMatchGrid.Name = "grpMatchGrid"
             Me.grpMatchGrid.Padding = New System.Windows.Forms.Padding(8, 28, 8, 8)
-            Me.grpMatchGrid.Size = New System.Drawing.Size(1008, 170)
+            Me.grpMatchGrid.Size = New System.Drawing.Size(1008, 225)
             Me.grpMatchGrid.TabIndex = 0
             Me.grpMatchGrid.TabStop = False
             Me.grpMatchGrid.Text = "3-Way Comparison: Purchase Order vs. Goods Receipt (GRN) vs. Supplier Bill"
@@ -198,9 +202,9 @@ Namespace UI.Purchasing
             Me.dgvThreeWayMatch.AllowUserToDeleteRows = False
             Me.dgvThreeWayMatch.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill
             Me.dgvThreeWayMatch.BackgroundColor = System.Drawing.Color.White
-            Me.dgvThreeWayMatch.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize
+            Me.dgvThreeWayMatch.ColumnHeadersHeight = 44
+            Me.dgvThreeWayMatch.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.DisableResizing
             Me.dgvThreeWayMatch.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.dgvThreeWayMatch.Font = New System.Drawing.Font("Segoe UI Variable Text", 9.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point)
             Me.dgvThreeWayMatch.Location = New System.Drawing.Point(8, 28)
             Me.dgvThreeWayMatch.MultiSelect = False
             Me.dgvThreeWayMatch.Name = "dgvThreeWayMatch"
@@ -224,39 +228,60 @@ Namespace UI.Purchasing
             'grpBillEntry
             '
             Me.grpBillEntry.BackColor = System.Drawing.Color.White
-            Me.grpBillEntry.Controls.Add(Me.btnPostThreeWayMatch)
+            Me.grpBillEntry.Controls.Add(Me.tlpBillControls)
             Me.grpBillEntry.Controls.Add(Me.lblVariancePreview)
-            Me.grpBillEntry.Controls.Add(Me.numFreightAmount)
-            Me.grpBillEntry.Controls.Add(Me.lblFreightAmount)
-            Me.grpBillEntry.Controls.Add(Me.numBilledUnitPrice)
-            Me.grpBillEntry.Controls.Add(Me.lblBilledUnitPrice)
-            Me.grpBillEntry.Controls.Add(Me.numBillQty)
-            Me.grpBillEntry.Controls.Add(Me.lblBillQty)
-            Me.grpBillEntry.Controls.Add(Me.txtBillNumber)
-            Me.grpBillEntry.Controls.Add(Me.lblBillNumber)
             Me.grpBillEntry.Controls.Add(Me.lblSelectedMatch)
             Me.grpBillEntry.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.grpBillEntry.Font = New System.Drawing.Font("Segoe UI Variable Text", 9.5!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point)
+            Me.grpBillEntry.Font = New System.Drawing.Font("Segoe UI", 9.5!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
             Me.grpBillEntry.Location = New System.Drawing.Point(0, 6)
             Me.grpBillEntry.Name = "grpBillEntry"
             Me.grpBillEntry.Padding = New System.Windows.Forms.Padding(12, 26, 12, 8)
             Me.grpBillEntry.Size = New System.Drawing.Size(1008, 154)
             Me.grpBillEntry.TabIndex = 0
             Me.grpBillEntry.TabStop = False
-            Me.grpBillEntry.Text = "Record Supplier Bill && Reconcile 3-Way Match"
+            Me.grpBillEntry.Text = "Record Supplier Bill & Reconcile 3-Way Match"
+            '
+            'tlpBillControls
+            '
+            Me.tlpBillControls.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left) _
+            Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
+            Me.tlpBillControls.ColumnCount = 5
+            Me.tlpBillControls.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 25.0!))
+            Me.tlpBillControls.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 25.0!))
+            Me.tlpBillControls.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 25.0!))
+            Me.tlpBillControls.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 25.0!))
+            Me.tlpBillControls.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 270.0!))
+            Me.tlpBillControls.RowCount = 2
+            Me.tlpBillControls.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 22.0!))
+            Me.tlpBillControls.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 32.0!))
+            Me.tlpBillControls.Controls.Add(Me.lblBillNumber, 0, 0)
+            Me.tlpBillControls.Controls.Add(Me.txtBillNumber, 0, 1)
+            Me.tlpBillControls.Controls.Add(Me.lblBillQty, 1, 0)
+            Me.tlpBillControls.Controls.Add(Me.numBillQty, 1, 1)
+            Me.tlpBillControls.Controls.Add(Me.lblBilledUnitPrice, 2, 0)
+            Me.tlpBillControls.Controls.Add(Me.numBilledUnitPrice, 2, 1)
+            Me.tlpBillControls.Controls.Add(Me.lblFreightAmount, 3, 0)
+            Me.tlpBillControls.Controls.Add(Me.numFreightAmount, 3, 1)
+            Me.tlpBillControls.Controls.Add(Me.btnPostThreeWayMatch, 4, 0)
+            Me.tlpBillControls.SetRowSpan(Me.btnPostThreeWayMatch, 2)
+            Me.tlpBillControls.Location = New System.Drawing.Point(12, 44)
+            Me.tlpBillControls.Name = "tlpBillControls"
+            Me.tlpBillControls.Size = New System.Drawing.Size(984, 56)
+            Me.tlpBillControls.TabIndex = 1
             '
             'btnPostThreeWayMatch
             '
-            Me.btnPostThreeWayMatch.Anchor = CType((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
             Me.btnPostThreeWayMatch.BackColor = System.Drawing.Color.FromArgb(CType(CType(13, Byte), Integer), CType(CType(110, Byte), Integer), CType(CType(253, Byte), Integer))
+            Me.btnPostThreeWayMatch.Dock = System.Windows.Forms.DockStyle.Fill
             Me.btnPostThreeWayMatch.FlatStyle = System.Windows.Forms.FlatStyle.Flat
-            Me.btnPostThreeWayMatch.Font = New System.Drawing.Font("Segoe UI Variable Text", 9.5!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point)
+            Me.btnPostThreeWayMatch.Font = New System.Drawing.Font("Segoe UI", 9.5!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
             Me.btnPostThreeWayMatch.ForeColor = System.Drawing.Color.White
-            Me.btnPostThreeWayMatch.Location = New System.Drawing.Point(680, 50)
+            Me.btnPostThreeWayMatch.Location = New System.Drawing.Point(717, 3)
             Me.btnPostThreeWayMatch.Name = "btnPostThreeWayMatch"
-            Me.btnPostThreeWayMatch.Size = New System.Drawing.Size(310, 48)
-            Me.btnPostThreeWayMatch.TabIndex = 10
-            Me.btnPostThreeWayMatch.Text = "Commit Supplier Bill && Post Journal"
+            Me.btnPostThreeWayMatch.Size = New System.Drawing.Size(264, 50)
+            Me.btnPostThreeWayMatch.TabIndex = 8
+            Me.btnPostThreeWayMatch.Text = "Commit Supplier Bill & Post Journal"
+            Me.btnPostThreeWayMatch.UseMnemonic = False
             Me.btnPostThreeWayMatch.UseVisualStyleBackColor = False
             '
             'lblVariancePreview
@@ -265,101 +290,101 @@ Namespace UI.Purchasing
             Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
             Me.lblVariancePreview.BackColor = System.Drawing.Color.FromArgb(CType(CType(236, Byte), Integer), CType(CType(242, Byte), Integer), CType(CType(248, Byte), Integer))
             Me.lblVariancePreview.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle
-            Me.lblVariancePreview.Font = New System.Drawing.Font("Segoe UI Variable Text", 8.5!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point)
+            Me.lblVariancePreview.Font = New System.Drawing.Font("Segoe UI", 8.5!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
             Me.lblVariancePreview.ForeColor = System.Drawing.Color.FromArgb(CType(CType(10, Byte), Integer), CType(CType(88, Byte), Integer), CType(CType(202, Byte), Integer))
-            Me.lblVariancePreview.Location = New System.Drawing.Point(14, 106)
+            Me.lblVariancePreview.Location = New System.Drawing.Point(12, 106)
             Me.lblVariancePreview.Name = "lblVariancePreview"
             Me.lblVariancePreview.Padding = New System.Windows.Forms.Padding(6, 4, 6, 4)
-            Me.lblVariancePreview.Size = New System.Drawing.Size(976, 32)
-            Me.lblVariancePreview.TabIndex = 9
+            Me.lblVariancePreview.Size = New System.Drawing.Size(984, 32)
+            Me.lblVariancePreview.TabIndex = 2
             Me.lblVariancePreview.Text = "PPV Variance: $0.00 | Inbound Freight: $0.00 | Net Accounts Payable (2000): $0.00"
             '
             'numFreightAmount
             '
             Me.numFreightAmount.DecimalPlaces = 2
-            Me.numFreightAmount.Font = New System.Drawing.Font("Segoe UI Variable Text", 9.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point)
-            Me.numFreightAmount.Location = New System.Drawing.Point(470, 68)
-            Me.numFreightAmount.Maximum = New Decimal(New Integer() {100000, 0, 0, 0})
+            Me.numFreightAmount.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.numFreightAmount.Location = New System.Drawing.Point(537, 25)
+            Me.numFreightAmount.Maximum = New Decimal(New Integer() {10000000, 0, 0, 0})
             Me.numFreightAmount.Name = "numFreightAmount"
-            Me.numFreightAmount.Size = New System.Drawing.Size(120, 27)
-            Me.numFreightAmount.TabIndex = 8
+            Me.numFreightAmount.Size = New System.Drawing.Size(172, 27)
+            Me.numFreightAmount.TabIndex = 7
             '
             'lblFreightAmount
             '
             Me.lblFreightAmount.AutoSize = True
-            Me.lblFreightAmount.Font = New System.Drawing.Font("Segoe UI Variable Text", 9.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point)
-            Me.lblFreightAmount.Location = New System.Drawing.Point(470, 48)
+            Me.lblFreightAmount.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.lblFreightAmount.Location = New System.Drawing.Point(537, 0)
             Me.lblFreightAmount.Name = "lblFreightAmount"
-            Me.lblFreightAmount.Size = New System.Drawing.Size(149, 20)
-            Me.lblFreightAmount.TabIndex = 7
-            Me.lblFreightAmount.Text = "Carrier Freight (5200):"
+            Me.lblFreightAmount.Size = New System.Drawing.Size(172, 22)
+            Me.lblFreightAmount.TabIndex = 6
+            Me.lblFreightAmount.Text = "Inbound Freight ($):"
             '
             'numBilledUnitPrice
             '
             Me.numBilledUnitPrice.DecimalPlaces = 2
-            Me.numBilledUnitPrice.Font = New System.Drawing.Font("Segoe UI Variable Text", 9.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point)
-            Me.numBilledUnitPrice.Location = New System.Drawing.Point(325, 68)
-            Me.numBilledUnitPrice.Maximum = New Decimal(New Integer() {100000, 0, 0, 0})
+            Me.numBilledUnitPrice.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.numBilledUnitPrice.Location = New System.Drawing.Point(359, 25)
+            Me.numBilledUnitPrice.Maximum = New Decimal(New Integer() {10000000, 0, 0, 0})
             Me.numBilledUnitPrice.Name = "numBilledUnitPrice"
-            Me.numBilledUnitPrice.Size = New System.Drawing.Size(125, 27)
-            Me.numBilledUnitPrice.TabIndex = 6
+            Me.numBilledUnitPrice.Size = New System.Drawing.Size(172, 27)
+            Me.numBilledUnitPrice.TabIndex = 5
             '
             'lblBilledUnitPrice
             '
             Me.lblBilledUnitPrice.AutoSize = True
-            Me.lblBilledUnitPrice.Font = New System.Drawing.Font("Segoe UI Variable Text", 9.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point)
-            Me.lblBilledUnitPrice.Location = New System.Drawing.Point(325, 48)
+            Me.lblBilledUnitPrice.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.lblBilledUnitPrice.Location = New System.Drawing.Point(359, 0)
             Me.lblBilledUnitPrice.Name = "lblBilledUnitPrice"
-            Me.lblBilledUnitPrice.Size = New System.Drawing.Size(117, 20)
-            Me.lblBilledUnitPrice.TabIndex = 5
-            Me.lblBilledUnitPrice.Text = "Billed Unit Price:"
+            Me.lblBilledUnitPrice.Size = New System.Drawing.Size(172, 22)
+            Me.lblBilledUnitPrice.TabIndex = 4
+            Me.lblBilledUnitPrice.Text = "Unit Price ($):"
             '
             'numBillQty
             '
-            Me.numBillQty.Font = New System.Drawing.Font("Segoe UI Variable Text", 9.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point)
-            Me.numBillQty.Location = New System.Drawing.Point(190, 68)
-            Me.numBillQty.Maximum = New Decimal(New Integer() {100000, 0, 0, 0})
+            Me.numBillQty.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.numBillQty.Location = New System.Drawing.Point(181, 25)
+            Me.numBillQty.Maximum = New Decimal(New Integer() {10000000, 0, 0, 0})
             Me.numBillQty.Name = "numBillQty"
-            Me.numBillQty.Size = New System.Drawing.Size(115, 27)
-            Me.numBillQty.TabIndex = 4
+            Me.numBillQty.Size = New System.Drawing.Size(172, 27)
+            Me.numBillQty.TabIndex = 3
             '
             'lblBillQty
             '
             Me.lblBillQty.AutoSize = True
-            Me.lblBillQty.Font = New System.Drawing.Font("Segoe UI Variable Text", 9.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point)
-            Me.lblBillQty.Location = New System.Drawing.Point(190, 48)
+            Me.lblBillQty.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.lblBillQty.Location = New System.Drawing.Point(181, 0)
             Me.lblBillQty.Name = "lblBillQty"
-            Me.lblBillQty.Size = New System.Drawing.Size(110, 20)
-            Me.lblBillQty.TabIndex = 3
-            Me.lblBillQty.Text = "Billed Quantity:"
+            Me.lblBillQty.Size = New System.Drawing.Size(172, 22)
+            Me.lblBillQty.TabIndex = 2
+            Me.lblBillQty.Text = "Billed Qty:"
             '
             'txtBillNumber
             '
-            Me.txtBillNumber.Font = New System.Drawing.Font("Segoe UI Variable Text", 9.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point)
-            Me.txtBillNumber.Location = New System.Drawing.Point(14, 68)
+            Me.txtBillNumber.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.txtBillNumber.Location = New System.Drawing.Point(3, 25)
             Me.txtBillNumber.Name = "txtBillNumber"
-            Me.txtBillNumber.Size = New System.Drawing.Size(155, 27)
-            Me.txtBillNumber.TabIndex = 2
+            Me.txtBillNumber.Size = New System.Drawing.Size(172, 27)
+            Me.txtBillNumber.TabIndex = 1
             Me.txtBillNumber.Text = "BILL-2026-1099"
             '
             'lblBillNumber
             '
             Me.lblBillNumber.AutoSize = True
-            Me.lblBillNumber.Font = New System.Drawing.Font("Segoe UI Variable Text", 9.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point)
-            Me.lblBillNumber.Location = New System.Drawing.Point(14, 48)
+            Me.lblBillNumber.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.lblBillNumber.Location = New System.Drawing.Point(3, 0)
             Me.lblBillNumber.Name = "lblBillNumber"
-            Me.lblBillNumber.Size = New System.Drawing.Size(146, 20)
-            Me.lblBillNumber.TabIndex = 1
-            Me.lblBillNumber.Text = "Supplier Bill/Inv Doc#:"
+            Me.lblBillNumber.Size = New System.Drawing.Size(172, 22)
+            Me.lblBillNumber.TabIndex = 0
+            Me.lblBillNumber.Text = "Bill / Inv Doc #:"
             '
             'lblSelectedMatch
             '
             Me.lblSelectedMatch.AutoSize = True
-            Me.lblSelectedMatch.Font = New System.Drawing.Font("Segoe UI Variable Text", 9.0!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point)
+            Me.lblSelectedMatch.Font = New System.Drawing.Font("Segoe UI", 9.0!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
             Me.lblSelectedMatch.ForeColor = System.Drawing.Color.FromArgb(CType(CType(33, Byte), Integer), CType(CType(37, Byte), Integer), CType(CType(41, Byte), Integer))
-            Me.lblSelectedMatch.Location = New System.Drawing.Point(14, 24)
+            Me.lblSelectedMatch.Location = New System.Drawing.Point(12, 22)
             Me.lblSelectedMatch.Name = "lblSelectedMatch"
-            Me.lblSelectedMatch.Size = New System.Drawing.Size(550, 20)
+            Me.lblSelectedMatch.Size = New System.Drawing.Size(550, 19)
             Me.lblSelectedMatch.TabIndex = 0
             Me.lblSelectedMatch.Text = "Selected Match: PO / GRN"
             '
@@ -367,7 +392,7 @@ Namespace UI.Purchasing
             '
             Me.grpThreeWayJournal.Controls.Add(Me.dgvThreeWayJournal)
             Me.grpThreeWayJournal.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.grpThreeWayJournal.Font = New System.Drawing.Font("Segoe UI Variable Text", 9.5!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point)
+            Me.grpThreeWayJournal.Font = New System.Drawing.Font("Segoe UI", 9.5!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
             Me.grpThreeWayJournal.Location = New System.Drawing.Point(0, 0)
             Me.grpThreeWayJournal.Name = "grpThreeWayJournal"
             Me.grpThreeWayJournal.Padding = New System.Windows.Forms.Padding(8, 28, 8, 8)
@@ -384,7 +409,6 @@ Namespace UI.Purchasing
             Me.dgvThreeWayJournal.BackgroundColor = System.Drawing.Color.White
             Me.dgvThreeWayJournal.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize
             Me.dgvThreeWayJournal.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.dgvThreeWayJournal.Font = New System.Drawing.Font("Segoe UI Variable Text", 9.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point)
             Me.dgvThreeWayJournal.Location = New System.Drawing.Point(8, 28)
             Me.dgvThreeWayJournal.MultiSelect = False
             Me.dgvThreeWayJournal.Name = "dgvThreeWayJournal"
@@ -429,7 +453,7 @@ Namespace UI.Purchasing
             '
             Me.grpPOList.Controls.Add(Me.dgvPurchaseOrders)
             Me.grpPOList.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.grpPOList.Font = New System.Drawing.Font("Segoe UI Variable Text", 9.5!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point)
+            Me.grpPOList.Font = New System.Drawing.Font("Segoe UI", 9.5!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
             Me.grpPOList.Location = New System.Drawing.Point(0, 0)
             Me.grpPOList.Name = "grpPOList"
             Me.grpPOList.Size = New System.Drawing.Size(1008, 240)
@@ -445,7 +469,6 @@ Namespace UI.Purchasing
             Me.dgvPurchaseOrders.BackgroundColor = System.Drawing.Color.White
             Me.dgvPurchaseOrders.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize
             Me.dgvPurchaseOrders.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.dgvPurchaseOrders.Font = New System.Drawing.Font("Segoe UI Variable Text", 9.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point)
             Me.dgvPurchaseOrders.Location = New System.Drawing.Point(3, 24)
             Me.dgvPurchaseOrders.MultiSelect = False
             Me.dgvPurchaseOrders.Name = "dgvPurchaseOrders"
@@ -460,7 +483,7 @@ Namespace UI.Purchasing
             '
             Me.grpPOLines.Controls.Add(Me.dgvPurchasingPOLines)
             Me.grpPOLines.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.grpPOLines.Font = New System.Drawing.Font("Segoe UI Variable Text", 9.5!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point)
+            Me.grpPOLines.Font = New System.Drawing.Font("Segoe UI", 9.5!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
             Me.grpPOLines.Location = New System.Drawing.Point(0, 0)
             Me.grpPOLines.Name = "grpPOLines"
             Me.grpPOLines.Size = New System.Drawing.Size(1008, 218)
@@ -476,7 +499,6 @@ Namespace UI.Purchasing
             Me.dgvPurchasingPOLines.BackgroundColor = System.Drawing.Color.White
             Me.dgvPurchasingPOLines.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize
             Me.dgvPurchasingPOLines.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.dgvPurchasingPOLines.Font = New System.Drawing.Font("Segoe UI Variable Text", 9.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point)
             Me.dgvPurchasingPOLines.Location = New System.Drawing.Point(3, 24)
             Me.dgvPurchasingPOLines.MultiSelect = False
             Me.dgvPurchasingPOLines.Name = "dgvPurchasingPOLines"
@@ -500,7 +522,7 @@ Namespace UI.Purchasing
             Me.grpCreatePO.Controls.Add(Me.cmbNewPOVendor)
             Me.grpCreatePO.Controls.Add(Me.lblNewPOVendor)
             Me.grpCreatePO.Dock = System.Windows.Forms.DockStyle.Top
-            Me.grpCreatePO.Font = New System.Drawing.Font("Segoe UI Variable Text", 9.5!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point)
+            Me.grpCreatePO.Font = New System.Drawing.Font("Segoe UI", 9.5!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
             Me.grpCreatePO.Location = New System.Drawing.Point(12, 12)
             Me.grpCreatePO.Name = "grpCreatePO"
             Me.grpCreatePO.Size = New System.Drawing.Size(1008, 100)
@@ -513,7 +535,7 @@ Namespace UI.Purchasing
             Me.btnCreatePO.Anchor = CType((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
             Me.btnCreatePO.BackColor = System.Drawing.Color.FromArgb(CType(CType(25, Byte), Integer), CType(CType(135, Byte), Integer), CType(CType(84, Byte), Integer))
             Me.btnCreatePO.FlatStyle = System.Windows.Forms.FlatStyle.Flat
-            Me.btnCreatePO.Font = New System.Drawing.Font("Segoe UI Variable Text", 9.5!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point)
+            Me.btnCreatePO.Font = New System.Drawing.Font("Segoe UI", 9.5!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
             Me.btnCreatePO.ForeColor = System.Drawing.Color.White
             Me.btnCreatePO.Location = New System.Drawing.Point(825, 38)
             Me.btnCreatePO.Name = "btnCreatePO"
@@ -525,9 +547,8 @@ Namespace UI.Purchasing
             'numNewPOUnitPrice
             '
             Me.numNewPOUnitPrice.DecimalPlaces = 2
-            Me.numNewPOUnitPrice.Font = New System.Drawing.Font("Segoe UI Variable Text", 9.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point)
             Me.numNewPOUnitPrice.Location = New System.Drawing.Point(685, 45)
-            Me.numNewPOUnitPrice.Maximum = New Decimal(New Integer() {100000, 0, 0, 0})
+            Me.numNewPOUnitPrice.Maximum = New Decimal(New Integer() {10000000, 0, 0, 0})
             Me.numNewPOUnitPrice.Name = "numNewPOUnitPrice"
             Me.numNewPOUnitPrice.Size = New System.Drawing.Size(120, 27)
             Me.numNewPOUnitPrice.TabIndex = 7
@@ -535,7 +556,6 @@ Namespace UI.Purchasing
             'lblNewPOPrice
             '
             Me.lblNewPOPrice.AutoSize = True
-            Me.lblNewPOPrice.Font = New System.Drawing.Font("Segoe UI Variable Text", 9.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point)
             Me.lblNewPOPrice.Location = New System.Drawing.Point(685, 23)
             Me.lblNewPOPrice.Name = "lblNewPOPrice"
             Me.lblNewPOPrice.Size = New System.Drawing.Size(107, 20)
@@ -544,9 +564,8 @@ Namespace UI.Purchasing
             '
             'numNewPOQty
             '
-            Me.numNewPOQty.Font = New System.Drawing.Font("Segoe UI Variable Text", 9.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point)
             Me.numNewPOQty.Location = New System.Drawing.Point(565, 45)
-            Me.numNewPOQty.Maximum = New Decimal(New Integer() {100000, 0, 0, 0})
+            Me.numNewPOQty.Maximum = New Decimal(New Integer() {10000000, 0, 0, 0})
             Me.numNewPOQty.Minimum = New Decimal(New Integer() {1, 0, 0, 0})
             Me.numNewPOQty.Name = "numNewPOQty"
             Me.numNewPOQty.Size = New System.Drawing.Size(105, 27)
@@ -556,7 +575,6 @@ Namespace UI.Purchasing
             'lblNewPOQty
             '
             Me.lblNewPOQty.AutoSize = True
-            Me.lblNewPOQty.Font = New System.Drawing.Font("Segoe UI Variable Text", 9.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point)
             Me.lblNewPOQty.Location = New System.Drawing.Point(565, 23)
             Me.lblNewPOQty.Name = "lblNewPOQty"
             Me.lblNewPOQty.Size = New System.Drawing.Size(89, 20)
@@ -566,7 +584,6 @@ Namespace UI.Purchasing
             'cmbNewPOProduct
             '
             Me.cmbNewPOProduct.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList
-            Me.cmbNewPOProduct.Font = New System.Drawing.Font("Segoe UI Variable Text", 9.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point)
             Me.cmbNewPOProduct.FormattingEnabled = True
             Me.cmbNewPOProduct.Location = New System.Drawing.Point(280, 45)
             Me.cmbNewPOProduct.Name = "cmbNewPOProduct"
@@ -576,7 +593,6 @@ Namespace UI.Purchasing
             'lblNewPOProduct
             '
             Me.lblNewPOProduct.AutoSize = True
-            Me.lblNewPOProduct.Font = New System.Drawing.Font("Segoe UI Variable Text", 9.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point)
             Me.lblNewPOProduct.Location = New System.Drawing.Point(280, 23)
             Me.lblNewPOProduct.Name = "lblNewPOProduct"
             Me.lblNewPOProduct.Size = New System.Drawing.Size(105, 20)
@@ -586,7 +602,6 @@ Namespace UI.Purchasing
             'cmbNewPOVendor
             '
             Me.cmbNewPOVendor.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList
-            Me.cmbNewPOVendor.Font = New System.Drawing.Font("Segoe UI Variable Text", 9.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point)
             Me.cmbNewPOVendor.FormattingEnabled = True
             Me.cmbNewPOVendor.Location = New System.Drawing.Point(12, 45)
             Me.cmbNewPOVendor.Name = "cmbNewPOVendor"
@@ -596,7 +611,6 @@ Namespace UI.Purchasing
             'lblNewPOVendor
             '
             Me.lblNewPOVendor.AutoSize = True
-            Me.lblNewPOVendor.Font = New System.Drawing.Font("Segoe UI Variable Text", 9.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point)
             Me.lblNewPOVendor.Location = New System.Drawing.Point(12, 23)
             Me.lblNewPOVendor.Name = "lblNewPOVendor"
             Me.lblNewPOVendor.Size = New System.Drawing.Size(117, 20)
@@ -619,7 +633,7 @@ Namespace UI.Purchasing
             '
             Me.grpGRNs.Controls.Add(Me.dgvGRNs)
             Me.grpGRNs.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.grpGRNs.Font = New System.Drawing.Font("Segoe UI Variable Text", 9.5!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point)
+            Me.grpGRNs.Font = New System.Drawing.Font("Segoe UI", 9.5!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
             Me.grpGRNs.Location = New System.Drawing.Point(12, 60)
             Me.grpGRNs.Name = "grpGRNs"
             Me.grpGRNs.Size = New System.Drawing.Size(1008, 514)
@@ -635,7 +649,6 @@ Namespace UI.Purchasing
             Me.dgvGRNs.BackgroundColor = System.Drawing.Color.White
             Me.dgvGRNs.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize
             Me.dgvGRNs.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.dgvGRNs.Font = New System.Drawing.Font("Segoe UI Variable Text", 9.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point)
             Me.dgvGRNs.Location = New System.Drawing.Point(3, 24)
             Me.dgvGRNs.MultiSelect = False
             Me.dgvGRNs.Name = "dgvGRNs"
@@ -661,7 +674,6 @@ Namespace UI.Purchasing
             'lblGRNNotice
             '
             Me.lblGRNNotice.AutoSize = True
-            Me.lblGRNNotice.Font = New System.Drawing.Font("Segoe UI Variable Text", 9.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point)
             Me.lblGRNNotice.ForeColor = System.Drawing.Color.FromArgb(CType(CType(10, Byte), Integer), CType(CType(88, Byte), Integer), CType(CType(202, Byte), Integer))
             Me.lblGRNNotice.Location = New System.Drawing.Point(8, 12)
             Me.lblGRNNotice.Name = "lblGRNNotice"
@@ -671,13 +683,12 @@ Namespace UI.Purchasing
             '
             'PurchasingDashboardForm
             '
-            Me.AutoScaleDimensions = New System.Drawing.SizeF(9.0!, 21.0!)
-            Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Inherit
+            Me.AutoScaleDimensions = New System.Drawing.SizeF(7.0!, 17.0!)
+            Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
             Me.BackColor = System.Drawing.Color.FromArgb(CType(CType(248, Byte), Integer), CType(CType(249, Byte), Integer), CType(CType(250, Byte), Integer))
-            Me.ClientSize = New System.Drawing.Size(1040, 680)
+            Me.ClientSize = New System.Drawing.Size(1200, 720)
             Me.Controls.Add(Me.tabPurchasing)
             Me.Controls.Add(Me.pnlHeader)
-            Me.Font = New System.Drawing.Font("Segoe UI Variable Text", 9.5!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point)
             Me.Name = "PurchasingDashboardForm"
             Me.Text = "Purchasing Dashboard & 3-Way Match Verification"
             Me.pnlHeader.ResumeLayout(False)
@@ -691,6 +702,8 @@ Namespace UI.Purchasing
             Me.grpMatchGrid.ResumeLayout(False)
             CType(Me.dgvThreeWayMatch, System.ComponentModel.ISupportInitialize).EndInit()
             Me.pnlBillEntry.ResumeLayout(False)
+            Me.tlpBillControls.ResumeLayout(False)
+            Me.tlpBillControls.PerformLayout()
             Me.grpBillEntry.ResumeLayout(False)
             Me.grpBillEntry.PerformLayout()
             CType(Me.numFreightAmount, System.ComponentModel.ISupportInitialize).EndInit()
@@ -730,6 +743,7 @@ Namespace UI.Purchasing
         Friend WithEvents dgvThreeWayMatch As System.Windows.Forms.DataGridView
         Friend WithEvents pnlBillEntry As System.Windows.Forms.Panel
         Friend WithEvents grpBillEntry As System.Windows.Forms.GroupBox
+        Friend WithEvents tlpBillControls As System.Windows.Forms.TableLayoutPanel
         Friend WithEvents lblSelectedMatch As System.Windows.Forms.Label
         Friend WithEvents lblBillNumber As System.Windows.Forms.Label
         Friend WithEvents txtBillNumber As System.Windows.Forms.TextBox

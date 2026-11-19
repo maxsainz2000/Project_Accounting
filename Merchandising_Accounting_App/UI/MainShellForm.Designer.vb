@@ -59,7 +59,7 @@ Namespace UI
             Me.pnlSidebar.Dock = System.Windows.Forms.DockStyle.Left
             Me.pnlSidebar.Location = New System.Drawing.Point(0, 0)
             Me.pnlSidebar.Name = "pnlSidebar"
-            Me.pnlSidebar.Size = New System.Drawing.Size(270, 720)
+            Me.pnlSidebar.Size = New System.Drawing.Size(280, 720)
             Me.pnlSidebar.TabIndex = 0
             '
             'btnFinancialReports
@@ -67,15 +67,16 @@ Namespace UI
             Me.btnFinancialReports.Dock = System.Windows.Forms.DockStyle.Top
             Me.btnFinancialReports.FlatAppearance.BorderSize = 0
             Me.btnFinancialReports.FlatStyle = System.Windows.Forms.FlatStyle.Flat
-            Me.btnFinancialReports.Font = New System.Drawing.Font("Segoe UI Variable Text", 10.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point)
+            Me.btnFinancialReports.Font = New System.Drawing.Font("Segoe UI", 10.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
             Me.btnFinancialReports.ForeColor = System.Drawing.Color.WhiteSmoke
             Me.btnFinancialReports.Location = New System.Drawing.Point(0, 288)
             Me.btnFinancialReports.Name = "btnFinancialReports"
-            Me.btnFinancialReports.Padding = New System.Windows.Forms.Padding(18, 0, 0, 0)
-            Me.btnFinancialReports.Size = New System.Drawing.Size(270, 52)
+            Me.btnFinancialReports.Padding = New System.Windows.Forms.Padding(20, 0, 0, 0)
+            Me.btnFinancialReports.Size = New System.Drawing.Size(280, 52)
             Me.btnFinancialReports.TabIndex = 5
             Me.btnFinancialReports.Text = "Financial Reports"
             Me.btnFinancialReports.TextAlign = System.Drawing.ContentAlignment.MiddleLeft
+            Me.btnFinancialReports.UseMnemonic = False
             Me.btnFinancialReports.UseVisualStyleBackColor = True
             '
             'btnLedger
@@ -83,15 +84,16 @@ Namespace UI
             Me.btnLedger.Dock = System.Windows.Forms.DockStyle.Top
             Me.btnLedger.FlatAppearance.BorderSize = 0
             Me.btnLedger.FlatStyle = System.Windows.Forms.FlatStyle.Flat
-            Me.btnLedger.Font = New System.Drawing.Font("Segoe UI Variable Text", 10.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point)
+            Me.btnLedger.Font = New System.Drawing.Font("Segoe UI", 10.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
             Me.btnLedger.ForeColor = System.Drawing.Color.WhiteSmoke
             Me.btnLedger.Location = New System.Drawing.Point(0, 236)
             Me.btnLedger.Name = "btnLedger"
-            Me.btnLedger.Padding = New System.Windows.Forms.Padding(18, 0, 0, 0)
-            Me.btnLedger.Size = New System.Drawing.Size(270, 52)
+            Me.btnLedger.Padding = New System.Windows.Forms.Padding(20, 0, 0, 0)
+            Me.btnLedger.Size = New System.Drawing.Size(280, 52)
             Me.btnLedger.TabIndex = 4
-            Me.btnLedger.Text = "General Ledger && COA"
+            Me.btnLedger.Text = "General Ledger & COA"
             Me.btnLedger.TextAlign = System.Drawing.ContentAlignment.MiddleLeft
+            Me.btnLedger.UseMnemonic = False
             Me.btnLedger.UseVisualStyleBackColor = True
             '
             'btnWarehouse
@@ -99,15 +101,16 @@ Namespace UI
             Me.btnWarehouse.Dock = System.Windows.Forms.DockStyle.Top
             Me.btnWarehouse.FlatAppearance.BorderSize = 0
             Me.btnWarehouse.FlatStyle = System.Windows.Forms.FlatStyle.Flat
-            Me.btnWarehouse.Font = New System.Drawing.Font("Segoe UI Variable Text", 10.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point)
+            Me.btnWarehouse.Font = New System.Drawing.Font("Segoe UI", 10.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
             Me.btnWarehouse.ForeColor = System.Drawing.Color.WhiteSmoke
             Me.btnWarehouse.Location = New System.Drawing.Point(0, 184)
             Me.btnWarehouse.Name = "btnWarehouse"
-            Me.btnWarehouse.Padding = New System.Windows.Forms.Padding(18, 0, 0, 0)
-            Me.btnWarehouse.Size = New System.Drawing.Size(270, 52)
+            Me.btnWarehouse.Padding = New System.Windows.Forms.Padding(20, 0, 0, 0)
+            Me.btnWarehouse.Size = New System.Drawing.Size(280, 52)
             Me.btnWarehouse.TabIndex = 3
-            Me.btnWarehouse.Text = "Warehouse && Intake"
+            Me.btnWarehouse.Text = "Warehouse & Intake"
             Me.btnWarehouse.TextAlign = System.Drawing.ContentAlignment.MiddleLeft
+            Me.btnWarehouse.UseMnemonic = False
             Me.btnWarehouse.UseVisualStyleBackColor = True
             '
             'btnSales
@@ -115,15 +118,16 @@ Namespace UI
             Me.btnSales.Dock = System.Windows.Forms.DockStyle.Top
             Me.btnSales.FlatAppearance.BorderSize = 0
             Me.btnSales.FlatStyle = System.Windows.Forms.FlatStyle.Flat
-            Me.btnSales.Font = New System.Drawing.Font("Segoe UI Variable Text", 10.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point)
+            Me.btnSales.Font = New System.Drawing.Font("Segoe UI", 10.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
             Me.btnSales.ForeColor = System.Drawing.Color.WhiteSmoke
             Me.btnSales.Location = New System.Drawing.Point(0, 132)
             Me.btnSales.Name = "btnSales"
-            Me.btnSales.Padding = New System.Windows.Forms.Padding(18, 0, 0, 0)
-            Me.btnSales.Size = New System.Drawing.Size(270, 52)
+            Me.btnSales.Padding = New System.Windows.Forms.Padding(20, 0, 0, 0)
+            Me.btnSales.Size = New System.Drawing.Size(280, 52)
             Me.btnSales.TabIndex = 2
-            Me.btnSales.Text = "Sales && Fulfillment"
+            Me.btnSales.Text = "Sales & Fulfillment"
             Me.btnSales.TextAlign = System.Drawing.ContentAlignment.MiddleLeft
+            Me.btnSales.UseMnemonic = False
             Me.btnSales.UseVisualStyleBackColor = True
             '
             'btnPurchasing
@@ -131,15 +135,16 @@ Namespace UI
             Me.btnPurchasing.Dock = System.Windows.Forms.DockStyle.Top
             Me.btnPurchasing.FlatAppearance.BorderSize = 0
             Me.btnPurchasing.FlatStyle = System.Windows.Forms.FlatStyle.Flat
-            Me.btnPurchasing.Font = New System.Drawing.Font("Segoe UI Variable Text", 10.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point)
+            Me.btnPurchasing.Font = New System.Drawing.Font("Segoe UI", 10.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
             Me.btnPurchasing.ForeColor = System.Drawing.Color.WhiteSmoke
             Me.btnPurchasing.Location = New System.Drawing.Point(0, 80)
             Me.btnPurchasing.Name = "btnPurchasing"
-            Me.btnPurchasing.Padding = New System.Windows.Forms.Padding(18, 0, 0, 0)
-            Me.btnPurchasing.Size = New System.Drawing.Size(270, 52)
+            Me.btnPurchasing.Padding = New System.Windows.Forms.Padding(20, 0, 0, 0)
+            Me.btnPurchasing.Size = New System.Drawing.Size(280, 52)
             Me.btnPurchasing.TabIndex = 1
-            Me.btnPurchasing.Text = "Purchasing && 3-Way Match"
+            Me.btnPurchasing.Text = "Purchasing & 3-Way Match"
             Me.btnPurchasing.TextAlign = System.Drawing.ContentAlignment.MiddleLeft
+            Me.btnPurchasing.UseMnemonic = False
             Me.btnPurchasing.UseVisualStyleBackColor = True
             '
             'pnlLogo
@@ -148,19 +153,20 @@ Namespace UI
             Me.pnlLogo.Dock = System.Windows.Forms.DockStyle.Top
             Me.pnlLogo.Location = New System.Drawing.Point(0, 0)
             Me.pnlLogo.Name = "pnlLogo"
-            Me.pnlLogo.Size = New System.Drawing.Size(270, 80)
+            Me.pnlLogo.Size = New System.Drawing.Size(280, 80)
             Me.pnlLogo.TabIndex = 0
             '
             'lblAppTitle
             '
             Me.lblAppTitle.AutoSize = True
-            Me.lblAppTitle.Font = New System.Drawing.Font("Segoe UI Variable Display", 12.0!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point)
+            Me.lblAppTitle.Font = New System.Drawing.Font("Segoe UI", 12.0!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
             Me.lblAppTitle.ForeColor = System.Drawing.Color.White
-            Me.lblAppTitle.Location = New System.Drawing.Point(18, 25)
+            Me.lblAppTitle.Location = New System.Drawing.Point(20, 24)
             Me.lblAppTitle.Name = "lblAppTitle"
-            Me.lblAppTitle.Size = New System.Drawing.Size(188, 27)
+            Me.lblAppTitle.Size = New System.Drawing.Size(188, 28)
             Me.lblAppTitle.TabIndex = 0
             Me.lblAppTitle.Text = "Merchandising ERP"
+            Me.lblAppTitle.UseMnemonic = False
             '
             'pnlHeader
             '
@@ -168,59 +174,62 @@ Namespace UI
             Me.pnlHeader.Controls.Add(Me.lblModuleSubtitle)
             Me.pnlHeader.Controls.Add(Me.lblCurrentModule)
             Me.pnlHeader.Dock = System.Windows.Forms.DockStyle.Top
-            Me.pnlHeader.Location = New System.Drawing.Point(270, 0)
+            Me.pnlHeader.Location = New System.Drawing.Point(280, 0)
             Me.pnlHeader.Name = "pnlHeader"
             Me.pnlHeader.Padding = New System.Windows.Forms.Padding(20, 0, 0, 0)
-            Me.pnlHeader.Size = New System.Drawing.Size(1010, 64)
+            Me.pnlHeader.Size = New System.Drawing.Size(1000, 88)
             Me.pnlHeader.TabIndex = 1
             '
             'lblModuleSubtitle
             '
             Me.lblModuleSubtitle.AutoSize = True
-            Me.lblModuleSubtitle.Font = New System.Drawing.Font("Segoe UI Variable Text", 9.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point)
+            Me.lblModuleSubtitle.Font = New System.Drawing.Font("Segoe UI", 9.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
             Me.lblModuleSubtitle.ForeColor = System.Drawing.Color.FromArgb(CType(CType(108, Byte), Integer), CType(CType(117, Byte), Integer), CType(CType(125, Byte), Integer))
-            Me.lblModuleSubtitle.Location = New System.Drawing.Point(20, 36)
+            Me.lblModuleSubtitle.Location = New System.Drawing.Point(20, 44)
             Me.lblModuleSubtitle.Name = "lblModuleSubtitle"
             Me.lblModuleSubtitle.Size = New System.Drawing.Size(320, 20)
             Me.lblModuleSubtitle.TabIndex = 1
             Me.lblModuleSubtitle.Text = "ERP Module Overview and Status Control Panel"
+            Me.lblModuleSubtitle.UseMnemonic = False
             '
             'lblCurrentModule
             '
             Me.lblCurrentModule.AutoSize = True
-            Me.lblCurrentModule.Font = New System.Drawing.Font("Segoe UI Variable Display", 13.0!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point)
+            Me.lblCurrentModule.Font = New System.Drawing.Font("Segoe UI", 13.0!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
             Me.lblCurrentModule.ForeColor = System.Drawing.Color.FromArgb(CType(CType(33, Byte), Integer), CType(CType(37, Byte), Integer), CType(CType(41, Byte), Integer))
-            Me.lblCurrentModule.Location = New System.Drawing.Point(20, 8)
+            Me.lblCurrentModule.Location = New System.Drawing.Point(20, 10)
             Me.lblCurrentModule.Name = "lblCurrentModule"
             Me.lblCurrentModule.Size = New System.Drawing.Size(250, 30)
             Me.lblCurrentModule.TabIndex = 0
             Me.lblCurrentModule.Text = "Welcome to Operations"
+            Me.lblCurrentModule.UseMnemonic = False
             '
             'statusStrip
             '
             Me.statusStrip.ImageScalingSize = New System.Drawing.Size(20, 20)
             Me.statusStrip.Items.AddRange(New System.Windows.Forms.ToolStripItem() {Me.tsLblDbStatus, Me.tsLblSpacer, Me.tsLblFiscalPeriod, Me.tsLblSystemStatus})
-            Me.statusStrip.Location = New System.Drawing.Point(270, 694)
+            Me.statusStrip.Location = New System.Drawing.Point(280, 694)
             Me.statusStrip.Name = "statusStrip"
-            Me.statusStrip.Size = New System.Drawing.Size(1010, 26)
+            Me.statusStrip.Size = New System.Drawing.Size(1000, 26)
             Me.statusStrip.TabIndex = 2
-            Me.statusStrip.Text = "StatusStrip1"
+            Me.statusStrip.Text = "statusStrip"
             '
             'tsLblDbStatus
             '
             Me.tsLblDbStatus.Name = "tsLblDbStatus"
             Me.tsLblDbStatus.Size = New System.Drawing.Size(298, 20)
+            Me.tsLblDbStatus.Spring = False
             Me.tsLblDbStatus.Text = "Database: merchandising_erp.db (Mock Mode)"
             '
             'tsLblSpacer
             '
             Me.tsLblSpacer.Name = "tsLblSpacer"
-            Me.tsLblSpacer.Size = New System.Drawing.Size(407, 20)
+            Me.tsLblSpacer.Size = New System.Drawing.Size(397, 20)
             Me.tsLblSpacer.Spring = True
             '
             'tsLblFiscalPeriod
             '
-            Me.tsLblFiscalPeriod.Font = New System.Drawing.Font("Segoe UI Variable Text", 9.0!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point)
+            Me.tsLblFiscalPeriod.Font = New System.Drawing.Font("Segoe UI", 9.0!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
             Me.tsLblFiscalPeriod.ForeColor = System.Drawing.Color.DarkGreen
             Me.tsLblFiscalPeriod.Name = "tsLblFiscalPeriod"
             Me.tsLblFiscalPeriod.Size = New System.Drawing.Size(175, 20)
@@ -234,27 +243,29 @@ Namespace UI
             '
             'pnlContentHost
             '
+            Me.pnlContentHost.AutoScroll = True
             Me.pnlContentHost.BackColor = System.Drawing.Color.FromArgb(CType(CType(248, Byte), Integer), CType(CType(249, Byte), Integer), CType(CType(250, Byte), Integer))
             Me.pnlContentHost.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.pnlContentHost.Location = New System.Drawing.Point(270, 64)
+            Me.pnlContentHost.Location = New System.Drawing.Point(280, 88)
             Me.pnlContentHost.Name = "pnlContentHost"
-            Me.pnlContentHost.Size = New System.Drawing.Size(1010, 630)
+            Me.pnlContentHost.Size = New System.Drawing.Size(1000, 606)
             Me.pnlContentHost.TabIndex = 3
             '
             'MainShellForm
             '
-            Me.AutoScaleDimensions = New System.Drawing.SizeF(9.0!, 21.0!)
+            Me.AutoScaleDimensions = New System.Drawing.SizeF(7.0!, 17.0!)
             Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
             Me.ClientSize = New System.Drawing.Size(1280, 720)
             Me.Controls.Add(Me.pnlContentHost)
             Me.Controls.Add(Me.statusStrip)
             Me.Controls.Add(Me.pnlHeader)
             Me.Controls.Add(Me.pnlSidebar)
-            Me.Font = New System.Drawing.Font("Segoe UI Variable Text", 9.5!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point)
-            Me.MinimumSize = New System.Drawing.Size(1100, 680)
+            Me.MaximizeBox = True
+            Me.MinimumSize = New System.Drawing.Size(1024, 600)
             Me.Name = "MainShellForm"
             Me.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen
             Me.Text = "Merchandising ERP - Accounting & Operations"
+            Me.WindowState = System.Windows.Forms.FormWindowState.Maximized
             Me.pnlSidebar.ResumeLayout(False)
             Me.pnlLogo.ResumeLayout(False)
             Me.pnlLogo.PerformLayout()

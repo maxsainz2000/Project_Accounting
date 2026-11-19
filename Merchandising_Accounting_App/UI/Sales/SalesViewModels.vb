@@ -517,7 +517,7 @@ Namespace UI.Sales
                 result.WarningMessage = $"Order acceptable, but remaining balance ({product.QtyAvailable - requestedQty} units) will drop below reorder threshold ({product.ReorderLevel} units)."
             Else
                 result.IsPermitted = True
-                result.BadgeText = "IN STOCK: DISPATCH READY"
+                result.BadgeText = "IN STOCK: READY"
                 result.BadgeColor = Color.FromArgb(40, 167, 69) ' Success Green
                 result.WarningMessage = $"Sufficient stock verified. Available: {product.QtyAvailable} units. Order quantity: {requestedQty} units."
             End If

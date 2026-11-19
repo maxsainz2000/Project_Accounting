@@ -30,6 +30,7 @@ Namespace UI.Reporting
                     row.AccountCode,
                     row.AccountName,
                     row.AccountType,
+                    row.NormalBalance,
                     row.FormattedDebit,
                     row.FormattedCredit
                 )
@@ -37,7 +38,7 @@ Namespace UI.Reporting
                 If row.AccountType.StartsWith("Revenue", StringComparison.Ordinal) OrElse
                    row.AccountType.Equals("Liability", StringComparison.Ordinal) OrElse
                    row.AccountType.Equals("Equity", StringComparison.Ordinal) Then
-                    dgvTrialBalance.Rows(rowIdx).Cells(4).Style.Font = New Font(dgvTrialBalance.Font, FontStyle.Regular)
+                    dgvTrialBalance.Rows(rowIdx).Cells(5).Style.Font = New Font(dgvTrialBalance.Font, FontStyle.Regular)
                 End If
             Next
 
@@ -48,10 +49,10 @@ Namespace UI.Reporting
             lblTbDiff.Text = $"Difference: {diff:C4}"
 
             If _viewModel.IsTrialBalanceBalanced Then
-                lblTbBalancedBadge.Text = "TRIAL BALANCE BALANCED (0.0000)"
+                lblTbBalancedBadge.Text = "TRIAL BALANCE: BALANCED"
                 lblTbBalancedBadge.BackColor = Color.FromArgb(25, 135, 84)
             Else
-                lblTbBalancedBadge.Text = "UNBALANCED VARIANCE DETECTED"
+                lblTbBalancedBadge.Text = "TRIAL BALANCE: UNBALANCED"
                 lblTbBalancedBadge.BackColor = Color.FromArgb(220, 53, 69)
             End If
         End Sub

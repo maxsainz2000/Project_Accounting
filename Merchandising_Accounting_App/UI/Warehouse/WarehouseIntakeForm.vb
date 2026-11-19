@@ -23,160 +23,212 @@ Namespace UI.Warehouse
             PopulateIntakeProducts()
             RefreshDockReceivingView()
             RefreshQuarantineView()
+            WarehouseIntakeForm_Resize(Nothing, EventArgs.Empty)
         End Sub
 
         Private Sub SetupOpenPOsGrid()
             dgvOpenPOs.Columns.Clear()
             dgvOpenPOs.AutoGenerateColumns = False
+            dgvOpenPOs.ScrollBars = ScrollBars.Both
 
             dgvOpenPOs.Columns.Add(New DataGridViewTextBoxColumn() With {
                 .HeaderText = "PO Number",
                 .DataPropertyName = "DocumentNumber",
-                .Width = 110
+                .AutoSizeMode = DataGridViewAutoSizeColumnMode.None,
+                .Width = 135,
+                .MinimumWidth = 125
             })
             dgvOpenPOs.Columns.Add(New DataGridViewTextBoxColumn() With {
                 .HeaderText = "Vendor",
                 .DataPropertyName = "VendorName",
-                .Width = 180
+                .AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill,
+                .FillWeight = 150.0!,
+                .MinimumWidth = 130
             })
             dgvOpenPOs.Columns.Add(New DataGridViewTextBoxColumn() With {
                 .HeaderText = "Date",
                 .DataPropertyName = "OrderDate",
-                .DefaultCellStyle = New DataGridViewCellStyle() With {.Format = "yyyy-MM-dd"},
-                .Width = 90
+                .AutoSizeMode = DataGridViewAutoSizeColumnMode.None,
+                .DefaultCellStyle = New DataGridViewCellStyle() With {.Format = "yyyy-MM-dd", .Alignment = DataGridViewContentAlignment.MiddleCenter},
+                .Width = 110,
+                .MinimumWidth = 100
             })
             dgvOpenPOs.Columns.Add(New DataGridViewTextBoxColumn() With {
                 .HeaderText = "Status",
                 .DataPropertyName = "Status",
-                .Width = 100
+                .AutoSizeMode = DataGridViewAutoSizeColumnMode.None,
+                .Width = 90,
+                .MinimumWidth = 80,
+                .DefaultCellStyle = New DataGridViewCellStyle() With {.Alignment = DataGridViewContentAlignment.MiddleCenter}
             })
             dgvOpenPOs.Columns.Add(New DataGridViewTextBoxColumn() With {
                 .HeaderText = "Total ($)",
                 .DataPropertyName = "TotalAmount",
+                .AutoSizeMode = DataGridViewAutoSizeColumnMode.None,
                 .DefaultCellStyle = New DataGridViewCellStyle() With {.Format = "C2", .Alignment = DataGridViewContentAlignment.MiddleRight},
-                .Width = 90
+                .Width = 95,
+                .MinimumWidth = 90
             })
             dgvOpenPOs.Columns.Add(New DataGridViewTextBoxColumn() With {
                 .HeaderText = "Pending Qty",
                 .DataPropertyName = "TotalPendingQty",
+                .AutoSizeMode = DataGridViewAutoSizeColumnMode.None,
                 .DefaultCellStyle = New DataGridViewCellStyle() With {.Alignment = DataGridViewContentAlignment.MiddleRight},
-                .Width = 90
+                .Width = 85,
+                .MinimumWidth = 80
             })
         End Sub
 
         Private Sub SetupPOLinesGrid()
             dgvPOLines.Columns.Clear()
             dgvPOLines.AutoGenerateColumns = False
+            dgvPOLines.ScrollBars = ScrollBars.Both
 
             dgvPOLines.Columns.Add(New DataGridViewTextBoxColumn() With {
                 .HeaderText = "SKU",
                 .DataPropertyName = "SKU",
-                .Width = 100
+                .AutoSizeMode = DataGridViewAutoSizeColumnMode.None,
+                .Width = 140,
+                .MinimumWidth = 130
             })
             dgvPOLines.Columns.Add(New DataGridViewTextBoxColumn() With {
                 .HeaderText = "Product Name",
                 .DataPropertyName = "ProductName",
-                .Width = 180
+                .AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill,
+                .MinimumWidth = 140
             })
             dgvPOLines.Columns.Add(New DataGridViewTextBoxColumn() With {
                 .HeaderText = "Ordered",
                 .DataPropertyName = "OrderedQty",
+                .AutoSizeMode = DataGridViewAutoSizeColumnMode.None,
                 .DefaultCellStyle = New DataGridViewCellStyle() With {.Alignment = DataGridViewContentAlignment.MiddleRight},
-                .Width = 70
+                .Width = 80,
+                .MinimumWidth = 70
             })
             dgvPOLines.Columns.Add(New DataGridViewTextBoxColumn() With {
                 .HeaderText = "Received",
                 .DataPropertyName = "ReceivedQty",
+                .AutoSizeMode = DataGridViewAutoSizeColumnMode.None,
                 .DefaultCellStyle = New DataGridViewCellStyle() With {.Alignment = DataGridViewContentAlignment.MiddleRight},
-                .Width = 70
+                .Width = 80,
+                .MinimumWidth = 70
             })
             dgvPOLines.Columns.Add(New DataGridViewTextBoxColumn() With {
                 .HeaderText = "Pending",
                 .DataPropertyName = "PendingQty",
+                .AutoSizeMode = DataGridViewAutoSizeColumnMode.None,
                 .DefaultCellStyle = New DataGridViewCellStyle() With {.Alignment = DataGridViewContentAlignment.MiddleRight},
-                .Width = 70
+                .Width = 80,
+                .MinimumWidth = 70
             })
             dgvPOLines.Columns.Add(New DataGridViewTextBoxColumn() With {
                 .HeaderText = "Unit Cost",
                 .DataPropertyName = "POUnitPrice",
+                .AutoSizeMode = DataGridViewAutoSizeColumnMode.None,
                 .DefaultCellStyle = New DataGridViewCellStyle() With {.Format = "C2", .Alignment = DataGridViewContentAlignment.MiddleRight},
-                .Width = 85
+                .Width = 95,
+                .MinimumWidth = 90
             })
         End Sub
 
         Private Sub SetupGRNJournalGrid()
             dgvGRNJournal.Columns.Clear()
             dgvGRNJournal.AutoGenerateColumns = False
+            dgvGRNJournal.ScrollBars = ScrollBars.Both
 
-            dgvGRNJournal.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "Doc #", .Width = 110})
-            dgvGRNJournal.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "Posting Date", .Width = 90})
-            dgvGRNJournal.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "Account", .Width = 75})
-            dgvGRNJournal.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "Account Name", .Width = 220})
+            dgvGRNJournal.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "Doc #", .AutoSizeMode = DataGridViewAutoSizeColumnMode.None, .Width = 115, .MinimumWidth = 100})
+            dgvGRNJournal.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "Posting Date", .AutoSizeMode = DataGridViewAutoSizeColumnMode.None, .Width = 90, .MinimumWidth = 85, .DefaultCellStyle = New DataGridViewCellStyle() With {.Alignment = DataGridViewContentAlignment.MiddleCenter}})
+            dgvGRNJournal.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "Account", .AutoSizeMode = DataGridViewAutoSizeColumnMode.None, .Width = 95, .MinimumWidth = 85, .DefaultCellStyle = New DataGridViewCellStyle() With {.Alignment = DataGridViewContentAlignment.MiddleCenter}})
+            dgvGRNJournal.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "Account Name", .AutoSizeMode = DataGridViewAutoSizeColumnMode.None, .Width = 240, .MinimumWidth = 180})
             dgvGRNJournal.Columns.Add(New DataGridViewTextBoxColumn() With {
                 .HeaderText = "Debit ($)",
+                .AutoSizeMode = DataGridViewAutoSizeColumnMode.None,
                 .DefaultCellStyle = New DataGridViewCellStyle() With {.Format = "C2", .Alignment = DataGridViewContentAlignment.MiddleRight},
-                .Width = 95
+                .Width = 100,
+                .MinimumWidth = 95
             })
             dgvGRNJournal.Columns.Add(New DataGridViewTextBoxColumn() With {
                 .HeaderText = "Credit ($)",
+                .AutoSizeMode = DataGridViewAutoSizeColumnMode.None,
                 .DefaultCellStyle = New DataGridViewCellStyle() With {.Format = "C2", .Alignment = DataGridViewContentAlignment.MiddleRight},
-                .Width = 95
+                .Width = 100,
+                .MinimumWidth = 95
             })
-            dgvGRNJournal.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "Memo / Line Reference", .Width = 260})
+            dgvGRNJournal.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "Memo / Line Reference", .AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill, .MinimumWidth = 160})
         End Sub
 
         Private Sub SetupQuarantineGrid()
             dgvQuarantineItems.Columns.Clear()
             dgvQuarantineItems.AutoGenerateColumns = False
+            dgvQuarantineItems.ScrollBars = ScrollBars.Both
 
-            dgvQuarantineItems.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "RMA #", .DataPropertyName = "DocumentNumber", .Width = 100})
-            dgvQuarantineItems.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "Customer", .DataPropertyName = "CustomerName", .Width = 150})
-            dgvQuarantineItems.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "Orig Invoice", .DataPropertyName = "OriginalInvoiceNumber", .Width = 110})
-            dgvQuarantineItems.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "SKU", .DataPropertyName = "SKU", .Width = 100})
+            dgvQuarantineItems.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "RMA #", .AutoSizeMode = DataGridViewAutoSizeColumnMode.None, .Width = 100, .MinimumWidth = 95})
+            dgvQuarantineItems.Columns.Add(New DataGridViewTextBoxColumn() With {
+                .HeaderText = "Customer",
+                .DataPropertyName = "CustomerName",
+                .AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill,
+                .MinimumWidth = 130
+            })
+            dgvQuarantineItems.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "Orig Invoice", .AutoSizeMode = DataGridViewAutoSizeColumnMode.None, .DataPropertyName = "OriginalInvoiceNumber", .Width = 110, .MinimumWidth = 95})
+            dgvQuarantineItems.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "SKU", .AutoSizeMode = DataGridViewAutoSizeColumnMode.None, .DataPropertyName = "SKU", .Width = 100, .MinimumWidth = 90})
             dgvQuarantineItems.Columns.Add(New DataGridViewTextBoxColumn() With {
                 .HeaderText = "In Quarantine",
                 .DataPropertyName = "QuarantineQty",
+                .AutoSizeMode = DataGridViewAutoSizeColumnMode.None,
                 .DefaultCellStyle = New DataGridViewCellStyle() With {.Alignment = DataGridViewContentAlignment.MiddleRight},
-                .Width = 100
+                .Width = 100,
+                .MinimumWidth = 85
             })
             dgvQuarantineItems.Columns.Add(New DataGridViewTextBoxColumn() With {
                 .HeaderText = "Restocked",
                 .DataPropertyName = "RestockedQty",
+                .AutoSizeMode = DataGridViewAutoSizeColumnMode.None,
                 .DefaultCellStyle = New DataGridViewCellStyle() With {.Alignment = DataGridViewContentAlignment.MiddleRight},
-                .Width = 80
+                .Width = 80,
+                .MinimumWidth = 75
             })
             dgvQuarantineItems.Columns.Add(New DataGridViewTextBoxColumn() With {
                 .HeaderText = "Scrapped",
                 .DataPropertyName = "ScrappedQty",
+                .AutoSizeMode = DataGridViewAutoSizeColumnMode.None,
                 .DefaultCellStyle = New DataGridViewCellStyle() With {.Alignment = DataGridViewContentAlignment.MiddleRight},
-                .Width = 80
+                .Width = 80,
+                .MinimumWidth = 75
             })
             dgvQuarantineItems.Columns.Add(New DataGridViewTextBoxColumn() With {
                 .HeaderText = "Status",
                 .DataPropertyName = "Status",
-                .Width = 100
+                .AutoSizeMode = DataGridViewAutoSizeColumnMode.None,
+                .Width = 100,
+                .MinimumWidth = 85,
+                .DefaultCellStyle = New DataGridViewCellStyle() With {.Alignment = DataGridViewContentAlignment.MiddleCenter}
             })
         End Sub
 
         Private Sub SetupRMAJournalGrid()
             dgvRMAJournal.Columns.Clear()
             dgvRMAJournal.AutoGenerateColumns = False
+            dgvRMAJournal.ScrollBars = ScrollBars.Both
 
-            dgvRMAJournal.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "Credit Note #", .Width = 120})
-            dgvRMAJournal.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "Posting Date", .Width = 90})
-            dgvRMAJournal.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "Account", .Width = 75})
-            dgvRMAJournal.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "Account Name", .Width = 210})
+            dgvRMAJournal.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "Credit Note #", .AutoSizeMode = DataGridViewAutoSizeColumnMode.None, .Width = 120, .MinimumWidth = 95})
+            dgvRMAJournal.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "Posting Date", .AutoSizeMode = DataGridViewAutoSizeColumnMode.None, .Width = 90, .MinimumWidth = 85, .DefaultCellStyle = New DataGridViewCellStyle() With {.Alignment = DataGridViewContentAlignment.MiddleCenter}})
+            dgvRMAJournal.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "Account", .AutoSizeMode = DataGridViewAutoSizeColumnMode.None, .Width = 95, .MinimumWidth = 85, .DefaultCellStyle = New DataGridViewCellStyle() With {.Alignment = DataGridViewContentAlignment.MiddleCenter}})
+            dgvRMAJournal.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "Account Name", .AutoSizeMode = DataGridViewAutoSizeColumnMode.None, .Width = 240, .MinimumWidth = 180})
             dgvRMAJournal.Columns.Add(New DataGridViewTextBoxColumn() With {
                 .HeaderText = "Debit ($)",
+                .AutoSizeMode = DataGridViewAutoSizeColumnMode.None,
                 .DefaultCellStyle = New DataGridViewCellStyle() With {.Format = "C2", .Alignment = DataGridViewContentAlignment.MiddleRight},
-                .Width = 90
+                .Width = 100,
+                .MinimumWidth = 95
             })
             dgvRMAJournal.Columns.Add(New DataGridViewTextBoxColumn() With {
                 .HeaderText = "Credit ($)",
+                .AutoSizeMode = DataGridViewAutoSizeColumnMode.None,
                 .DefaultCellStyle = New DataGridViewCellStyle() With {.Format = "C2", .Alignment = DataGridViewContentAlignment.MiddleRight},
-                .Width = 90
+                .Width = 100,
+                .MinimumWidth = 95
             })
-            dgvRMAJournal.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "Memo / Line Reference", .Width = 240})
+            dgvRMAJournal.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "Memo / Line Reference", .AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill, .MinimumWidth = 160})
         End Sub
 
         Private Sub PopulateIntakeProducts()
@@ -244,7 +296,7 @@ Namespace UI.Warehouse
                         Dim newQty As Integer = curQty + recQty
                         Dim blendedCost As Decimal = Math.Round(((CDec(curQty) * curCost) + (CDec(recQty) * _selectedPOLine.POUnitPrice)) / CDec(newQty), 4)
 
-                        lblCostImpactPreview.Text = $"Stock Impact: {prod.SKU} On-Hand: {curQty} -> {newQty} | Avg Cost: ${curCost:N2} -> ${blendedCost:N2} (Debit 1300 / Credit 2100)"
+                        lblCostImpactPreview.Text = $"Stock Impact: {prod.SKU} Qty: {curQty} -> {newQty} | Cost: ${curCost:N2} -> ${blendedCost:N2} (Dr 1300/Cr 2100)"
                     End If
                 Else
                     numReceiveQty.Maximum = 0D
@@ -509,6 +561,29 @@ Namespace UI.Warehouse
             Catch ex As Exception
                 MessageBox.Show($"Error posting inspection: {ex.Message}", "Inspection Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
             End Try
+        End Sub
+
+        Private Sub WarehouseIntakeForm_Resize(sender As Object, e As EventArgs) Handles Me.Resize
+            If pnlPOLines IsNot Nothing AndAlso splitDock IsNot Nothing AndAlso splitDock.Panel1.Width > 0 Then
+                ' Proportional width for PO lines panel: ~52% of Panel1, minimum 500px
+                Dim targetW As Integer = CInt(Math.Floor(splitDock.Panel1.Width * 0.52))
+                pnlPOLines.Width = Math.Max(500, targetW)
+            End If
+            If pnlReceiveActions IsNot Nothing AndAlso btnReceiveGRN IsNot Nothing Then
+                btnReceiveGRN.Left = 12
+                btnReceiveGRN.Width = Math.Max(200, pnlReceiveActions.ClientSize.Width - 24)
+            End If
+        End Sub
+
+        Private Sub tabMain_SelectedIndexChanged(sender As Object, e As EventArgs) Handles tabMain.SelectedIndexChanged
+            If tabMain.SelectedTab Is tabQuarantine Then
+                dgvQuarantineItems.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.AllCellsExceptHeader)
+                dgvRMAJournal.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.AllCellsExceptHeader)
+            ElseIf tabMain.SelectedTab Is tabDockReceiving Then
+                dgvOpenPOs.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.AllCellsExceptHeader)
+                dgvPOLines.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.AllCellsExceptHeader)
+                dgvGRNJournal.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.AllCellsExceptHeader)
+            End If
         End Sub
 
     End Class

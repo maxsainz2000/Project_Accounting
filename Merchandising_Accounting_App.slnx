@@ -1,3 +1,5 @@
 <Solution>
   <Project Path="Merchandising_Accounting_App\Merchandising_Accounting_App.vbproj" />
+  <Project Path="Merchandising_Accounting_App.PreviewTool\Merchandising_Accounting_App.PreviewTool.vbproj" />
+  <Project Path="Merchandising_Accounting_App.Tests\Merchandising_Accounting_App.Tests.vbproj" />
 </Solution>

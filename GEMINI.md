@@ -111,3 +111,41 @@ Code must be strictly partitioned into four distinct layers within the `Merchand
   * All unit and integration test fixtures reside in `Merchandising_Accounting_App.Tests`.
   * Domain engines (`LedgerPostingEngine`, `InventoryCostingEngine`) must maintain $\ge 90\%$ branch coverage.
   * Application workflow services must maintain $\ge 85\%$ statement coverage.
+
+---
+
+## 6. UI Engineering, Visual Standards & Preview Tooling
+
+All user interfaces must satisfy strict visual, responsive, and designer compatibility invariants:
+
+1. **Dual-Resolution Responsiveness Standards:**
+   * Every desktop view must render cleanly across both supported viewports:
+     * **Restored Desktop Viewport (`1280×720`)**: Total content host width is **1000px** ($1280\text{px} - 280\text{px}$ navigation sidebar).
+     * **Maximized Full HD Viewport (`1920×1080`)**: Proportional auto-fill columns expand to prevent empty white voids.
+   * `MainShellForm` defaults to `WindowState = Maximized` with `MinimumSize = (1024, 600)`, `MaximizeBox = True`, and `pnlContentHost.AutoScroll = True`.
+
+2. **Zero Horizontal Scrollbar Invariant on Primary Tables:**
+   * Primary `DataGridView` tables (General Ledger entry headers, Double-Entry distribution lines, Sales invoices, POs, GRNs, 3-Way match) must **NEVER trigger horizontal scrollbars at 1280×720**.
+   * The sum of fixed-width columns plus the minimum width of expandable `Fill` columns must remain $\le \text{Inner Grid Client Width} - 20\text{px}$ (accounting for borders and the vertical scrollbar).
+   * Verified programmatically via automated tests: `Assert.IsFalse(hScroll.Visible)` and `Assert.AreEqual(TotalColumns, dgv.DisplayedColumnCount(False))`.
+
+3. **Visual Studio 2026 Designer Compatibility:**
+   * **Project Font Setting:** `.vbproj` files must declare `<ApplicationDefaultFont>Segoe UI, 9.5pt</ApplicationDefaultFont>`. Never put multi-word variable font strings (e.g. `Segoe UI Variable Text, 9.5pt`) inside `.vbproj` XML (this causes an unhandled parsing error in Visual Studio's out-of-process `DesignToolsServer`).
+   * **Runtime Variable Typography:** Dynamic detection of `Segoe UI Variable Text` with fallback to `Segoe UI` belongs exclusively in `ApplicationEvents.vb` (`MyApplication_ApplyApplicationDefaults`).
+   * **Ambient Font Inheritance:** Designer files (`.Designer.vb`) must not declare form-level `Me.Font = ...`. All controls must inherit ambient typography from the application.
+   * **Scale Dimensions:** Forms must strictly declare `Me.AutoScaleDimensions = New System.Drawing.SizeF(7.0!, 17.0!)` and `Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font`.
+
+4. **Decoupled UserControl Architecture Standard:**
+   * New features and views must be built as self-contained `UserControl` components rather than monolithic multi-tab forms.
+   * Each UserControl encapsulates its own isolated layout, ViewModel, and event handlers, loading instantly in the Visual Studio Designer and previewable independently.
+   * Shared atomic controls (`DoubleEntryDistributionGridControl`, `FiscalPeriodChipControl`, `BalancedStatusBadgeControl`) must be reused across modules.
+
+5. **Mandatory Automated UI Preview Tooling:**
+   * Agents must never rely solely on blind code inspection or ask the user for manual screenshots to inspect UI layouts.
+   * Automated headless preview captures must be executed via `preview_ui.ps1` before reporting UI completion:
+     ```powershell
+     powershell -File .\preview_ui.ps1 --all --mode both
+     ```
+   * Previews are stored in `current_ui_screenshots/minimize/` (1280×720) and `current_ui_screenshots/maximize/` (1920×1080).
+   * When creating new views, register a corresponding `PreviewScenario` in `Merchandising_Accounting_App.PreviewTool/Program.vb` following `.agents/skills/winforms-ui-preview/SKILL.md`.
+

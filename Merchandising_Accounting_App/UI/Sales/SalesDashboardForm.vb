@@ -25,6 +25,35 @@ Namespace UI.Sales
             RefreshInvoicesGrid()
             RefreshProductsCatalogGrid()
             UpdateKpiCards()
+            SalesDashboardForm_Resize(Nothing, EventArgs.Empty)
+        End Sub
+
+        Private Sub SalesDashboardForm_Resize(sender As Object, e As EventArgs) Handles Me.Resize
+            If splitOrders IsNot Nothing AndAlso splitOrders.Width > 0 Then
+                Dim targetDistance As Integer = CInt(Math.Floor(splitOrders.Width * 0.49))
+                Dim minDistance As Integer = Math.Max(splitOrders.Panel1MinSize, 520)
+                Dim maxDistance As Integer = splitOrders.Width - splitOrders.Panel2MinSize - splitOrders.SplitterWidth
+                If maxDistance >= minDistance Then
+                    targetDistance = Math.Clamp(targetDistance, minDistance, maxDistance)
+                    If splitOrders.SplitterDistance <> targetDistance Then
+                        splitOrders.SplitterDistance = targetDistance
+                    End If
+                End If
+            End If
+            If pnlOrderActions IsNot Nothing AndAlso btnGenerateInvoiceFromSO IsNot Nothing Then
+                btnGenerateInvoiceFromSO.Left = 8
+                btnGenerateInvoiceFromSO.Width = Math.Max(320, pnlOrderActions.ClientSize.Width - 16)
+            End If
+        End Sub
+
+        Private Sub tabMain_SelectedIndexChanged(sender As Object, e As EventArgs) Handles tabMain.SelectedIndexChanged
+            If tabMain.SelectedTab Is tabInvoices Then
+                dgvInvoices.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.AllCellsExceptHeader)
+                dgvInvoiceLines.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.AllCellsExceptHeader)
+                dgvJournalPreview.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.AllCellsExceptHeader)
+            ElseIf tabMain.SelectedTab Is tabStockMonitor Then
+                dgvProductsCatalog.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.AllCellsExceptHeader)
+            End If
         End Sub
 
         Private Sub InitializeDraftOrder()
@@ -38,78 +67,85 @@ Namespace UI.Sales
         Private Sub SetupGrids()
             ' Setup dgvCurrentLines
             dgvCurrentLines.AutoGenerateColumns = False
+            dgvCurrentLines.ScrollBars = ScrollBars.Both
             dgvCurrentLines.Columns.Clear()
-            dgvCurrentLines.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "SKU", .HeaderText = "SKU", .FillWeight = 20.0!})
-            dgvCurrentLines.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "ProductName", .HeaderText = "Product Name", .FillWeight = 35.0!})
-            dgvCurrentLines.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "OrderedQty", .HeaderText = "Qty", .FillWeight = 12.0!})
-            dgvCurrentLines.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "UnitPrice", .HeaderText = "Price", .FillWeight = 15.0!, .DefaultCellStyle = New DataGridViewCellStyle() With {.Format = "C2"}})
-            dgvCurrentLines.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "LineTotal", .HeaderText = "Total", .FillWeight = 18.0!, .DefaultCellStyle = New DataGridViewCellStyle() With {.Format = "C2"}})
+            dgvCurrentLines.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "SKU", .HeaderText = "SKU", .FillWeight = 20.0!, .MinimumWidth = 90})
+            dgvCurrentLines.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "ProductName", .HeaderText = "Product Name", .FillWeight = 50.0!, .MinimumWidth = 240})
+            dgvCurrentLines.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "OrderedQty", .HeaderText = "Qty", .FillWeight = 12.0!, .MinimumWidth = 60, .DefaultCellStyle = New DataGridViewCellStyle() With {.Alignment = DataGridViewContentAlignment.MiddleRight}})
+            dgvCurrentLines.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "UnitPrice", .HeaderText = "Price", .FillWeight = 15.0!, .MinimumWidth = 85, .DefaultCellStyle = New DataGridViewCellStyle() With {.Format = "C2", .Alignment = DataGridViewContentAlignment.MiddleRight}})
+            dgvCurrentLines.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "LineTotal", .HeaderText = "Total", .FillWeight = 18.0!, .MinimumWidth = 95, .DefaultCellStyle = New DataGridViewCellStyle() With {.Format = "C2", .Alignment = DataGridViewContentAlignment.MiddleRight}})
 
             ' Setup dgvExistingOrders
             dgvExistingOrders.AutoGenerateColumns = False
+            dgvExistingOrders.ScrollBars = ScrollBars.Both
             dgvExistingOrders.Columns.Clear()
-            dgvExistingOrders.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "DocumentNumber", .HeaderText = "Order #", .FillWeight = 20.0!})
-            dgvExistingOrders.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "CustomerName", .HeaderText = "Customer", .FillWeight = 35.0!})
-            dgvExistingOrders.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "OrderDate", .HeaderText = "Date", .FillWeight = 18.0!, .DefaultCellStyle = New DataGridViewCellStyle() With {.Format = "yyyy-MM-dd"}})
-            dgvExistingOrders.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "TotalAmount", .HeaderText = "Total Amount", .FillWeight = 20.0!, .DefaultCellStyle = New DataGridViewCellStyle() With {.Format = "C2"}})
-            dgvExistingOrders.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "Status", .HeaderText = "Status", .FillWeight = 17.0!})
+            dgvExistingOrders.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "DocumentNumber", .HeaderText = "Order #", .FillWeight = 20.0!, .MinimumWidth = 95})
+            dgvExistingOrders.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "CustomerName", .HeaderText = "Customer", .FillWeight = 35.0!, .MinimumWidth = 140})
+            dgvExistingOrders.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "OrderDate", .HeaderText = "Date", .FillWeight = 18.0!, .MinimumWidth = 85, .DefaultCellStyle = New DataGridViewCellStyle() With {.Format = "yyyy-MM-dd", .Alignment = DataGridViewContentAlignment.MiddleCenter}})
+            dgvExistingOrders.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "TotalAmount", .HeaderText = "Total Amount", .FillWeight = 20.0!, .MinimumWidth = 100, .DefaultCellStyle = New DataGridViewCellStyle() With {.Format = "C2", .Alignment = DataGridViewContentAlignment.MiddleRight}})
+            dgvExistingOrders.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "Status", .HeaderText = "Status", .FillWeight = 17.0!, .MinimumWidth = 85, .DefaultCellStyle = New DataGridViewCellStyle() With {.Alignment = DataGridViewContentAlignment.MiddleCenter}})
 
             ' Setup dgvSelectedOrderLines
             dgvSelectedOrderLines.AutoGenerateColumns = False
+            dgvSelectedOrderLines.ScrollBars = ScrollBars.Both
             dgvSelectedOrderLines.Columns.Clear()
-            dgvSelectedOrderLines.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "SKU", .HeaderText = "SKU", .FillWeight = 20.0!})
-            dgvSelectedOrderLines.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "ProductName", .HeaderText = "Product", .FillWeight = 35.0!})
-            dgvSelectedOrderLines.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "OrderedQty", .HeaderText = "Qty", .FillWeight = 12.0!})
-            dgvSelectedOrderLines.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "UnitPrice", .HeaderText = "Unit Price", .FillWeight = 15.0!, .DefaultCellStyle = New DataGridViewCellStyle() With {.Format = "C2"}})
-            dgvSelectedOrderLines.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "LineTotal", .HeaderText = "Total", .FillWeight = 18.0!, .DefaultCellStyle = New DataGridViewCellStyle() With {.Format = "C2"}})
-            dgvSelectedOrderLines.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "StockBadgeText", .HeaderText = "Stock Check", .FillWeight = 25.0!})
+            dgvSelectedOrderLines.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "SKU", .HeaderText = "SKU", .FillWeight = 20.0!, .MinimumWidth = 90})
+            dgvSelectedOrderLines.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "ProductName", .HeaderText = "Product", .FillWeight = 50.0!, .MinimumWidth = 240})
+            dgvSelectedOrderLines.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "OrderedQty", .HeaderText = "Qty", .FillWeight = 12.0!, .MinimumWidth = 60, .DefaultCellStyle = New DataGridViewCellStyle() With {.Alignment = DataGridViewContentAlignment.MiddleRight}})
+            dgvSelectedOrderLines.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "UnitPrice", .HeaderText = "Unit Price", .FillWeight = 15.0!, .MinimumWidth = 85, .DefaultCellStyle = New DataGridViewCellStyle() With {.Format = "C2", .Alignment = DataGridViewContentAlignment.MiddleRight}})
+            dgvSelectedOrderLines.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "LineTotal", .HeaderText = "Total", .FillWeight = 18.0!, .MinimumWidth = 95, .DefaultCellStyle = New DataGridViewCellStyle() With {.Format = "C2", .Alignment = DataGridViewContentAlignment.MiddleRight}})
+            dgvSelectedOrderLines.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "StockBadgeText", .HeaderText = "Stock Check", .FillWeight = 25.0!, .MinimumWidth = 100, .DefaultCellStyle = New DataGridViewCellStyle() With {.Alignment = DataGridViewContentAlignment.MiddleCenter}})
 
             ' Setup dgvInvoices
             dgvInvoices.AutoGenerateColumns = False
+            dgvInvoices.ScrollBars = ScrollBars.Both
             dgvInvoices.Columns.Clear()
-            dgvInvoices.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "DocumentNumber", .HeaderText = "Invoice #", .FillWeight = 15.0!})
-            dgvInvoices.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "SODocumentNumber", .HeaderText = "SO Ref", .FillWeight = 15.0!})
-            dgvInvoices.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "CustomerName", .HeaderText = "Customer", .FillWeight = 30.0!})
-            dgvInvoices.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "InvoiceDate", .HeaderText = "Invoice Date", .FillWeight = 15.0!, .DefaultCellStyle = New DataGridViewCellStyle() With {.Format = "yyyy-MM-dd"}})
-            dgvInvoices.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "TotalAmount", .HeaderText = "Invoiced Amount", .FillWeight = 18.0!, .DefaultCellStyle = New DataGridViewCellStyle() With {.Format = "C2"}})
-            dgvInvoices.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "TotalCOGS", .HeaderText = "Total COGS", .FillWeight = 16.0!, .DefaultCellStyle = New DataGridViewCellStyle() With {.Format = "C2"}})
-            dgvInvoices.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "GrossMargin", .HeaderText = "Gross Margin", .FillWeight = 16.0!, .DefaultCellStyle = New DataGridViewCellStyle() With {.Format = "C2"}})
-            dgvInvoices.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "GrossMarginPct", .HeaderText = "Margin %", .FillWeight = 13.0!, .DefaultCellStyle = New DataGridViewCellStyle() With {.Format = "0.0'%'", .Alignment = DataGridViewContentAlignment.MiddleRight}})
-            dgvInvoices.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "Status", .HeaderText = "GL Status", .FillWeight = 14.0!})
+            dgvInvoices.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "DocumentNumber", .HeaderText = "Invoice #", .FillWeight = 15.0!, .MinimumWidth = 95})
+            dgvInvoices.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "SODocumentNumber", .HeaderText = "SO Ref", .FillWeight = 15.0!, .MinimumWidth = 85})
+            dgvInvoices.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "CustomerName", .HeaderText = "Customer", .FillWeight = 30.0!, .MinimumWidth = 140})
+            dgvInvoices.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "InvoiceDate", .HeaderText = "Invoice Date", .FillWeight = 15.0!, .MinimumWidth = 85, .DefaultCellStyle = New DataGridViewCellStyle() With {.Format = "yyyy-MM-dd", .Alignment = DataGridViewContentAlignment.MiddleCenter}})
+            dgvInvoices.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "TotalAmount", .HeaderText = "Invoiced Amount", .FillWeight = 18.0!, .MinimumWidth = 105, .DefaultCellStyle = New DataGridViewCellStyle() With {.Format = "C2", .Alignment = DataGridViewContentAlignment.MiddleRight}})
+            dgvInvoices.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "TotalCOGS", .HeaderText = "Total COGS", .FillWeight = 16.0!, .MinimumWidth = 100, .DefaultCellStyle = New DataGridViewCellStyle() With {.Format = "C2", .Alignment = DataGridViewContentAlignment.MiddleRight}})
+            dgvInvoices.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "GrossMargin", .HeaderText = "Gross Margin", .FillWeight = 16.0!, .MinimumWidth = 100, .DefaultCellStyle = New DataGridViewCellStyle() With {.Format = "C2", .Alignment = DataGridViewContentAlignment.MiddleRight}})
+            dgvInvoices.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "GrossMarginPct", .HeaderText = "Margin %", .FillWeight = 13.0!, .MinimumWidth = 75, .DefaultCellStyle = New DataGridViewCellStyle() With {.Format = "0.0'%'", .Alignment = DataGridViewContentAlignment.MiddleRight}})
+            dgvInvoices.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "Status", .HeaderText = "GL Status", .FillWeight = 14.0!, .MinimumWidth = 85, .DefaultCellStyle = New DataGridViewCellStyle() With {.Alignment = DataGridViewContentAlignment.MiddleCenter}})
 
             ' Setup dgvInvoiceLines
             dgvInvoiceLines.AutoGenerateColumns = False
+            dgvInvoiceLines.ScrollBars = ScrollBars.Both
             dgvInvoiceLines.Columns.Clear()
-            dgvInvoiceLines.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "SKU", .HeaderText = "SKU", .FillWeight = 18.0!})
-            dgvInvoiceLines.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "ProductName", .HeaderText = "Product Name", .FillWeight = 30.0!})
-            dgvInvoiceLines.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "FulfilledQty", .HeaderText = "Fulfilled Qty", .FillWeight = 12.0!})
-            dgvInvoiceLines.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "UnitPrice", .HeaderText = "Selling Price", .FillWeight = 15.0!, .DefaultCellStyle = New DataGridViewCellStyle() With {.Format = "C2"}})
-            dgvInvoiceLines.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "COGSUnitCost", .HeaderText = "Avg Unit Cost", .FillWeight = 15.0!, .DefaultCellStyle = New DataGridViewCellStyle() With {.Format = "C2"}})
-            dgvInvoiceLines.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "LineTotal", .HeaderText = "Revenue", .FillWeight = 16.0!, .DefaultCellStyle = New DataGridViewCellStyle() With {.Format = "C2"}})
-            dgvInvoiceLines.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "LineMargin", .HeaderText = "Margin", .FillWeight = 15.0!, .DefaultCellStyle = New DataGridViewCellStyle() With {.Format = "C2"}})
+            dgvInvoiceLines.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "SKU", .HeaderText = "SKU", .FillWeight = 18.0!, .MinimumWidth = 90})
+            dgvInvoiceLines.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "ProductName", .HeaderText = "Product Name", .FillWeight = 50.0!, .MinimumWidth = 240})
+            dgvInvoiceLines.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "FulfilledQty", .HeaderText = "Fulfilled Qty", .FillWeight = 12.0!, .MinimumWidth = 65, .DefaultCellStyle = New DataGridViewCellStyle() With {.Alignment = DataGridViewContentAlignment.MiddleRight}})
+            dgvInvoiceLines.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "UnitPrice", .HeaderText = "Selling Price", .FillWeight = 15.0!, .MinimumWidth = 85, .DefaultCellStyle = New DataGridViewCellStyle() With {.Format = "C2", .Alignment = DataGridViewContentAlignment.MiddleRight}})
+            dgvInvoiceLines.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "COGSUnitCost", .HeaderText = "Avg Unit Cost", .FillWeight = 15.0!, .MinimumWidth = 85, .DefaultCellStyle = New DataGridViewCellStyle() With {.Format = "C2", .Alignment = DataGridViewContentAlignment.MiddleRight}})
+            dgvInvoiceLines.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "LineTotal", .HeaderText = "Revenue", .FillWeight = 16.0!, .MinimumWidth = 95, .DefaultCellStyle = New DataGridViewCellStyle() With {.Format = "C2", .Alignment = DataGridViewContentAlignment.MiddleRight}})
+            dgvInvoiceLines.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "LineMargin", .HeaderText = "Margin", .FillWeight = 15.0!, .MinimumWidth = 90, .DefaultCellStyle = New DataGridViewCellStyle() With {.Format = "C2", .Alignment = DataGridViewContentAlignment.MiddleRight}})
 
             ' Setup dgvJournalPreview
             dgvJournalPreview.AutoGenerateColumns = False
+            dgvJournalPreview.ScrollBars = ScrollBars.Both
             dgvJournalPreview.Columns.Clear()
-            dgvJournalPreview.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "AccountCode", .HeaderText = "Account", .FillWeight = 12.0!})
-            dgvJournalPreview.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "AccountName", .HeaderText = "Account Title", .FillWeight = 28.0!})
-            dgvJournalPreview.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "DebitAmount", .HeaderText = "Debit ($)", .FillWeight = 18.0!, .DefaultCellStyle = New DataGridViewCellStyle() With {.Format = "C2", .Alignment = DataGridViewContentAlignment.MiddleRight}})
-            dgvJournalPreview.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "CreditAmount", .HeaderText = "Credit ($)", .FillWeight = 18.0!, .DefaultCellStyle = New DataGridViewCellStyle() With {.Format = "C2", .Alignment = DataGridViewContentAlignment.MiddleRight}})
-            dgvJournalPreview.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "Explanation", .HeaderText = "Posting Explanation", .FillWeight = 34.0!})
+            dgvJournalPreview.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "AccountCode", .HeaderText = "Account", .FillWeight = 12.0!, .MinimumWidth = 65, .DefaultCellStyle = New DataGridViewCellStyle() With {.Alignment = DataGridViewContentAlignment.MiddleCenter}})
+            dgvJournalPreview.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "AccountName", .HeaderText = "Account Title", .FillWeight = 28.0!, .MinimumWidth = 150})
+            dgvJournalPreview.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "DebitAmount", .HeaderText = "Debit ($)", .FillWeight = 18.0!, .MinimumWidth = 95, .DefaultCellStyle = New DataGridViewCellStyle() With {.Format = "C2", .Alignment = DataGridViewContentAlignment.MiddleRight}})
+            dgvJournalPreview.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "CreditAmount", .HeaderText = "Credit ($)", .FillWeight = 18.0!, .MinimumWidth = 95, .DefaultCellStyle = New DataGridViewCellStyle() With {.Format = "C2", .Alignment = DataGridViewContentAlignment.MiddleRight}})
+            dgvJournalPreview.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "Explanation", .HeaderText = "Posting Explanation", .FillWeight = 34.0!, .MinimumWidth = 160})
 
             ' Setup dgvProductsCatalog
             dgvProductsCatalog.AutoGenerateColumns = False
+            dgvProductsCatalog.ScrollBars = ScrollBars.Both
             dgvProductsCatalog.Columns.Clear()
-            dgvProductsCatalog.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "SKU", .HeaderText = "SKU", .FillWeight = 15.0!})
-            dgvProductsCatalog.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "Name", .HeaderText = "Product Description", .FillWeight = 30.0!})
-            dgvProductsCatalog.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "Category", .HeaderText = "Category", .FillWeight = 15.0!})
-            dgvProductsCatalog.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "QtyOnHand", .HeaderText = "On Hand", .FillWeight = 12.0!, .DefaultCellStyle = New DataGridViewCellStyle() With {.Alignment = DataGridViewContentAlignment.MiddleRight}})
-            dgvProductsCatalog.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "QtyReserved", .HeaderText = "Reserved", .FillWeight = 12.0!, .DefaultCellStyle = New DataGridViewCellStyle() With {.Alignment = DataGridViewContentAlignment.MiddleRight}})
-            dgvProductsCatalog.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "QtyAvailable", .HeaderText = "Free Qty", .FillWeight = 12.0!, .DefaultCellStyle = New DataGridViewCellStyle() With {.Alignment = DataGridViewContentAlignment.MiddleRight}})
-            dgvProductsCatalog.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "ReorderLevel", .HeaderText = "Min Level", .FillWeight = 12.0!, .DefaultCellStyle = New DataGridViewCellStyle() With {.Alignment = DataGridViewContentAlignment.MiddleRight}})
-            dgvProductsCatalog.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "MovingAvgCost", .HeaderText = "Avg Cost", .FillWeight = 14.0!, .DefaultCellStyle = New DataGridViewCellStyle() With {.Format = "C2"}})
-            dgvProductsCatalog.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "UnitPrice", .HeaderText = "List Price", .FillWeight = 14.0!, .DefaultCellStyle = New DataGridViewCellStyle() With {.Format = "C2"}})
-            dgvProductsCatalog.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "StockBadgeText", .HeaderText = "Availability Status", .FillWeight = 20.0!})
+            dgvProductsCatalog.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "SKU", .HeaderText = "SKU", .FillWeight = 15.0!, .MinimumWidth = 90})
+            dgvProductsCatalog.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "Name", .HeaderText = "Product Description", .FillWeight = 45.0!, .MinimumWidth = 240})
+            dgvProductsCatalog.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "Category", .HeaderText = "Category", .FillWeight = 15.0!, .MinimumWidth = 90})
+            dgvProductsCatalog.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "QtyOnHand", .HeaderText = "On Hand", .FillWeight = 12.0!, .MinimumWidth = 70, .DefaultCellStyle = New DataGridViewCellStyle() With {.Alignment = DataGridViewContentAlignment.MiddleRight}})
+            dgvProductsCatalog.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "QtyReserved", .HeaderText = "Reserved", .FillWeight = 12.0!, .MinimumWidth = 70, .DefaultCellStyle = New DataGridViewCellStyle() With {.Alignment = DataGridViewContentAlignment.MiddleRight}})
+            dgvProductsCatalog.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "QtyAvailable", .HeaderText = "Free Qty", .FillWeight = 12.0!, .MinimumWidth = 70, .DefaultCellStyle = New DataGridViewCellStyle() With {.Alignment = DataGridViewContentAlignment.MiddleRight}})
+            dgvProductsCatalog.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "ReorderLevel", .HeaderText = "Min Level", .FillWeight = 12.0!, .MinimumWidth = 70, .DefaultCellStyle = New DataGridViewCellStyle() With {.Alignment = DataGridViewContentAlignment.MiddleRight}})
+            dgvProductsCatalog.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "MovingAvgCost", .HeaderText = "Avg Cost", .FillWeight = 14.0!, .MinimumWidth = 85, .DefaultCellStyle = New DataGridViewCellStyle() With {.Format = "C2", .Alignment = DataGridViewContentAlignment.MiddleRight}})
+            dgvProductsCatalog.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "UnitPrice", .HeaderText = "List Price", .FillWeight = 14.0!, .MinimumWidth = 85, .DefaultCellStyle = New DataGridViewCellStyle() With {.Format = "C2", .Alignment = DataGridViewContentAlignment.MiddleRight}})
+            dgvProductsCatalog.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "StockBadgeText", .HeaderText = "Availability Status", .FillWeight = 20.0!, .MinimumWidth = 110, .DefaultCellStyle = New DataGridViewCellStyle() With {.Alignment = DataGridViewContentAlignment.MiddleCenter}})
         End Sub
 
         Private Sub LoadCustomers()
@@ -160,7 +196,7 @@ Namespace UI.Sales
         Private Sub UpdateProductInfo()
             Dim prod As ProductStockViewModel = TryCast(cmbProduct.SelectedItem, ProductStockViewModel)
             If prod IsNot Nothing Then
-                lblItemStockInfo.Text = $"On Hand: {prod.QtyOnHand}  |  Reserved: {prod.QtyReserved}  |  Free to Promise: {prod.QtyAvailable}"
+                lblItemStockInfo.Text = $"On Hand: {prod.QtyOnHand} | Reserved: {prod.QtyReserved} | Free: {prod.QtyAvailable}"
                 numUnitPrice.Value = prod.UnitPrice
 
                 Dim reqQty As Integer = CInt(numQuantity.Value)
@@ -258,7 +294,7 @@ Namespace UI.Sales
         Private Sub RefreshCurrentDraftGrid()
             dgvCurrentLines.DataSource = Nothing
             dgvCurrentLines.DataSource = _currentDraftOrder.Lines.ToList()
-            lblOrderTotalDisplay.Text = $"Order Grand Total: {_currentDraftOrder.TotalAmount.ToString("C2")} ({_currentDraftOrder.TotalQuantity} units across {_currentDraftOrder.LineCount} items)"
+            lblOrderTotalDisplay.Text = $"Order Grand Total: {_currentDraftOrder.TotalAmount:C2} ({_currentDraftOrder.TotalQuantity} units)"
         End Sub
 
         Private Sub btnSaveOrderDraft_Click(sender As Object, e As EventArgs) Handles btnSaveOrderDraft.Click
@@ -329,7 +365,7 @@ Namespace UI.Sales
                         btnGenerateInvoiceFromSO.Text = "✓ Already Invoiced & Fulfilled"
                         btnGenerateInvoiceFromSO.BackColor = Color.FromArgb(108, 117, 125)
                     Else
-                        btnGenerateInvoiceFromSO.Text = "⚡ Fulfill & Generate Invoice"
+                        btnGenerateInvoiceFromSO.Text = "⚡ Fulfill & Generate Sales Invoice"
                         btnGenerateInvoiceFromSO.BackColor = Color.FromArgb(13, 110, 253)
                     End If
                 End If
@@ -526,6 +562,16 @@ Namespace UI.Sales
                 totalInvoicedVal += inv.TotalAmount
             Next
             lblKpiInvoicesValue.Text = totalInvoicedVal.ToString("C2")
+
+            Dim lowStockCount As Integer = 0
+            For Each prod In _dataService.Products
+                If prod.QtyAvailable <= 10 Then
+                    lowStockCount += 1
+                End If
+            Next
+            If lblKpiLowStockValue IsNot Nothing Then
+                lblKpiLowStockValue.Text = $"{lowStockCount} Items"
+            End If
         End Sub
 
     End Class

@@ -4,6 +4,9 @@ Namespace UI
 
         Private _currentChildForm As Form
 
+        <System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Hidden)>
+        Public Property AutoLoadDefaultModule As Boolean = True
+
         Public Sub LoadChildForm(childForm As Form, title As String, subtitle As String)
             If _currentChildForm IsNot Nothing Then
                 _currentChildForm.Close()
@@ -15,10 +18,13 @@ Namespace UI
             _currentChildForm = childForm
             lblCurrentModule.Text = title
             lblModuleSubtitle.Text = subtitle
+            lblModuleSubtitle.Top = lblCurrentModule.Bottom + 4
+            pnlHeader.Height = Math.Max(88, lblModuleSubtitle.Bottom + 12)
 
             childForm.TopLevel = False
             childForm.FormBorderStyle = FormBorderStyle.None
             childForm.Dock = DockStyle.Fill
+            childForm.Font = Me.Font
             pnlContentHost.Controls.Add(childForm)
             pnlContentHost.Tag = childForm
             childForm.BringToFront()
@@ -26,8 +32,10 @@ Namespace UI
         End Sub
 
         Private Sub MainShellForm_Load(sender As Object, e As EventArgs) Handles Me.Load
-            ' Load Purchasing as initial view
-            LoadChildForm(New UI.Purchasing.PurchasingDashboardForm(), "Purchasing & 3-Way Match Verification", "Purchase Orders, GRN Inbound Tracking & 3-Way Match Verification (GRNI Clearing, PPV & Freight Variances)")
+            ' Load Purchasing as initial view if enabled and no child form is already loaded
+            If AutoLoadDefaultModule AndAlso _currentChildForm Is Nothing Then
+                LoadChildForm(New UI.Purchasing.PurchasingDashboardForm(), "Purchasing & 3-Way Match Verification", "Purchase Orders, GRN Inbound Tracking & 3-Way Match Verification (GRNI Clearing, PPV & Freight Variances)")
+            End If
         End Sub
 
         Private Sub btnPurchasing_Click(sender As Object, e As EventArgs) Handles btnPurchasing.Click

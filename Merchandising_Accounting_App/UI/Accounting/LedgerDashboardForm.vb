@@ -20,6 +20,7 @@ Namespace UI.Accounting
             InitializeDocTypeFilter()
             RefreshAccountsGrid()
             RefreshJournalGrid()
+            LedgerDashboardForm_Resize(Nothing, EventArgs.Empty)
         End Sub
 
         Private Sub InitializePeriodIndicator()
@@ -30,7 +31,7 @@ Namespace UI.Accounting
                     lblPeriodBadge.Text = "CLOSED - SEALED"
                     lblPeriodBadge.BackColor = Color.FromArgb(220, 53, 69)
                 Else
-                    lblPeriodBadge.Text = "OPEN - POSTINGS ACTIVE"
+                    lblPeriodBadge.Text = "OPEN - ACTIVE"
                     lblPeriodBadge.BackColor = Color.FromArgb(25, 135, 84)
                 End If
             End If
@@ -133,7 +134,7 @@ Namespace UI.Accounting
                 Return
             End If
 
-            lblSelectedEntryInfo.Text = $"Entry #{entry.EntryId} ({entry.SourceDocType}: {entry.SourceDocNumber})"
+            lblSelectedEntryInfo.Text = $"Entry #{entry.EntryId}"
 
             Dim totalDebits As Decimal = 0D
             Dim totalCredits As Decimal = 0D
@@ -189,14 +190,51 @@ Namespace UI.Accounting
         End Sub
 
         Private Sub btnPeriodAction_Click(sender As Object, e As EventArgs) Handles btnPeriodAction.Click
-            Dim p = _viewModel.CurrentPeriod
-            Dim msg As String = $"Current Fiscal Period: {p.PeriodLabel}" & Environment.NewLine &
-                                $"Range: {p.DateRangeText}" & Environment.NewLine &
-                                $"Status: {p.StatusText}" & Environment.NewLine & Environment.NewLine &
-                                "Statutory posting dates are strictly enforced to map to open periods." & Environment.NewLine &
-                                "Closed periods are permanently sealed and immutable per audit compliance standards."
+            Using dlg As New FiscalPeriodForm(_viewModel.CurrentPeriod)
+                dlg.ShowDialog(Me)
+            End Using
+        End Sub
 
-            MessageBox.Show(Me, msg, "Fiscal Period Status Guard", MessageBoxButtons.OK, MessageBoxIcon.Information)
+        Private Sub LedgerDashboardForm_Resize(sender As Object, e As EventArgs) Handles Me.Resize
+            If splitMain IsNot Nothing AndAlso splitMain.Width > 0 Then
+                Dim targetDistance As Integer
+                If splitMain.Width <= 1100 Then
+                    ' Standard 720p: allocate 290px to Panel 1 (COA) matching splitMain.Panel1MinSize, giving Panel 2 706px and grid width 674px
+                    targetDistance = 290
+                    Dim minDistance As Integer = splitMain.Panel1MinSize
+                    Dim maxDistance As Integer = splitMain.Width - splitMain.Panel2MinSize - splitMain.SplitterWidth
+                    If maxDistance >= minDistance Then
+                        targetDistance = Math.Clamp(targetDistance, minDistance, maxDistance)
+                    Else
+                        targetDistance = minDistance
+                    End If
+                    If colDescription IsNot Nothing Then
+                        colDescription.MinimumWidth = 35
+                    End If
+                Else
+                    ' Maximized 1080p: allocate ~32% (clamped 420-480px)
+                    targetDistance = CInt(Math.Floor(splitMain.Width * 0.32))
+                    Dim minDistance As Integer = Math.Max(splitMain.Panel1MinSize, 420)
+                    Dim maxDistance As Integer = Math.Min(480, splitMain.Width - splitMain.Panel2MinSize - splitMain.SplitterWidth)
+                    If maxDistance >= minDistance Then
+                        targetDistance = Math.Clamp(targetDistance, minDistance, maxDistance)
+                    Else
+                        targetDistance = minDistance
+                    End If
+                    If colDescription IsNot Nothing Then
+                        colDescription.MinimumWidth = 90
+                    End If
+                End If
+
+                If splitMain.SplitterDistance <> targetDistance Then
+                    splitMain.SplitterDistance = targetDistance
+                End If
+            End If
+
+            If lblPeriodDates IsNot Nothing Then
+                ' Hide period date range on restored/compact widths to prevent lblTitle ellipsis truncation
+                lblPeriodDates.Visible = (Me.Width >= 1400)
+            End If
         End Sub
 
     End Class

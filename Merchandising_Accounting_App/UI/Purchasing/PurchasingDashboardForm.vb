@@ -28,81 +28,68 @@ Namespace UI.Purchasing
         Private Sub SetupThreeWayMatchGrid()
             dgvThreeWayMatch.Columns.Clear()
             dgvThreeWayMatch.AutoGenerateColumns = False
+            dgvThreeWayMatch.ScrollBars = ScrollBars.Both
+            dgvThreeWayMatch.ColumnHeadersDefaultCellStyle.WrapMode = DataGridViewTriState.True
+            dgvThreeWayMatch.ColumnHeadersHeight = 36
 
-            dgvThreeWayMatch.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "Match Status", .DataPropertyName = "MatchStatus", .Width = 140})
-            dgvThreeWayMatch.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "Vendor", .DataPropertyName = "VendorName", .Width = 160})
-            dgvThreeWayMatch.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "PO #", .DataPropertyName = "PONumber", .Width = 95})
-            dgvThreeWayMatch.Columns.Add(New DataGridViewTextBoxColumn() With {
-                .HeaderText = "PO Qty",
-                .DataPropertyName = "POQty",
-                .DefaultCellStyle = New DataGridViewCellStyle() With {.Alignment = DataGridViewContentAlignment.MiddleRight},
-                .Width = 65
-            })
-            dgvThreeWayMatch.Columns.Add(New DataGridViewTextBoxColumn() With {
-                .HeaderText = "PO Price",
-                .DataPropertyName = "POUnitPrice",
-                .DefaultCellStyle = New DataGridViewCellStyle() With {.Format = "C2", .Alignment = DataGridViewContentAlignment.MiddleRight},
-                .Width = 75
-            })
-            dgvThreeWayMatch.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "GRN #", .DataPropertyName = "GRNNumber", .Width = 95})
-            dgvThreeWayMatch.Columns.Add(New DataGridViewTextBoxColumn() With {
-                .HeaderText = "GRN Qty",
-                .DataPropertyName = "GRNQty",
-                .DefaultCellStyle = New DataGridViewCellStyle() With {.Alignment = DataGridViewContentAlignment.MiddleRight},
-                .Width = 65
-            })
-            dgvThreeWayMatch.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "Bill #", .DataPropertyName = "BillNumber", .Width = 100})
-            dgvThreeWayMatch.Columns.Add(New DataGridViewTextBoxColumn() With {
-                .HeaderText = "Bill Qty",
-                .DataPropertyName = "BillQty",
-                .DefaultCellStyle = New DataGridViewCellStyle() With {.Alignment = DataGridViewContentAlignment.MiddleRight},
-                .Width = 65
-            })
-            dgvThreeWayMatch.Columns.Add(New DataGridViewTextBoxColumn() With {
-                .HeaderText = "Billed Price",
-                .DataPropertyName = "BilledUnitPrice",
-                .DefaultCellStyle = New DataGridViewCellStyle() With {.Format = "C2", .Alignment = DataGridViewContentAlignment.MiddleRight},
-                .Width = 80
-            })
-            dgvThreeWayMatch.Columns.Add(New DataGridViewTextBoxColumn() With {
-                .HeaderText = "Freight ($)",
-                .DataPropertyName = "InboundFreight",
-                .DefaultCellStyle = New DataGridViewCellStyle() With {.Format = "C2", .Alignment = DataGridViewContentAlignment.MiddleRight},
-                .Width = 75
-            })
-            dgvThreeWayMatch.Columns.Add(New DataGridViewTextBoxColumn() With {
-                .HeaderText = "PPV ($)",
-                .DataPropertyName = "PurchasePriceVariance",
-                .DefaultCellStyle = New DataGridViewCellStyle() With {.Format = "C2", .Alignment = DataGridViewContentAlignment.MiddleRight},
-                .Width = 80
-            })
-            dgvThreeWayMatch.Columns.Add(New DataGridViewTextBoxColumn() With {
-                .HeaderText = "Net Payable ($)",
-                .DataPropertyName = "NetTotalPayable",
-                .DefaultCellStyle = New DataGridViewCellStyle() With {.Format = "C2", .Alignment = DataGridViewContentAlignment.MiddleRight},
-                .Width = 100
-            })
+            dgvThreeWayMatch.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "Match Status", .DataPropertyName = "MatchStatus", .AutoSizeMode = DataGridViewAutoSizeColumnMode.None, .Width = 130, .MinimumWidth = 120})
+            dgvThreeWayMatch.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "Vendor", .DataPropertyName = "VendorName", .AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill, .FillWeight = 160.0!, .MinimumWidth = 180})
+            dgvThreeWayMatch.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "PO #", .DataPropertyName = "PONumber", .AutoSizeMode = DataGridViewAutoSizeColumnMode.None, .Width = 110, .MinimumWidth = 105})
+            dgvThreeWayMatch.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "PO Qty", .DataPropertyName = "POQty", .AutoSizeMode = DataGridViewAutoSizeColumnMode.None, .DefaultCellStyle = New DataGridViewCellStyle() With {.Alignment = DataGridViewContentAlignment.MiddleRight}, .Width = 70, .MinimumWidth = 65})
+            dgvThreeWayMatch.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "PO Price", .DataPropertyName = "POUnitPrice", .AutoSizeMode = DataGridViewAutoSizeColumnMode.None, .DefaultCellStyle = New DataGridViewCellStyle() With {.Format = "C2", .Alignment = DataGridViewContentAlignment.MiddleRight}, .Width = 85, .MinimumWidth = 80})
+            dgvThreeWayMatch.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "GRN #", .DataPropertyName = "GRNNumber", .AutoSizeMode = DataGridViewAutoSizeColumnMode.None, .Width = 120, .MinimumWidth = 115})
+            dgvThreeWayMatch.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "GRN Qty", .DataPropertyName = "GRNQty", .AutoSizeMode = DataGridViewAutoSizeColumnMode.None, .DefaultCellStyle = New DataGridViewCellStyle() With {.Alignment = DataGridViewContentAlignment.MiddleRight}, .Width = 70, .MinimumWidth = 65})
+            dgvThreeWayMatch.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "Bill #", .DataPropertyName = "BillNumber", .AutoSizeMode = DataGridViewAutoSizeColumnMode.None, .Width = 120, .MinimumWidth = 115})
+            dgvThreeWayMatch.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "Bill Qty", .DataPropertyName = "BillQty", .AutoSizeMode = DataGridViewAutoSizeColumnMode.None, .DefaultCellStyle = New DataGridViewCellStyle() With {.Alignment = DataGridViewContentAlignment.MiddleRight}, .Width = 70, .MinimumWidth = 65})
+            dgvThreeWayMatch.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "Billed Price", .DataPropertyName = "BilledUnitPrice", .AutoSizeMode = DataGridViewAutoSizeColumnMode.None, .DefaultCellStyle = New DataGridViewCellStyle() With {.Format = "C2", .Alignment = DataGridViewContentAlignment.MiddleRight}, .Width = 85, .MinimumWidth = 80})
+            dgvThreeWayMatch.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "Freight ($)", .DataPropertyName = "InboundFreight", .AutoSizeMode = DataGridViewAutoSizeColumnMode.None, .DefaultCellStyle = New DataGridViewCellStyle() With {.Format = "C2", .Alignment = DataGridViewContentAlignment.MiddleRight}, .Width = 85, .MinimumWidth = 80})
+            dgvThreeWayMatch.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "PPV ($)", .DataPropertyName = "PurchasePriceVariance", .AutoSizeMode = DataGridViewAutoSizeColumnMode.None, .DefaultCellStyle = New DataGridViewCellStyle() With {.Format = "C2", .Alignment = DataGridViewContentAlignment.MiddleRight}, .Width = 80, .MinimumWidth = 75})
+            dgvThreeWayMatch.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "Net Payable ($)", .DataPropertyName = "NetTotalPayable", .AutoSizeMode = DataGridViewAutoSizeColumnMode.None, .DefaultCellStyle = New DataGridViewCellStyle() With {.Format = "C2", .Alignment = DataGridViewContentAlignment.MiddleRight}, .Width = 110, .MinimumWidth = 100})
+
+            For Each col As DataGridViewColumn In dgvThreeWayMatch.Columns
+                col.SortMode = DataGridViewColumnSortMode.NotSortable
+            Next
+        End Sub
+
+        Private Sub tabPurchasing_SelectedIndexChanged(sender As Object, e As EventArgs) Handles tabPurchasing.SelectedIndexChanged
+            If tabPurchasing.SelectedTab Is tabPurchaseOrders Then
+                dgvPurchaseOrders.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.AllCellsExceptHeader)
+                dgvPurchasingPOLines.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.AllCellsExceptHeader)
+            ElseIf tabPurchasing.SelectedTab Is tabGRNList Then
+                dgvGRNs.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.AllCellsExceptHeader)
+            ElseIf tabPurchasing.SelectedTab Is tabThreeWayMatch Then
+                dgvThreeWayMatch.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.None)
+            End If
         End Sub
 
         Private Sub SetupThreeWayJournalGrid()
             dgvThreeWayJournal.Columns.Clear()
             dgvThreeWayJournal.AutoGenerateColumns = False
+            dgvThreeWayJournal.ScrollBars = ScrollBars.Both
 
-            dgvThreeWayJournal.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "Bill Doc #", .Width = 110})
-            dgvThreeWayJournal.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "Posting Date", .Width = 90})
-            dgvThreeWayJournal.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "Account", .Width = 75})
-            dgvThreeWayJournal.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "Account Name", .Width = 230})
+            dgvThreeWayJournal.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "Bill Doc #", .AutoSizeMode = DataGridViewAutoSizeColumnMode.None, .Width = 145, .MinimumWidth = 135})
+            dgvThreeWayJournal.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "Posting Date", .AutoSizeMode = DataGridViewAutoSizeColumnMode.None, .Width = 90, .MinimumWidth = 85, .DefaultCellStyle = New DataGridViewCellStyle() With {.Alignment = DataGridViewContentAlignment.MiddleCenter}})
+            dgvThreeWayJournal.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "Account", .AutoSizeMode = DataGridViewAutoSizeColumnMode.None, .Width = 95, .MinimumWidth = 85, .DefaultCellStyle = New DataGridViewCellStyle() With {.Alignment = DataGridViewContentAlignment.MiddleCenter}})
+            dgvThreeWayJournal.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "Account Name", .AutoSizeMode = DataGridViewAutoSizeColumnMode.None, .Width = 240, .MinimumWidth = 180})
             dgvThreeWayJournal.Columns.Add(New DataGridViewTextBoxColumn() With {
                 .HeaderText = "Debit ($)",
+                .AutoSizeMode = DataGridViewAutoSizeColumnMode.None,
                 .DefaultCellStyle = New DataGridViewCellStyle() With {.Format = "C2", .Alignment = DataGridViewContentAlignment.MiddleRight},
-                .Width = 95
+                .Width = 95,
+                .MinimumWidth = 90
             })
             dgvThreeWayJournal.Columns.Add(New DataGridViewTextBoxColumn() With {
                 .HeaderText = "Credit ($)",
+                .AutoSizeMode = DataGridViewAutoSizeColumnMode.None,
                 .DefaultCellStyle = New DataGridViewCellStyle() With {.Format = "C2", .Alignment = DataGridViewContentAlignment.MiddleRight},
-                .Width = 95
+                .Width = 95,
+                .MinimumWidth = 90
             })
-            dgvThreeWayJournal.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "Memo / Clearing Breakdown", .Width = 270})
+            dgvThreeWayJournal.Columns.Add(New DataGridViewTextBoxColumn() With {
+                .HeaderText = "Memo / Clearing Breakdown",
+                .AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill,
+                .MinimumWidth = 180
+            })
         End Sub
 
         Private Sub SetupPurchaseOrdersGrid()
@@ -216,6 +203,9 @@ Namespace UI.Purchasing
             Dim matches As New List(Of ThreeWayMatchModel)(_repo.ThreeWayMatches)
             dgvThreeWayMatch.DataSource = Nothing
             dgvThreeWayMatch.DataSource = matches
+            For Each c As DataGridViewColumn In dgvThreeWayMatch.Columns
+                c.SortMode = DataGridViewColumnSortMode.NotSortable
+            Next
 
             If matches.Count > 0 Then
                 dgvThreeWayMatch.Rows(0).Selected = True
@@ -255,7 +245,7 @@ Namespace UI.Purchasing
                 numFreightAmount.Value = match.InboundFreight
                 numFreightAmount.Enabled = True
                 btnPostThreeWayMatch.Enabled = True
-                btnPostThreeWayMatch.Text = "Commit Supplier Bill && Post 3-Way Match Journal"
+                btnPostThreeWayMatch.Text = "Commit Supplier Bill & Post 3-Way Match Journal"
             End If
 
             UpdateLiveVarianceCalculation()

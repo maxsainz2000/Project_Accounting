@@ -14,6 +14,18 @@ Namespace UI.Reporting
         Public Property DebitAmount As Decimal
         Public Property CreditAmount As Decimal
 
+        Public ReadOnly Property NormalBalance As String
+            Get
+                If AccountType.StartsWith("Revenue", StringComparison.Ordinal) OrElse
+                   AccountType.Equals("Liability", StringComparison.Ordinal) OrElse
+                   AccountType.Equals("Equity", StringComparison.Ordinal) Then
+                    Return "Credit"
+                Else
+                    Return "Debit"
+                End If
+            End Get
+        End Property
+
         Public ReadOnly Property FormattedDebit As String
             Get
                 If DebitAmount > 0D Then
@@ -213,11 +225,11 @@ Namespace UI.Reporting
 
         Public Function ExportTrialBalanceToCsv() As String
             Dim sb As New StringBuilder()
-            sb.AppendLine("Account Code,Account Name,Account Type,Debit,Credit")
+            sb.AppendLine("Account Code,Account Name,Account Type,Normal,Debit,Credit")
             For Each row In TrialBalanceRows
-                sb.AppendLine($"""{row.AccountCode}"",""{row.AccountName}"",""{row.AccountType}"",{row.DebitAmount:F2},{row.CreditAmount:F2}")
+                sb.AppendLine($"""{row.AccountCode}"",""{row.AccountName}"",""{row.AccountType}"",""{row.NormalBalance}"",{row.DebitAmount:F2},{row.CreditAmount:F2}")
             Next
-            sb.AppendLine($"""TOTALS"","""","""",{TotalTrialBalanceDebits:F2},{TotalTrialBalanceCredits:F2}")
+            sb.AppendLine($"""TOTALS"","""","""","""",{TotalTrialBalanceDebits:F2},{TotalTrialBalanceCredits:F2}")
             Return sb.ToString()
         End Function
 

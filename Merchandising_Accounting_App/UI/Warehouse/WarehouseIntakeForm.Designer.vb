@@ -124,31 +124,31 @@ Namespace UI.Warehouse
             'lblSubtitle
             '
             Me.lblSubtitle.AutoSize = True
-            Me.lblSubtitle.Font = New System.Drawing.Font("Segoe UI Variable Text", 9.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point)
             Me.lblSubtitle.ForeColor = System.Drawing.Color.FromArgb(CType(CType(108, Byte), Integer), CType(CType(117, Byte), Integer), CType(CType(125, Byte), Integer))
             Me.lblSubtitle.Location = New System.Drawing.Point(16, 33)
             Me.lblSubtitle.Name = "lblSubtitle"
             Me.lblSubtitle.Size = New System.Drawing.Size(650, 20)
             Me.lblSubtitle.TabIndex = 1
             Me.lblSubtitle.Text = "Dock Intake (GRN & Moving Average Cost) | RMA Quarantine Intake & Inspection (Restock vs. Scrap)"
+            Me.lblSubtitle.UseMnemonic = False
             '
             'lblTitle
             '
             Me.lblTitle.AutoSize = True
-            Me.lblTitle.Font = New System.Drawing.Font("Segoe UI Variable Display", 11.5!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point)
+            Me.lblTitle.Font = New System.Drawing.Font("Segoe UI", 11.5!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
             Me.lblTitle.ForeColor = System.Drawing.Color.FromArgb(CType(CType(33, Byte), Integer), CType(CType(37, Byte), Integer), CType(CType(41, Byte), Integer))
             Me.lblTitle.Location = New System.Drawing.Point(16, 8)
             Me.lblTitle.Name = "lblTitle"
             Me.lblTitle.Size = New System.Drawing.Size(435, 27)
             Me.lblTitle.TabIndex = 0
             Me.lblTitle.Text = "Warehouse Intake & RMA Quarantine Inspection"
+            Me.lblTitle.UseMnemonic = False
             '
             'tabMain
             '
             Me.tabMain.Controls.Add(Me.tabDockReceiving)
             Me.tabMain.Controls.Add(Me.tabQuarantine)
             Me.tabMain.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.tabMain.Font = New System.Drawing.Font("Segoe UI Variable Text", 9.5!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point)
             Me.tabMain.Location = New System.Drawing.Point(0, 0)
             Me.tabMain.Name = "tabMain"
             Me.tabMain.SelectedIndex = 0
@@ -198,7 +198,6 @@ Namespace UI.Warehouse
             '
             Me.grpOpenPOs.Controls.Add(Me.dgvOpenPOs)
             Me.grpOpenPOs.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.grpOpenPOs.Font = New System.Drawing.Font("Segoe UI Variable Text", 9.5!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point)
             Me.grpOpenPOs.Location = New System.Drawing.Point(0, 0)
             Me.grpOpenPOs.Name = "grpOpenPOs"
             Me.grpOpenPOs.Padding = New System.Windows.Forms.Padding(8, 28, 8, 8)
@@ -215,7 +214,6 @@ Namespace UI.Warehouse
             Me.dgvOpenPOs.BackgroundColor = System.Drawing.Color.White
             Me.dgvOpenPOs.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize
             Me.dgvOpenPOs.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.dgvOpenPOs.Font = New System.Drawing.Font("Segoe UI Variable Text", 9.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point)
             Me.dgvOpenPOs.Location = New System.Drawing.Point(8, 28)
             Me.dgvOpenPOs.MultiSelect = False
             Me.dgvOpenPOs.Name = "dgvOpenPOs"
@@ -233,14 +231,13 @@ Namespace UI.Warehouse
             Me.pnlPOLines.Dock = System.Windows.Forms.DockStyle.Right
             Me.pnlPOLines.Location = New System.Drawing.Point(496, 0)
             Me.pnlPOLines.Name = "pnlPOLines"
-            Me.pnlPOLines.Size = New System.Drawing.Size(496, 330)
+            Me.pnlPOLines.Size = New System.Drawing.Size(540, 330)
             Me.pnlPOLines.TabIndex = 1
             '
             'grpPOLines
             '
             Me.grpPOLines.Controls.Add(Me.dgvPOLines)
             Me.grpPOLines.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.grpPOLines.Font = New System.Drawing.Font("Segoe UI Variable Text", 9.5!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point)
             Me.grpPOLines.Location = New System.Drawing.Point(0, 0)
             Me.grpPOLines.Name = "grpPOLines"
             Me.grpPOLines.Padding = New System.Windows.Forms.Padding(8, 28, 8, 8)
@@ -257,7 +254,6 @@ Namespace UI.Warehouse
             Me.dgvPOLines.BackgroundColor = System.Drawing.Color.White
             Me.dgvPOLines.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize
             Me.dgvPOLines.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.dgvPOLines.Font = New System.Drawing.Font("Segoe UI Variable Text", 9.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point)
             Me.dgvPOLines.Location = New System.Drawing.Point(8, 28)
             Me.dgvPOLines.MultiSelect = False
             Me.dgvPOLines.Name = "dgvPOLines"
@@ -285,42 +281,44 @@ Namespace UI.Warehouse
             'lblCostImpactPreview
             '
             Me.lblCostImpactPreview.AutoSize = True
-            Me.lblCostImpactPreview.Font = New System.Drawing.Font("Segoe UI Variable Text", 8.5!, System.Drawing.FontStyle.Italic, System.Drawing.GraphicsUnit.Point)
+            Me.lblCostImpactPreview.Font = New System.Drawing.Font("Segoe UI", 8.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
             Me.lblCostImpactPreview.ForeColor = System.Drawing.Color.FromArgb(CType(CType(30, Byte), Integer), CType(CType(126, Byte), Integer), CType(CType(52, Byte), Integer))
-            Me.lblCostImpactPreview.Location = New System.Drawing.Point(12, 45)
+            Me.lblCostImpactPreview.Location = New System.Drawing.Point(12, 42)
             Me.lblCostImpactPreview.Name = "lblCostImpactPreview"
-            Me.lblCostImpactPreview.Size = New System.Drawing.Size(440, 19)
+            Me.lblCostImpactPreview.Size = New System.Drawing.Size(434, 15)
             Me.lblCostImpactPreview.TabIndex = 3
             Me.lblCostImpactPreview.Text = "Moving Average Cost updates forward upon dock intake (Debit 1300 / Credit 2100)"
             '
             'btnReceiveGRN
             '
+            Me.btnReceiveGRN.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left) _
+            Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
             Me.btnReceiveGRN.BackColor = System.Drawing.Color.FromArgb(CType(CType(13, Byte), Integer), CType(CType(110, Byte), Integer), CType(CType(253, Byte), Integer))
             Me.btnReceiveGRN.FlatStyle = System.Windows.Forms.FlatStyle.Flat
-            Me.btnReceiveGRN.Font = New System.Drawing.Font("Segoe UI Variable Text", 9.5!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point)
+            Me.btnReceiveGRN.Font = New System.Drawing.Font("Segoe UI", 9.5!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
             Me.btnReceiveGRN.ForeColor = System.Drawing.Color.White
             Me.btnReceiveGRN.Location = New System.Drawing.Point(12, 70)
             Me.btnReceiveGRN.Name = "btnReceiveGRN"
-            Me.btnReceiveGRN.Size = New System.Drawing.Size(468, 36)
+            Me.btnReceiveGRN.Size = New System.Drawing.Size(470, 36)
             Me.btnReceiveGRN.TabIndex = 2
             Me.btnReceiveGRN.Text = "3. Confirm Dock Receipt & Post GRN"
+            Me.btnReceiveGRN.UseMnemonic = False
             Me.btnReceiveGRN.UseVisualStyleBackColor = False
             '
             'numReceiveQty
             '
-            Me.numReceiveQty.Font = New System.Drawing.Font("Segoe UI Variable Text", 9.5!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point)
-            Me.numReceiveQty.Location = New System.Drawing.Point(160, 12)
+            Me.numReceiveQty.Location = New System.Drawing.Point(170, 12)
             Me.numReceiveQty.Maximum = New Decimal(New Integer() {100000, 0, 0, 0})
             Me.numReceiveQty.Minimum = New Decimal(New Integer() {1, 0, 0, 0})
             Me.numReceiveQty.Name = "numReceiveQty"
-            Me.numReceiveQty.Size = New System.Drawing.Size(120, 28)
+            Me.numReceiveQty.Size = New System.Drawing.Size(120, 26)
             Me.numReceiveQty.TabIndex = 1
             Me.numReceiveQty.Value = New Decimal(New Integer() {1, 0, 0, 0})
             '
             'lblReceiveQty
             '
             Me.lblReceiveQty.AutoSize = True
-            Me.lblReceiveQty.Font = New System.Drawing.Font("Segoe UI Variable Text", 9.5!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point)
+            Me.lblReceiveQty.Font = New System.Drawing.Font("Segoe UI", 9.5!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
             Me.lblReceiveQty.Location = New System.Drawing.Point(12, 14)
             Me.lblReceiveQty.Name = "lblReceiveQty"
             Me.lblReceiveQty.Size = New System.Drawing.Size(117, 21)
@@ -331,7 +329,6 @@ Namespace UI.Warehouse
             '
             Me.grpGRNJournal.Controls.Add(Me.dgvGRNJournal)
             Me.grpGRNJournal.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.grpGRNJournal.Font = New System.Drawing.Font("Segoe UI Variable Text", 9.5!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point)
             Me.grpGRNJournal.Location = New System.Drawing.Point(0, 0)
             Me.grpGRNJournal.Name = "grpGRNJournal"
             Me.grpGRNJournal.Padding = New System.Windows.Forms.Padding(8, 28, 8, 8)
@@ -348,7 +345,6 @@ Namespace UI.Warehouse
             Me.dgvGRNJournal.BackgroundColor = System.Drawing.Color.White
             Me.dgvGRNJournal.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize
             Me.dgvGRNJournal.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.dgvGRNJournal.Font = New System.Drawing.Font("Segoe UI Variable Text", 9.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point)
             Me.dgvGRNJournal.Location = New System.Drawing.Point(8, 28)
             Me.dgvGRNJournal.MultiSelect = False
             Me.dgvGRNJournal.Name = "dgvGRNJournal"
@@ -392,7 +388,6 @@ Namespace UI.Warehouse
             '
             Me.grpRMAIntake.Controls.Add(Me.pnlIntakeForm)
             Me.grpRMAIntake.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.grpRMAIntake.Font = New System.Drawing.Font("Segoe UI Variable Text", 9.5!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point)
             Me.grpRMAIntake.Location = New System.Drawing.Point(0, 0)
             Me.grpRMAIntake.Name = "grpRMAIntake"
             Me.grpRMAIntake.Size = New System.Drawing.Size(380, 552)
@@ -418,7 +413,6 @@ Namespace UI.Warehouse
             Me.pnlIntakeForm.Controls.Add(Me.txtIntakeCustomer)
             Me.pnlIntakeForm.Controls.Add(Me.lblIntakeCustomer)
             Me.pnlIntakeForm.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.pnlIntakeForm.Font = New System.Drawing.Font("Segoe UI Variable Text", 9.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point)
             Me.pnlIntakeForm.Location = New System.Drawing.Point(3, 24)
             Me.pnlIntakeForm.Name = "pnlIntakeForm"
             Me.pnlIntakeForm.Padding = New System.Windows.Forms.Padding(12)
@@ -429,7 +423,7 @@ Namespace UI.Warehouse
             '
             Me.lblIntakeNotice.BackColor = System.Drawing.Color.FromArgb(CType(CType(255, Byte), Integer), CType(CType(243, Byte), Integer), CType(CType(205, Byte), Integer))
             Me.lblIntakeNotice.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle
-            Me.lblIntakeNotice.Font = New System.Drawing.Font("Segoe UI Variable Text", 8.5!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point)
+            Me.lblIntakeNotice.Font = New System.Drawing.Font("Segoe UI", 8.5!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
             Me.lblIntakeNotice.ForeColor = System.Drawing.Color.FromArgb(CType(CType(133, Byte), Integer), CType(CType(100, Byte), Integer), CType(CType(4, Byte), Integer))
             Me.lblIntakeNotice.Location = New System.Drawing.Point(12, 385)
             Me.lblIntakeNotice.Name = "lblIntakeNotice"
@@ -442,11 +436,8 @@ Namespace UI.Warehouse
             '
             Me.btnIntakeToQuarantine.BackColor = System.Drawing.Color.FromArgb(CType(CType(25, Byte), Integer), CType(CType(135, Byte), Integer), CType(CType(84, Byte), Integer))
             Me.btnIntakeToQuarantine.FlatStyle = System.Windows.Forms.FlatStyle.Flat
-            Me.btnIntakeToQuarantine.Font = New System.Drawing.Font("Segoe UI Variable Text", 9.5!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point)
+            Me.btnIntakeToQuarantine.Font = New System.Drawing.Font("Segoe UI", 9.5!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
             Me.btnIntakeToQuarantine.ForeColor = System.Drawing.Color.White
-            Me.btnIntakeToQuarantine.Location = New System.Drawing.Point(12, 335)
-            Me.btnIntakeToQuarantine.Name = "btnIntakeToQuarantine"
-            Me.btnIntakeToQuarantine.Size = New System.Drawing.Size(345, 36)
             Me.btnIntakeToQuarantine.Location = New System.Drawing.Point(12, 338)
             Me.btnIntakeToQuarantine.Name = "btnIntakeToQuarantine"
             Me.btnIntakeToQuarantine.Size = New System.Drawing.Size(345, 38)
@@ -467,7 +458,7 @@ Namespace UI.Warehouse
             'lblIntakeSellPrice
             '
             Me.lblIntakeSellPrice.AutoSize = True
-            Me.lblIntakeSellPrice.Font = New System.Drawing.Font("Segoe UI Variable Text", 9.0!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point)
+            Me.lblIntakeSellPrice.Font = New System.Drawing.Font("Segoe UI", 9.0!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
             Me.lblIntakeSellPrice.Location = New System.Drawing.Point(12, 276)
             Me.lblIntakeSellPrice.Name = "lblIntakeSellPrice"
             Me.lblIntakeSellPrice.Size = New System.Drawing.Size(188, 20)
@@ -487,7 +478,7 @@ Namespace UI.Warehouse
             'lblIntakeOrigCost
             '
             Me.lblIntakeOrigCost.AutoSize = True
-            Me.lblIntakeOrigCost.Font = New System.Drawing.Font("Segoe UI Variable Text", 9.0!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point)
+            Me.lblIntakeOrigCost.Font = New System.Drawing.Font("Segoe UI", 9.0!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
             Me.lblIntakeOrigCost.Location = New System.Drawing.Point(12, 220)
             Me.lblIntakeOrigCost.Name = "lblIntakeOrigCost"
             Me.lblIntakeOrigCost.Size = New System.Drawing.Size(193, 20)
@@ -507,7 +498,7 @@ Namespace UI.Warehouse
             'lblIntakeQty
             '
             Me.lblIntakeQty.AutoSize = True
-            Me.lblIntakeQty.Font = New System.Drawing.Font("Segoe UI Variable Text", 9.0!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point)
+            Me.lblIntakeQty.Font = New System.Drawing.Font("Segoe UI", 9.0!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
             Me.lblIntakeQty.Location = New System.Drawing.Point(12, 164)
             Me.lblIntakeQty.Name = "lblIntakeQty"
             Me.lblIntakeQty.Size = New System.Drawing.Size(161, 20)
@@ -526,7 +517,7 @@ Namespace UI.Warehouse
             'lblIntakeProduct
             '
             Me.lblIntakeProduct.AutoSize = True
-            Me.lblIntakeProduct.Font = New System.Drawing.Font("Segoe UI Variable Text", 9.0!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point)
+            Me.lblIntakeProduct.Font = New System.Drawing.Font("Segoe UI", 9.0!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
             Me.lblIntakeProduct.Location = New System.Drawing.Point(12, 108)
             Me.lblIntakeProduct.Name = "lblIntakeProduct"
             Me.lblIntakeProduct.Size = New System.Drawing.Size(107, 20)
@@ -544,7 +535,7 @@ Namespace UI.Warehouse
             'lblIntakeInvoice
             '
             Me.lblIntakeInvoice.AutoSize = True
-            Me.lblIntakeInvoice.Font = New System.Drawing.Font("Segoe UI Variable Text", 9.0!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point)
+            Me.lblIntakeInvoice.Font = New System.Drawing.Font("Segoe UI", 9.0!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
             Me.lblIntakeInvoice.Location = New System.Drawing.Point(12, 52)
             Me.lblIntakeInvoice.Name = "lblIntakeInvoice"
             Me.lblIntakeInvoice.Size = New System.Drawing.Size(176, 20)
@@ -562,7 +553,7 @@ Namespace UI.Warehouse
             'lblIntakeCustomer
             '
             Me.lblIntakeCustomer.AutoSize = True
-            Me.lblIntakeCustomer.Font = New System.Drawing.Font("Segoe UI Variable Text", 9.0!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point)
+            Me.lblIntakeCustomer.Font = New System.Drawing.Font("Segoe UI", 9.0!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
             Me.lblIntakeCustomer.Location = New System.Drawing.Point(12, 0)
             Me.lblIntakeCustomer.Name = "lblIntakeCustomer"
             Me.lblIntakeCustomer.Size = New System.Drawing.Size(126, 20)
@@ -574,7 +565,6 @@ Namespace UI.Warehouse
             Me.grpInspection.Controls.Add(Me.dgvQuarantineItems)
             Me.grpInspection.Controls.Add(Me.pnlInspectionActions)
             Me.grpInspection.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.grpInspection.Font = New System.Drawing.Font("Segoe UI Variable Text", 9.5!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point)
             Me.grpInspection.Location = New System.Drawing.Point(0, 0)
             Me.grpInspection.Name = "grpInspection"
             Me.grpInspection.Padding = New System.Windows.Forms.Padding(8, 28, 8, 8)
@@ -591,7 +581,6 @@ Namespace UI.Warehouse
             Me.dgvQuarantineItems.BackgroundColor = System.Drawing.Color.White
             Me.dgvQuarantineItems.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize
             Me.dgvQuarantineItems.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.dgvQuarantineItems.Font = New System.Drawing.Font("Segoe UI Variable Text", 9.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point)
             Me.dgvQuarantineItems.Location = New System.Drawing.Point(8, 28)
             Me.dgvQuarantineItems.MultiSelect = False
             Me.dgvQuarantineItems.Name = "dgvQuarantineItems"
@@ -622,7 +611,7 @@ Namespace UI.Warehouse
             'lblInspectionSummary
             '
             Me.lblInspectionSummary.AutoSize = True
-            Me.lblInspectionSummary.Font = New System.Drawing.Font("Segoe UI Variable Text", 8.5!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point)
+            Me.lblInspectionSummary.Font = New System.Drawing.Font("Segoe UI", 8.5!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
             Me.lblInspectionSummary.ForeColor = System.Drawing.Color.FromArgb(CType(CType(13, Byte), Integer), CType(CType(110, Byte), Integer), CType(CType(253, Byte), Integer))
             Me.lblInspectionSummary.Location = New System.Drawing.Point(12, 60)
             Me.lblInspectionSummary.Name = "lblInspectionSummary"
@@ -634,13 +623,14 @@ Namespace UI.Warehouse
             '
             Me.btnConfirmInspection.BackColor = System.Drawing.Color.FromArgb(CType(CType(13, Byte), Integer), CType(CType(110, Byte), Integer), CType(CType(253, Byte), Integer))
             Me.btnConfirmInspection.FlatStyle = System.Windows.Forms.FlatStyle.Flat
-            Me.btnConfirmInspection.Font = New System.Drawing.Font("Segoe UI Variable Text", 9.5!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point)
+            Me.btnConfirmInspection.Font = New System.Drawing.Font("Segoe UI", 9.5!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
             Me.btnConfirmInspection.ForeColor = System.Drawing.Color.White
             Me.btnConfirmInspection.Location = New System.Drawing.Point(12, 85)
             Me.btnConfirmInspection.Name = "btnConfirmInspection"
             Me.btnConfirmInspection.Size = New System.Drawing.Size(575, 32)
             Me.btnConfirmInspection.TabIndex = 5
             Me.btnConfirmInspection.Text = "Confirm Inspection & Post Credit Note Journal"
+            Me.btnConfirmInspection.UseMnemonic = False
             Me.btnConfirmInspection.UseVisualStyleBackColor = False
             '
             'numScrapQty
@@ -654,7 +644,7 @@ Namespace UI.Warehouse
             'lblScrapQty
             '
             Me.lblScrapQty.AutoSize = True
-            Me.lblScrapQty.Font = New System.Drawing.Font("Segoe UI Variable Text", 9.0!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point)
+            Me.lblScrapQty.Font = New System.Drawing.Font("Segoe UI", 9.0!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
             Me.lblScrapQty.ForeColor = System.Drawing.Color.FromArgb(CType(CType(220, Byte), Integer), CType(CType(53, Byte), Integer), CType(CType(69, Byte), Integer))
             Me.lblScrapQty.Location = New System.Drawing.Point(320, 31)
             Me.lblScrapQty.Name = "lblScrapQty"
@@ -673,7 +663,7 @@ Namespace UI.Warehouse
             'lblRestockQty
             '
             Me.lblRestockQty.AutoSize = True
-            Me.lblRestockQty.Font = New System.Drawing.Font("Segoe UI Variable Text", 9.0!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point)
+            Me.lblRestockQty.Font = New System.Drawing.Font("Segoe UI", 9.0!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
             Me.lblRestockQty.ForeColor = System.Drawing.Color.FromArgb(CType(CType(25, Byte), Integer), CType(CType(135, Byte), Integer), CType(CType(84, Byte), Integer))
             Me.lblRestockQty.Location = New System.Drawing.Point(12, 31)
             Me.lblRestockQty.Name = "lblRestockQty"
@@ -684,7 +674,7 @@ Namespace UI.Warehouse
             'lblSelectedRMA
             '
             Me.lblSelectedRMA.AutoSize = True
-            Me.lblSelectedRMA.Font = New System.Drawing.Font("Segoe UI Variable Text", 9.0!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point)
+            Me.lblSelectedRMA.Font = New System.Drawing.Font("Segoe UI", 9.0!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
             Me.lblSelectedRMA.Location = New System.Drawing.Point(12, 6)
             Me.lblSelectedRMA.Name = "lblSelectedRMA"
             Me.lblSelectedRMA.Size = New System.Drawing.Size(176, 20)
@@ -695,7 +685,6 @@ Namespace UI.Warehouse
             '
             Me.grpRMAJournal.Controls.Add(Me.dgvRMAJournal)
             Me.grpRMAJournal.Dock = System.Windows.Forms.DockStyle.Bottom
-            Me.grpRMAJournal.Font = New System.Drawing.Font("Segoe UI Variable Text", 9.5!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point)
             Me.grpRMAJournal.Location = New System.Drawing.Point(0, 350)
             Me.grpRMAJournal.Name = "grpRMAJournal"
             Me.grpRMAJournal.Padding = New System.Windows.Forms.Padding(8, 28, 8, 8)
@@ -712,7 +701,6 @@ Namespace UI.Warehouse
             Me.dgvRMAJournal.BackgroundColor = System.Drawing.Color.White
             Me.dgvRMAJournal.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize
             Me.dgvRMAJournal.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.dgvRMAJournal.Font = New System.Drawing.Font("Segoe UI Variable Text", 9.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point)
             Me.dgvRMAJournal.Location = New System.Drawing.Point(8, 28)
             Me.dgvRMAJournal.MultiSelect = False
             Me.dgvRMAJournal.Name = "dgvRMAJournal"
@@ -725,13 +713,12 @@ Namespace UI.Warehouse
             '
             'WarehouseIntakeForm
             '
-            Me.AutoScaleDimensions = New System.Drawing.SizeF(9.0!, 21.0!)
-            Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Inherit
+            Me.AutoScaleDimensions = New System.Drawing.SizeF(7.0!, 17.0!)
+            Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
             Me.BackColor = System.Drawing.Color.FromArgb(CType(CType(248, Byte), Integer), CType(CType(249, Byte), Integer), CType(CType(250, Byte), Integer))
-            Me.ClientSize = New System.Drawing.Size(1024, 670)
+            Me.ClientSize = New System.Drawing.Size(1200, 720)
             Me.Controls.Add(Me.tabMain)
             Me.Controls.Add(Me.pnlHeader)
-            Me.Font = New System.Drawing.Font("Segoe UI Variable Text", 9.5!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point)
             Me.Name = "WarehouseIntakeForm"
             Me.Text = "Warehouse Dock Intake & RMA Inspection"
             Me.pnlHeader.ResumeLayout(False)
