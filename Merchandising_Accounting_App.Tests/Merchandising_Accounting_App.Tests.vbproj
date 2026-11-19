@@ -10,7 +10,8 @@
     <OptionExplicit>On</OptionExplicit>
     <OptionCompare>Binary</OptionCompare>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <NoWarn>$(NoWarn);MSTEST0037</NoWarn>
+    <WarningsNotAsErrors>NU1903</WarningsNotAsErrors>
+    <NoWarn>$(NoWarn);MSTEST0037;NU1903</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
