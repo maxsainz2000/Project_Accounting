@@ -6,11 +6,29 @@ All agents, swarm workers, and tools operating within this repository must adher
 
 ---
 
-## 1. Authoritative Specification
+## 1. Authoritative Specification & Documentation Topology
 
 * **Design Source of Truth:** `docs/designs/mvp_erp_accounting.md` is the authoritative, audit-certified technical specification for this project.
 * Any ambiguity in data models, workflow transitions, accounting entries, or file paths must be resolved by adhering to `docs/designs/mvp_erp_accounting.md`.
-* Architectural baselines and compiler flags are documented in `initial_architecture.md`.
+* **Master Documentation Portal:** `docs/README.md` provides the complete documentation map, including active runbooks and archived baselines.
+* **Design Documents Sitemap:** `docs/designs/SITEMAP.md` is retained in-place as the integration registry for specification discovery.
+* **Architectural Baseline:** Initial architectural baselines and compiler flags are preserved in `docs/archive/baseline/initial_architecture.md`.
+
+### 1.1 Context Navigation Matrix
+To avoid context bloat and ensure coding agents only read relevant, authoritative files:
+
+| Task / Domain Area | Mandatory Authoritative Document | Prohibited / Out-of-Scope Files (Avoid Context Bloat) |
+| :--- | :--- | :--- |
+| **Workspace & Compiler Rules** | `GEMINI.md` | Any file in `docs/archive/` |
+| **Domain Logic, GL, Costing, Schemas** | `docs/designs/mvp_erp_accounting.md` | `docs/archive/designs/*`, `docs/archive/reviews/*` |
+| **UI Preview Tooling & Offscreen Engine** | `docs/UI_PREVIEW.md` | Historical audit reports |
+| **UI Development & Visual Verification** | `.agents/skills/winforms-ui-preview/SKILL.md` | Archive files |
+| **Initial Solution Baseline (Historical)** | `docs/archive/baseline/initial_architecture.md` | Active code is source of truth |
+
+### 1.2 Agent Boundary Rules
+1. **Zero Archive Ingestion:** Coding agents must NEVER ingest or parse files inside `docs/archive/` (`docs/archive/designs/`, `docs/archive/reviews/`, `docs/archive/plans/`, or `docs/archive/baseline/`) during active development or bug fixes. These files represent superseded pre-audit drafts and historical reviews.
+2. **Strict Authority Hierarchy:** If code comments or external descriptions conflict with `docs/designs/mvp_erp_accounting.md`, `docs/designs/mvp_erp_accounting.md` prevails.
+3. **Automated Verification:** All functional changes must be verified against `Merchandising_Accounting_App.Tests` via `dotnet test`, and all UI changes must be verified via `preview_ui.ps1`.
 
 ---
 
