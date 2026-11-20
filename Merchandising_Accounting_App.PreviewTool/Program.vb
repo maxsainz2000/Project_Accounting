@@ -395,6 +395,13 @@ Namespace Merchandising_Accounting_App.PreviewTool
 
         <STAThread()>
         Public Function Main(args() As String) As Integer
+            ' Ensure local database is initialized with master data and WAL pragmas for previews
+            Try
+                Global.Merchandising_Accounting_App.Data.DatabaseInitializer.InitializeDatabase()
+            Catch ex As Exception
+                Console.WriteLine($"[Warning] Database bootstrap in PreviewTool: {ex.Message}")
+            End Try
+
             InitializeScenarioRegistry()
 
             ' Parse Arguments

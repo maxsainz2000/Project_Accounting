@@ -219,7 +219,7 @@ Namespace UI
             Me.tsLblDbStatus.Name = "tsLblDbStatus"
             Me.tsLblDbStatus.Size = New System.Drawing.Size(298, 20)
             Me.tsLblDbStatus.Spring = False
-            Me.tsLblDbStatus.Text = "Database: merchandising_erp.db (Mock Mode)"
+            Me.tsLblDbStatus.Text = "Database: merchandising_erp.db (Initializing...)"
             '
             'tsLblSpacer
             '

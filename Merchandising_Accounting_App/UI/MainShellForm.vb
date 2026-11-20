@@ -40,9 +40,16 @@ Namespace UI
                 Dim periodService As New PeriodService()
                 Dim activePeriod = periodService.GetActiveFiscalPeriod()
                 tsLblDbStatus.Text = "Database: merchandising_erp.db (Connected - WAL)"
-                tsLblFiscalPeriod.Text = $"Active Period: {activePeriod.FiscalYear}-P{activePeriod.PeriodNumber:D2}"
+                tsLblDbStatus.ForeColor = System.Drawing.Color.Empty
+                If activePeriod IsNot Nothing Then
+                    tsLblFiscalPeriod.Text = $"Active Period: {activePeriod.FiscalYear}-P{activePeriod.PeriodNumber:D2}"
+                Else
+                    tsLblFiscalPeriod.Text = "Active Period: None (Open Period Required)"
+                End If
             Catch ex As Exception
-                tsLblDbStatus.Text = "Database: merchandising_erp.db (Connected - WAL)"
+                tsLblDbStatus.Text = $"Database Error: {ex.Message}"
+                tsLblDbStatus.ForeColor = System.Drawing.Color.Firebrick
+                tsLblFiscalPeriod.Text = "Active Period: Unresolved (Database Failure)"
             End Try
 
             ' Load Purchasing as initial view if enabled and no child form is already loaded

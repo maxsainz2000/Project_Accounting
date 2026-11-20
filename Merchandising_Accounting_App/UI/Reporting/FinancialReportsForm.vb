@@ -42,7 +42,11 @@ Namespace UI.Reporting
                 End If
             End If
 
-            _viewModel.LoadReports(asOfDate, startDate, endDate)
+            Try
+                _viewModel.LoadReports(asOfDate, startDate, endDate)
+            Catch ex As Exception
+                MessageBox.Show(Me, $"Failed to load financial reports: {ex.Message}", "Reporting Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            End Try
             LoadTrialBalanceGrid()
             LoadProfitLossGrid()
             LoadProductMarginsGrid()

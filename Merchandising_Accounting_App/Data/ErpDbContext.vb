@@ -69,7 +69,7 @@ Namespace Data
 
         Protected Overrides Sub OnConfiguring(optionsBuilder As DbContextOptionsBuilder)
             If Not optionsBuilder.IsConfigured Then
-                optionsBuilder.UseSqlite("Data Source=merchandising_erp.db")
+                optionsBuilder.UseSqlite(DatabaseInitializer.BuildConnectionString())
             End If
             MyBase.OnConfiguring(optionsBuilder)
         End Sub

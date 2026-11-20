@@ -70,12 +70,13 @@ Namespace UI.Accounting
                 Try
                     Dim periodSvc As New PeriodService()
                     periodSvc.CloseFiscalPeriod(_period.PeriodId)
-                Catch
+                    _period.IsClosed = True
+                    _period.ClosedAtUtc = DateTime.UtcNow
+                    UpdatePeriodDisplay()
+                    MessageBox.Show(Me, $"Fiscal period {_period.PeriodLabel} is now permanently sealed.", "Fiscal Period Closed", MessageBoxButtons.OK, MessageBoxIcon.Information)
+                Catch ex As Exception
+                    MessageBox.Show(Me, $"Failed to close fiscal period {_period.PeriodLabel}: {ex.Message}", "Period Close Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
                 End Try
-                _period.IsClosed = True
-                _period.ClosedAtUtc = DateTime.UtcNow
-                UpdatePeriodDisplay()
-                MessageBox.Show(Me, $"Fiscal period {_period.PeriodLabel} is now permanently sealed.", "Fiscal Period Closed", MessageBoxButtons.OK, MessageBoxIcon.Information)
             End If
         End Sub
 

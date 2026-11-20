@@ -21,12 +21,31 @@ Namespace Data
     Public Class DatabaseInitializer
 
         ''' <summary>
+        ''' Gets the authoritative local SQLite database file path anchored to Application.StartupPath.
+        ''' </summary>
+        Public Shared Function GetDefaultDatabasePath() As String
+            Dim basePath = If(Not String.IsNullOrEmpty(System.Windows.Forms.Application.StartupPath),
+                              System.Windows.Forms.Application.StartupPath,
+                              AppContext.BaseDirectory)
+            Return System.IO.Path.Combine(basePath, "merchandising_erp.db")
+        End Function
+
+        ''' <summary>
+        ''' Builds a standard SQLite connection string enforcing Foreign Keys and busy timeout.
+        ''' </summary>
+        Public Shared Function BuildConnectionString(Optional dbPath As String = Nothing) As String
+            Dim resolvedPath = If(String.IsNullOrWhiteSpace(dbPath), GetDefaultDatabasePath(), dbPath)
+            Return $"Data Source={resolvedPath};Foreign Keys=True;Default Timeout=3;"
+        End Function
+
+        ''' <summary>
         ''' Bootstraps the local SQLite database file, establishes WAL pragmas, creates schema,
         ''' seeds foundational master data (COA &amp; active period), and populates initial operational data.
         ''' </summary>
-        Public Shared Sub InitializeDatabase(Optional dbPath As String = "merchandising_erp.db")
+        Public Shared Sub InitializeDatabase(Optional dbPath As String = Nothing)
+            Dim connString = BuildConnectionString(dbPath)
             Dim optionsBuilder As New DbContextOptionsBuilder(Of ErpDbContext)()
-            optionsBuilder.UseSqlite($"Data Source={dbPath}")
+            optionsBuilder.UseSqlite(connString)
             Using context As New ErpDbContext(optionsBuilder.Options)
                 Initialize(context)
                 SeedOperationalSampleData(context)

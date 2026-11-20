@@ -150,6 +150,14 @@ Namespace UI.Reporting
             End Get
         End Property
 
+        Public Property ErrorMessage As String = String.Empty
+
+        Public ReadOnly Property HasError As Boolean
+            Get
+                Return Not String.IsNullOrEmpty(ErrorMessage)
+            End Get
+        End Property
+
         Public Sub New(Optional reportingService As ReportingService = Nothing, Optional context As ErpDbContext = Nothing)
             _context = If(context, New ErpDbContext())
             _reportingService = If(reportingService, New ReportingService(_context))
@@ -157,6 +165,7 @@ Namespace UI.Reporting
         End Sub
 
         Public Sub LoadReports(Optional asOfDate As DateTime? = Nothing, Optional startDate As DateTime? = Nothing, Optional endDate As DateTime? = Nothing)
+            ErrorMessage = String.Empty
             Try
                 ' 1. Trial Balance
                 Dim tbReport = _reportingService.GetTrialBalance(asOfDate)
@@ -202,84 +211,12 @@ Namespace UI.Reporting
                 Next
 
             Catch ex As Exception
-                ' Graceful fallback if database is uninitialized
-                LoadMockData()
+                ErrorMessage = $"Reporting query error: {ex.Message}"
+                TrialBalanceRows.Clear()
+                IncomeStatementRows.Clear()
+                ProductMarginRows.Clear()
+                Throw
             End Try
-        End Sub
-
-        Private Sub LoadMockData()
-            ' Trial Balance mock dataset - strictly balanced to 4 decimal places
-            TrialBalanceRows = New List(Of TrialBalanceRowViewModel) From {
-                New TrialBalanceRowViewModel() With {.AccountCode = "1010", .AccountName = "Cash on Hand", .AccountType = "Asset", .DebitAmount = 2500.0D, .CreditAmount = 0.0D},
-                New TrialBalanceRowViewModel() With {.AccountCode = "1020", .AccountName = "Operating Bank Account", .AccountType = "Asset", .DebitAmount = 43300.0D, .CreditAmount = 0.0D},
-                New TrialBalanceRowViewModel() With {.AccountCode = "1200", .AccountName = "Accounts Receivable", .AccountType = "Asset", .DebitAmount = 0.0D, .CreditAmount = 0.0D},
-                New TrialBalanceRowViewModel() With {.AccountCode = "1300", .AccountName = "Merchandise Inventory", .AccountType = "Asset", .DebitAmount = 680.0D, .CreditAmount = 0.0D},
-                New TrialBalanceRowViewModel() With {.AccountCode = "2000", .AccountName = "Accounts Payable", .AccountType = "Liability", .DebitAmount = 0.0D, .CreditAmount = 0.0D},
-                New TrialBalanceRowViewModel() With {.AccountCode = "2100", .AccountName = "Goods Received Not Invoiced (GRNI)", .AccountType = "Liability", .DebitAmount = 0.0D, .CreditAmount = 0.0D},
-                New TrialBalanceRowViewModel() With {.AccountCode = "3000", .AccountName = "Retained Earnings", .AccountType = "Equity", .DebitAmount = 0.0D, .CreditAmount = 42500.0D},
-                New TrialBalanceRowViewModel() With {.AccountCode = "3010", .AccountName = "Owner's Capital", .AccountType = "Equity", .DebitAmount = 0.0D, .CreditAmount = 4000.0D},
-                New TrialBalanceRowViewModel() With {.AccountCode = "4000", .AccountName = "Sales Revenue", .AccountType = "Revenue", .DebitAmount = 0.0D, .CreditAmount = 600.0D},
-                New TrialBalanceRowViewModel() With {.AccountCode = "4100", .AccountName = "Sales Returns & Allowances", .AccountType = "Revenue (Contra)", .DebitAmount = 150.0D, .CreditAmount = 0.0D},
-                New TrialBalanceRowViewModel() With {.AccountCode = "5000", .AccountName = "Cost of Goods Sold (COGS)", .AccountType = "Expense", .DebitAmount = 300.0D, .CreditAmount = 0.0D},
-                New TrialBalanceRowViewModel() With {.AccountCode = "5100", .AccountName = "Purchase Price Variance (PPV)", .AccountType = "Expense", .DebitAmount = 100.0D, .CreditAmount = 0.0D},
-                New TrialBalanceRowViewModel() With {.AccountCode = "5200", .AccountName = "Inbound Freight Variance", .AccountType = "Expense", .DebitAmount = 50.0D, .CreditAmount = 0.0D},
-                New TrialBalanceRowViewModel() With {.AccountCode = "5300", .AccountName = "Inventory Shrinkage & Damaged Stock", .AccountType = "Expense", .DebitAmount = 20.0D, .CreditAmount = 0.0D},
-                New TrialBalanceRowViewModel() With {.AccountCode = "5400", .AccountName = "Stocktake Revaluation Variance", .AccountType = "Expense", .DebitAmount = 0.0D, .CreditAmount = 0.0D},
-                New TrialBalanceRowViewModel() With {.AccountCode = "5500", .AccountName = "Cash Rounding & Roundoff Variance", .AccountType = "Expense", .DebitAmount = 0.0D, .CreditAmount = 0.0D}
-            }
-
-            ' Profit & Loss / Income Statement dataset
-            IncomeStatementRows = New List(Of IncomeStatementRowViewModel) From {
-                New IncomeStatementRowViewModel() With {.Category = "Operating Revenue", .LineDescription = "4000 Gross Sales Revenue", .Amount = 600.0D, .IsSubtotal = False, .IsTotal = False},
-                New IncomeStatementRowViewModel() With {.Category = "Operating Revenue", .LineDescription = "4100 Less: Sales Returns & Allowances", .Amount = -150.0D, .IsSubtotal = False, .IsTotal = False},
-                New IncomeStatementRowViewModel() With {.Category = "Operating Revenue", .LineDescription = "NET SALES REVENUE", .Amount = 450.0D, .IsSubtotal = True, .IsTotal = False},
-                New IncomeStatementRowViewModel() With {.Category = "Cost of Sales", .LineDescription = "5000 Cost of Goods Sold (COGS)", .Amount = 300.0D, .IsSubtotal = False, .IsTotal = False},
-                New IncomeStatementRowViewModel() With {.Category = "Cost of Sales", .LineDescription = "GROSS PROFIT MARGIN", .Amount = 150.0D, .IsSubtotal = True, .IsTotal = False},
-                New IncomeStatementRowViewModel() With {.Category = "Operating Variances & Expenses", .LineDescription = "5100 Purchase Price Variance (PPV)", .Amount = 100.0D, .IsSubtotal = False, .IsTotal = False},
-                New IncomeStatementRowViewModel() With {.Category = "Operating Variances & Expenses", .LineDescription = "5200 Inbound Freight Variance", .Amount = 50.0D, .IsSubtotal = False, .IsTotal = False},
-                New IncomeStatementRowViewModel() With {.Category = "Operating Variances & Expenses", .LineDescription = "5300 Inventory Shrinkage & Damaged Stock", .Amount = 20.0D, .IsSubtotal = False, .IsTotal = False},
-                New IncomeStatementRowViewModel() With {.Category = "Operating Variances & Expenses", .LineDescription = "5400 Stocktake Revaluation Variance", .Amount = 0.0D, .IsSubtotal = False, .IsTotal = False},
-                New IncomeStatementRowViewModel() With {.Category = "Operating Variances & Expenses", .LineDescription = "5500 Cash Rounding & Roundoff Variance", .Amount = 0.0D, .IsSubtotal = False, .IsTotal = False},
-                New IncomeStatementRowViewModel() With {.Category = "Operating Variances & Expenses", .LineDescription = "TOTAL OPERATING VARIANCES", .Amount = 170.0D, .IsSubtotal = True, .IsTotal = False},
-                New IncomeStatementRowViewModel() With {.Category = "Net Income", .LineDescription = "NET OPERATING INCOME / (LOSS)", .Amount = -20.0D, .IsSubtotal = False, .IsTotal = True}
-            }
-
-            ' Product Margins & Profitability dataset (Managerial analytical view)
-            ProductMarginRows = New List(Of ProductProfitabilityRowViewModel) From {
-                New ProductProfitabilityRowViewModel() With {
-                    .ProductSku = "SKU-A001",
-                    .ProductName = "Organic Arabica Coffee Beans 1kg",
-                    .UnitsSold = 40,
-                    .InvoicedRevenue = 600.0D,
-                    .CostOfGoodsSold = 300.0D,
-                    .InboundFreightVariance = 50.0D,
-                    .PurchasePriceVariance = 100.0D,
-                    .NetMarginAmount = 150.0D,
-                    .MarginPercentage = 25.0D
-                },
-                New ProductProfitabilityRowViewModel() With {
-                    .ProductSku = "SKU-B002",
-                    .ProductName = "Artisan Ceramic Dripper V60",
-                    .UnitsSold = 25,
-                    .InvoicedRevenue = 750.0D,
-                    .CostOfGoodsSold = 375.0D,
-                    .InboundFreightVariance = 25.0D,
-                    .PurchasePriceVariance = 0.0D,
-                    .NetMarginAmount = 350.0D,
-                    .MarginPercentage = 46.67D
-                },
-                New ProductProfitabilityRowViewModel() With {
-                    .ProductSku = "SKU-C003",
-                    .ProductName = "Unbleached Cone Coffee Filters (100pk)",
-                    .UnitsSold = 60,
-                    .InvoicedRevenue = 360.0D,
-                    .CostOfGoodsSold = 180.0D,
-                    .InboundFreightVariance = 15.0D,
-                    .PurchasePriceVariance = 0.0D,
-                    .NetMarginAmount = 165.0D,
-                    .MarginPercentage = 45.83D
-                }
-            }
         End Sub
 
         Public Function ExportTrialBalanceToCsv() As String
