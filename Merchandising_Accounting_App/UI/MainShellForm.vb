@@ -5,33 +5,36 @@ Namespace UI
 
     Public Class MainShellForm
 
-        Private _currentChildForm As Form
+        Private _currentContent As Control
 
         <System.ComponentModel.DesignerSerializationVisibility(System.ComponentModel.DesignerSerializationVisibility.Hidden)>
         Public Property AutoLoadDefaultModule As Boolean = True
 
-        Public Sub LoadChildForm(childForm As Form, title As String, subtitle As String)
-            If _currentChildForm IsNot Nothing Then
-                _currentChildForm.Close()
-                pnlContentHost.Controls.Remove(_currentChildForm)
-                _currentChildForm.Dispose()
-                _currentChildForm = Nothing
+        Public Sub LoadContent(contentControl As Control, title As String, subtitle As String)
+            If _currentContent IsNot Nothing Then
+                pnlContentHost.Controls.Remove(_currentContent)
+                _currentContent.Dispose()
+                _currentContent = Nothing
             End If
 
-            _currentChildForm = childForm
+            _currentContent = contentControl
             lblCurrentModule.Text = title
             lblModuleSubtitle.Text = subtitle
             lblModuleSubtitle.Top = lblCurrentModule.Bottom + 4
             pnlHeader.Height = Math.Max(88, lblModuleSubtitle.Bottom + 12)
 
+            contentControl.Dock = DockStyle.Fill
+            contentControl.Font = Me.Font
+            pnlContentHost.Controls.Add(contentControl)
+            pnlContentHost.Tag = contentControl
+            contentControl.BringToFront()
+            contentControl.Show()
+        End Sub
+
+        Public Sub LoadChildForm(childForm As Form, title As String, subtitle As String)
             childForm.TopLevel = False
             childForm.FormBorderStyle = FormBorderStyle.None
-            childForm.Dock = DockStyle.Fill
-            childForm.Font = Me.Font
-            pnlContentHost.Controls.Add(childForm)
-            pnlContentHost.Tag = childForm
-            childForm.BringToFront()
-            childForm.Show()
+            LoadContent(childForm, title, subtitle)
         End Sub
 
         Private Sub MainShellForm_Load(sender As Object, e As EventArgs) Handles Me.Load
@@ -53,7 +56,7 @@ Namespace UI
             End Try
 
             ' Load Purchasing as initial view if enabled and no child form is already loaded
-            If AutoLoadDefaultModule AndAlso _currentChildForm Is Nothing Then
+            If AutoLoadDefaultModule AndAlso _currentContent Is Nothing Then
                 LoadChildForm(New UI.Purchasing.PurchasingDashboardForm(), "Purchasing & 3-Way Match Verification", "Purchase Orders, GRN Inbound Tracking & 3-Way Match Verification (GRNI Clearing, PPV & Freight Variances)")
             End If
         End Sub

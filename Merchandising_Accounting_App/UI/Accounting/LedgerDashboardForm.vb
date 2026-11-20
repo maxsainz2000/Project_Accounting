@@ -11,7 +11,7 @@ Namespace UI.Accounting
 
     Public Class LedgerDashboardForm
 
-        Private ReadOnly _viewModel As New LedgerDashboardViewModel()
+        Friend ReadOnly _viewModel As New LedgerDashboardViewModel()
         Private _selectedEntry As JournalEntryViewModel
 
         Private Sub LedgerDashboardForm_Load(sender As Object, e As EventArgs) Handles Me.Load

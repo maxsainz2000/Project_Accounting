@@ -12,7 +12,7 @@ Namespace UI.Sales
 
     Public Class SalesDashboardForm
 
-        Private ReadOnly _dataService As New SalesDataService()
+        Friend ReadOnly _dataService As New SalesDataService()
         Private _currentDraftOrder As SalesOrderViewModel
         Private _selectedExistingOrder As SalesOrderViewModel
 

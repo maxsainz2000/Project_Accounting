@@ -186,10 +186,12 @@ Namespace UI.Warehouse
     End Class
 
     Public Class WarehouseDataService
+        Implements IDisposable
 
         Private ReadOnly _p2pService As ProcureToPayService
         Private ReadOnly _returnsService As ReturnsService
         Private ReadOnly _context As ErpDbContext
+        Private _disposed As Boolean = False
 
         Public Property Products As New List(Of WarehouseProductModel)()
         Public Property PurchaseOrders As New List(Of WarehousePOModel)()
@@ -202,6 +204,14 @@ Namespace UI.Warehouse
             _p2pService = If(p2pService, New ProcureToPayService(_context))
             _returnsService = If(returnsService, New ReturnsService(_context))
             LoadData()
+        End Sub
+
+        Public Sub Dispose() Implements IDisposable.Dispose
+            If Not _disposed Then
+                _context?.Dispose()
+                _disposed = True
+            End If
+            GC.SuppressFinalize(Me)
         End Sub
 
         Public Sub LoadData()

@@ -117,8 +117,11 @@ Namespace UI.Reporting
     End Class
 
     Public Class FinancialReportsViewModel
+        Implements IDisposable
+
         Private ReadOnly _reportingService As ReportingService
         Private ReadOnly _context As ErpDbContext
+        Private _disposed As Boolean = False
 
         Public Property TrialBalanceRows As New List(Of TrialBalanceRowViewModel)()
         Public Property IncomeStatementRows As New List(Of IncomeStatementRowViewModel)()
@@ -162,6 +165,14 @@ Namespace UI.Reporting
             _context = If(context, New ErpDbContext())
             _reportingService = If(reportingService, New ReportingService(_context))
             LoadReports()
+        End Sub
+
+        Public Sub Dispose() Implements IDisposable.Dispose
+            If Not _disposed Then
+                _context?.Dispose()
+                _disposed = True
+            End If
+            GC.SuppressFinalize(Me)
         End Sub
 
         Public Sub LoadReports(Optional asOfDate As DateTime? = Nothing, Optional startDate As DateTime? = Nothing, Optional endDate As DateTime? = Nothing)

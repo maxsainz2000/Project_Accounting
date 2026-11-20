@@ -141,9 +141,12 @@ Namespace UI.Accounting
     End Class
 
     Public Class LedgerDashboardViewModel
+        Implements IDisposable
+
         Private ReadOnly _ledgerRepo As LedgerRepository
         Private ReadOnly _periodService As PeriodService
         Private ReadOnly _context As ErpDbContext
+        Private _disposed As Boolean = False
 
         Public Property Accounts As New List(Of AccountItemViewModel)()
         Public Property JournalEntries As New List(Of JournalEntryViewModel)()
@@ -154,6 +157,14 @@ Namespace UI.Accounting
             _ledgerRepo = If(ledgerRepo, New LedgerRepository(_context))
             _periodService = If(periodService, New PeriodService(_context))
             LoadData()
+        End Sub
+
+        Public Sub Dispose() Implements IDisposable.Dispose
+            If Not _disposed Then
+                _context?.Dispose()
+                _disposed = True
+            End If
+            GC.SuppressFinalize(Me)
         End Sub
 
         Public Sub LoadData()
@@ -170,16 +181,11 @@ Namespace UI.Accounting
                         .IsClosed = activePeriod.IsClosed,
                         .ClosedAtUtc = activePeriod.ClosedAtUtc
                     }
+                Else
+                    CurrentPeriod = Nothing
                 End If
             Catch ex As Exception
-                CurrentPeriod = New FiscalPeriodViewModel() With {
-                    .PeriodId = 11,
-                    .FiscalYear = 2026,
-                    .PeriodNumber = 11,
-                    .StartDate = New DateTime(2026, 11, 1),
-                    .EndDate = New DateTime(2026, 11, 30),
-                    .IsClosed = False
-                }
+                CurrentPeriod = Nothing
             End Try
 
             ' 2. Load Chart of Accounts & Balances from real general ledger entries

@@ -8,8 +8,13 @@ Namespace UI.Reporting
         <System.Diagnostics.DebuggerNonUserCode()>
         Protected Overrides Sub Dispose(ByVal disposing As Boolean)
             Try
-                If disposing AndAlso components IsNot Nothing Then
-                    components.Dispose()
+                If disposing Then
+                    If _viewModel IsNot Nothing Then
+                        _viewModel.Dispose()
+                    End If
+                    If components IsNot Nothing Then
+                        components.Dispose()
+                    End If
                 End If
             Finally
                 MyBase.Dispose(disposing)

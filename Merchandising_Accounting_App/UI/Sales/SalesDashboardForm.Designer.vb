@@ -7,8 +7,13 @@ Namespace UI.Sales
         <System.Diagnostics.DebuggerNonUserCode()>
         Protected Overrides Sub Dispose(ByVal disposing As Boolean)
             Try
-                If disposing AndAlso components IsNot Nothing Then
-                    components.Dispose()
+                If disposing Then
+                    If _dataService IsNot Nothing Then
+                        _dataService.Dispose()
+                    End If
+                    If components IsNot Nothing Then
+                        components.Dispose()
+                    End If
                 End If
             Finally
                 MyBase.Dispose(disposing)

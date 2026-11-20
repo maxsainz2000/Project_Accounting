@@ -210,9 +210,11 @@ Namespace UI.Purchasing
     End Class
 
     Public Class PurchasingDataService
+        Implements IDisposable
 
         Private ReadOnly _p2pService As ProcureToPayService
         Private ReadOnly _context As ErpDbContext
+        Private _disposed As Boolean = False
 
         Public Property Vendors As New List(Of PurchasingVendorModel)()
         Public Property CatalogProducts As New List(Of PurchasingProductItem)()
@@ -225,6 +227,14 @@ Namespace UI.Purchasing
             _context = If(context, New ErpDbContext())
             _p2pService = If(p2pService, New ProcureToPayService(_context))
             LoadData()
+        End Sub
+
+        Public Sub Dispose() Implements IDisposable.Dispose
+            If Not _disposed Then
+                _context?.Dispose()
+                _disposed = True
+            End If
+            GC.SuppressFinalize(Me)
         End Sub
 
         Public Sub LoadData()

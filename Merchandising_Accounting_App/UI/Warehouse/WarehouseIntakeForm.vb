@@ -8,7 +8,7 @@ Namespace UI.Warehouse
 
     Public Class WarehouseIntakeForm
 
-        Private ReadOnly _repo As New WarehouseDataService()
+        Friend ReadOnly _repo As New WarehouseDataService()
         Private _selectedPO As WarehousePOModel
         Private _selectedPOLine As WarehousePOLineModel
         Private _selectedRMA As WarehouseRMAModel

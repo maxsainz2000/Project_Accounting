@@ -10,7 +10,7 @@ Namespace UI.Reporting
 
     Public Class FinancialReportsForm
 
-        Private ReadOnly _viewModel As New FinancialReportsViewModel()
+        Friend ReadOnly _viewModel As New FinancialReportsViewModel()
 
         Private Sub FinancialReportsForm_Load(sender As Object, e As EventArgs) Handles Me.Load
             If cmbPeriod.Items.Count > 0 Then

@@ -315,9 +315,11 @@ Namespace UI.Sales
     ''' Order-to-Cash data service binding to OrderToCashService and live Entity Framework repositories.
     ''' </summary>
     Public Class SalesDataService
+        Implements IDisposable
 
         Private ReadOnly _o2cService As OrderToCashService
         Private ReadOnly _context As ErpDbContext
+        Private _disposed As Boolean = False
 
         Public Property Customers As New List(Of CustomerViewModel)()
         Public Property Products As New List(Of ProductStockViewModel)()
@@ -328,6 +330,14 @@ Namespace UI.Sales
             _context = If(context, New ErpDbContext())
             _o2cService = If(o2cService, New OrderToCashService(_context))
             LoadData()
+        End Sub
+
+        Public Sub Dispose() Implements IDisposable.Dispose
+            If Not _disposed Then
+                _context?.Dispose()
+                _disposed = True
+            End If
+            GC.SuppressFinalize(Me)
         End Sub
 
         Public Sub LoadData()
