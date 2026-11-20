@@ -60,6 +60,7 @@ To ensure rapid context acquisition and prevent context pollution:
 | :--- | :--- | :--- |
 | **Compiler & Project Rules** | [`GEMINI.md`](../GEMINI.md) | Historical drafts in `docs/archive/` |
 | **Business Logic, GL, Costing, Schemas** | [`docs/designs/mvp_erp_accounting.md`](designs/mvp_erp_accounting.md) | [`docs/archive/designs/2026-11-16_pre_audit/*`](archive/designs/2026-11-16_pre_audit/) |
+| **Active Execution Plans** | [`docs/plans/`](plans/) | Historical plans in `docs/archive/plans/*` |
 | **UI Form & UserControl Development** | [`GEMINI.md`](../GEMINI.md) §6, [`.agents/skills/winforms-ui-preview/SKILL.md`](../.agents/skills/winforms-ui-preview/SKILL.md) | Archive files |
 | **UI Preview Tooling & Offscreen Engine** | [`docs/UI_PREVIEW.md`](UI_PREVIEW.md) | Pre-audit reports |
 | **Test Verification & Quality Gates** | [`GEMINI.md`](../GEMINI.md) §3 & §5 | Pre-audit reports |
@@ -68,6 +69,8 @@ To ensure rapid context acquisition and prevent context pollution:
 1. **Never load `docs/archive/` for active tasks**: Archive files are historical snapshots. Reading them wastes token context and risks importing obsolete assumptions that were superseded during the audit.
 2. **Single Source of Truth**: When any question arises regarding debit/credit distributions, inventory valuation, or API contracts, [`docs/designs/mvp_erp_accounting.md`](designs/mvp_erp_accounting.md) is the final authority.
 3. **Always run verification**: Any modification to domain engines, services, or UI components must be verified using the automated test suite (`dotnet test`) and automated visual preview engine (`powershell -File .\preview_ui.ps1 --all --mode both`).
+4. **Output Destination Rule**: Never write new markdown documents, reports, or drafts to the workspace root directory. `GEMINI.md` is the only authorized markdown file in the workspace root. Direct temporary scratch files and conversational artifacts to conversation artifact directories, system architecture specifications to `docs/designs/`, and active execution plans to `docs/plans/`.
+5. **Plan Archival Definition of Done**: When an execution or migration plan in `docs/plans/` is completed or merged, moving it to `docs/archive/plans/YYYY-MM-DD_<name>/` is strictly required. Active plans in `docs/plans/` must never retain a terminal status (`Completed` or `Merged`).
 
 ---
 

@@ -214,7 +214,7 @@ Namespace UI.Accounting
                         targetDistance = minDistance
                     End If
                     If colDescription IsNot Nothing Then
-                        colDescription.MinimumWidth = 35
+                        colDescription.MinimumWidth = 2
                     End If
                 Else
                     ' Maximized 1080p: allocate ~32% (clamped 420-480px)

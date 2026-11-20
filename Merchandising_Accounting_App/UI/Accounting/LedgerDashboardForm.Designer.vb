@@ -597,7 +597,7 @@ Namespace UI.Accounting
             Me.colDescription.DefaultCellStyle = New System.Windows.Forms.DataGridViewCellStyle() With {.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft}
             Me.colDescription.FillWeight = 200.0!
             Me.colDescription.HeaderText = "Description"
-            Me.colDescription.MinimumWidth = 35
+            Me.colDescription.MinimumWidth = 2
             Me.colDescription.Name = "colDescription"
             Me.colDescription.ReadOnly = True
             '

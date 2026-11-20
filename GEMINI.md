@@ -29,6 +29,8 @@ To avoid context bloat and ensure coding agents only read relevant, authoritativ
 1. **Zero Archive Ingestion:** Coding agents must NEVER ingest or parse files inside `docs/archive/` (`docs/archive/designs/`, `docs/archive/reviews/`, `docs/archive/plans/`, or `docs/archive/baseline/`) during active development or bug fixes. These files represent superseded pre-audit drafts and historical reviews.
 2. **Strict Authority Hierarchy:** If code comments or external descriptions conflict with `docs/designs/mvp_erp_accounting.md`, `docs/designs/mvp_erp_accounting.md` prevails.
 3. **Automated Verification:** All functional changes must be verified against `Merchandising_Accounting_App.Tests` via `dotnet test`, and all UI changes must be verified via `preview_ui.ps1`.
+4. **Output Destination Rule:** Never write new markdown documents, reports, or drafts to the workspace root directory. `GEMINI.md` is the only authorized markdown file in the workspace root. Direct temporary scratch files and conversational artifacts to conversation artifact directories, system architecture specifications to `docs/designs/`, and active execution plans to `docs/plans/`.
+5. **Plan Archival Definition of Done:** When an execution or migration plan in `docs/plans/` is completed or merged, moving it to `docs/archive/plans/YYYY-MM-DD_<name>/` is strictly required. Active plans in `docs/plans/` must never retain a terminal status (`Completed` or `Merged`).
 
 ---
 

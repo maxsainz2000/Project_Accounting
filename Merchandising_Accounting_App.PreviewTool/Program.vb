@@ -602,10 +602,10 @@ Namespace Merchandising_Accounting_App.PreviewTool
                         If mode = RenderMode.Restored Then
                             Dim rootFileName As String = $"{scenario.Key}.png"
                             Dim rootFullPath As String = Path.Combine(fullOutputDir, rootFileName)
-                            File.Copy(minFullPath, rootFullPath, True)
+                            SafeCopyFile(minFullPath, rootFullPath)
                             If useShell AndAlso Not scenario.IsDialog Then
                                 Dim shellPath As String = Path.Combine(fullOutputDir, $"{scenario.Key}_Shell.png")
-                                File.Copy(minFullPath, shellPath, True)
+                                SafeCopyFile(minFullPath, shellPath)
                             End If
                         End If
                         totalSuccess += 1
@@ -626,10 +626,10 @@ Namespace Merchandising_Accounting_App.PreviewTool
                         ' Copy/save primary key filename in root output dir
                         Dim rootFileName As String = $"{scenario.Key}.png"
                         Dim rootFullPath As String = Path.Combine(fullOutputDir, rootFileName)
-                        File.Copy(maxFullPath, rootFullPath, True)
+                        SafeCopyFile(maxFullPath, rootFullPath)
                         If useShell AndAlso Not scenario.IsDialog Then
                             Dim shellPath As String = Path.Combine(fullOutputDir, $"{scenario.Key}_Shell.png")
-                            File.Copy(maxFullPath, shellPath, True)
+                            SafeCopyFile(maxFullPath, shellPath)
                         End If
                         totalSuccess += 1
                     Else
@@ -646,6 +646,17 @@ Namespace Merchandising_Accounting_App.PreviewTool
 
             Return If(totalFailed > 0, 1, 0)
         End Function
+
+        Private Sub SafeCopyFile(sourcePath As String, destPath As String)
+            For attempt As Integer = 1 To 10
+                Try
+                    File.Copy(sourcePath, destPath, True)
+                    Return
+                Catch ex As IOException When attempt < 10
+                    Thread.Sleep(50)
+                End Try
+            Next
+        End Sub
 
         Private Function ResolveScenarios(nameOrAlias As String) As List(Of PreviewScenario)
             Dim results As New List(Of PreviewScenario)()

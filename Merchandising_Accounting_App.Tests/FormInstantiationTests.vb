@@ -159,7 +159,7 @@ Namespace Merchandising_Accounting_App.Tests
                     shell.FormBorderStyle = FormBorderStyle.None
                     shell.WindowState = FormWindowState.Normal
                     shell.StartPosition = FormStartPosition.Manual
-                    shell.Location = New Point(-10000, -10000)
+                    shell.Location = New Point(0, 0)
                     shell.ClientSize = New Size(1280, 720)
                     shell.Visible = True
 
@@ -167,6 +167,7 @@ Namespace Merchandising_Accounting_App.Tests
                     shell.LoadChildForm(ledger, "General Ledger", "Chart of Accounts & Journal Entries")
                     shell.WindowState = FormWindowState.Normal
                     shell.ClientSize = New Size(1280, 720)
+                    shell.pnlSidebar.Width = 280
                     shell.PerformLayout()
                     ledger.PerformLayout()
 
@@ -197,6 +198,7 @@ Namespace Merchandising_Accounting_App.Tests
 
                     ' Maximized 1920x1080 assertions:
                     shell.ClientSize = New Size(1920, 1080)
+                    shell.pnlSidebar.Width = 280
                     shell.PerformLayout()
                     ledger.PerformLayout()
 
