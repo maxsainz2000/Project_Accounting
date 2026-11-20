@@ -71,7 +71,7 @@ powershell -File .\preview_ui.ps1 --dialogs  # Modal dialogs (FiscalPeriodForm)
 
 ## 3. How to Add New Views Flexibly
 
-When introducing a new Form or decoupled `UserControl`, add its scenario definition to `RegisterScenarios()` in [Program.vb](file:///c:/Users/maxsa/Documents/Project_Accounting/Merchandising_Accounting_App.PreviewTool/Program.vb).
+When introducing a new Form or decoupled `UserControl`, add its scenario definition to `RegisterScenarios()` in [Program.vb](../../../Merchandising_Accounting_App.PreviewTool/Program.vb).
 
 ### Pattern A: New Top-Level or Base Form
 ```visualbasic
