@@ -10,7 +10,7 @@ $ErrorActionPreference = 'Stop'
 if (-not [string]::IsNullOrWhiteSpace($RootPath)) {
     $workspaceRoot = (Resolve-Path $RootPath).Path
 } else {
-    $toolsDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+    $toolsDir = if ($PSScriptRoot) { $PSScriptRoot } else { Split-Path -Parent $MyInvocation.MyCommand.Path }
     if ($toolsDir) {
         $workspaceRoot = Split-Path -Parent $toolsDir
     } else {
@@ -64,7 +64,7 @@ if (Test-Path $plansDir) {
             $planContent = [System.IO.File]::ReadAllText($planFile.FullName)
             $match = $terminalRegex.Match($planContent)
             if ($match.Success) {
-                $relPath = $planFile.FullName.Substring($workspaceRoot.Length).TrimStart('\', '/')
+                $relPath = $planFile.FullName.Substring($workspaceRoot.Length).TrimStart('\', '/').Replace('\', '/')
                 $violations += "[HYGIENE VIOLATION] Completed or merged plan found in active directory 'docs/plans/': $relPath (matched '$($match.Value.Trim())'). Per GEMINI.md §1.2, move to 'docs/archive/plans/YYYY-MM-DD_<name>/'."
             }
         }
@@ -84,8 +84,8 @@ if (Test-Path $specPath) {
                 $_.FullName -notmatch '[\\/](bin|obj)[\\/]' -and $_.Name -cne "Application.Designer.vb"
             })
             foreach ($file in $vbFiles) {
-                if ($specContent.IndexOf($file.Name, [System.StringComparison]::OrdinalIgnoreCase) -lt 0) {
-                    $relPath = $file.FullName.Substring($workspaceRoot.Length).TrimStart('\', '/')
+                $relPath = $file.FullName.Substring($workspaceRoot.Length).TrimStart('\', '/').Replace('\', '/')
+                if ($specContent.IndexOf($relPath, [System.StringComparison]::OrdinalIgnoreCase) -lt 0) {
                     $missingFiles += $relPath
                 }
             }
@@ -116,14 +116,29 @@ if (Test-Path $specPath) {
     }
 }
 
-# Check 6: EF Core Dependency Version Parity Invariant - docs/designs/mvp_erp_accounting.md must cite 10.0.0 and no obsolete versions
+# Check 6: EF Core Dependency Version Parity Invariant - docs/designs/mvp_erp_accounting.md must cite the version in Merchandising_Accounting_App.vbproj and no obsolete versions
 if (Test-Path $specPath) {
     $specContent = [System.IO.File]::ReadAllText($specPath)
     if ($specContent.IndexOf("9.0.2 or .NET 10 preview", [System.StringComparison]::OrdinalIgnoreCase) -ge 0) {
         $violations += "[HYGIENE VIOLATION] 'docs/designs/mvp_erp_accounting.md' must not reference obsolete '9.0.2 or .NET 10 preview' EF Core packages."
     }
-    if ($specContent.IndexOf("10.0.0", [System.StringComparison]::OrdinalIgnoreCase) -lt 0) {
-        $violations += "[HYGIENE VIOLATION] 'docs/designs/mvp_erp_accounting.md' must reference official RTM '10.0.0' EF Core package."
+    $vbprojPath = Join-Path $workspaceRoot "Merchandising_Accounting_App/Merchandising_Accounting_App.vbproj"
+    if (Test-Path $vbprojPath) {
+        $vbprojContent = [System.IO.File]::ReadAllText($vbprojPath)
+        $efRegex = [regex]'PackageReference\s+Include="Microsoft\.EntityFrameworkCore\.Sqlite"\s+Version="([^"]+)"'
+        $efMatch = $efRegex.Match($vbprojContent)
+        if ($efMatch.Success) {
+            $efVersion = $efMatch.Groups[1].Value
+            if ($specContent.IndexOf($efVersion, [System.StringComparison]::OrdinalIgnoreCase) -lt 0) {
+                $violations += "[HYGIENE VIOLATION] 'docs/designs/mvp_erp_accounting.md' must synchronize with EF Core version '$efVersion' specified in Merchandising_Accounting_App.vbproj."
+            }
+        } else {
+            $violations += "[HYGIENE VIOLATION] 'Merchandising_Accounting_App.vbproj' missing Microsoft.EntityFrameworkCore.Sqlite PackageReference."
+        }
+    } else {
+        if ($specContent.IndexOf("10.0.0", [System.StringComparison]::OrdinalIgnoreCase) -lt 0) {
+            $violations += "[HYGIENE VIOLATION] 'docs/designs/mvp_erp_accounting.md' must reference official RTM '10.0.0' EF Core package."
+        }
     }
 }
 

@@ -343,8 +343,7 @@ Namespace Merchandising_Accounting_App.Tests
 
             Dim unmanifestedFiles As New List(Of String)()
             For Each vbFile As String In allVbFiles
-                Dim baseFileName As String = Path.GetFileName(vbFile)
-                If Not specContent.Contains(baseFileName, StringComparison.OrdinalIgnoreCase) Then
+                If Not specContent.Contains(vbFile, StringComparison.OrdinalIgnoreCase) Then
                     unmanifestedFiles.Add(vbFile)
                 End If
             Next
@@ -378,11 +377,21 @@ Namespace Merchandising_Accounting_App.Tests
             Dim vbprojPath As String = Path.Combine(repoRoot, "Merchandising_Accounting_App", "Merchandising_Accounting_App.vbproj")
             Dim specPath As String = Path.Combine(repoRoot, "docs", "designs", "mvp_erp_accounting.md")
 
+            Assert.IsTrue(File.Exists(vbprojPath), "Merchandising_Accounting_App.vbproj must exist.")
+            Assert.IsTrue(File.Exists(specPath), "mvp_erp_accounting.md must exist.")
+
+            Dim vbprojContent As String = File.ReadAllText(vbprojPath)
             Dim specContent As String = File.ReadAllText(specPath)
+
             Assert.IsFalse(specContent.Contains("9.0.2 or .NET 10 preview", StringComparison.OrdinalIgnoreCase),
                 "docs/designs/mvp_erp_accounting.md must not reference obsolete '9.0.2 or .NET 10 preview' EF Core packages.")
-            Assert.IsTrue(specContent.Contains("10.0.0", StringComparison.OrdinalIgnoreCase),
-                "docs/designs/mvp_erp_accounting.md must reference official RTM '10.0.0' EF Core package.")
+
+            Dim efMatch As Match = Regex.Match(vbprojContent, "PackageReference\s+Include=""Microsoft\.EntityFrameworkCore\.Sqlite""\s+Version=""([^""]+)""", RegexOptions.IgnoreCase)
+            Assert.IsTrue(efMatch.Success, "Merchandising_Accounting_App.vbproj must define Microsoft.EntityFrameworkCore.Sqlite PackageReference with Version attribute.")
+
+            Dim efVersion As String = efMatch.Groups(1).Value
+            Assert.IsTrue(specContent.Contains(efVersion, StringComparison.OrdinalIgnoreCase),
+                $"docs/designs/mvp_erp_accounting.md must synchronize with EF Core version '{efVersion}' specified in Merchandising_Accounting_App.vbproj.")
         End Sub
 
     End Class
