@@ -47,7 +47,7 @@ Merchandising_Accounting_App.PreviewTool  <-- .NET 10 STA-threaded Offscreen Ren
 Always execute from the workspace root (`c:\Users\maxsa\Documents\Project_Accounting`):
 
 ```powershell
-# 1. Render all 34 captures across both resolutions (Standard & Maximized)
+# 1. Render all 36 captures across both resolutions (Standard & Maximized)
 powershell -File .\preview_ui.ps1 --all --mode both
 
 # 2. Render only maximized or only restored
@@ -62,7 +62,7 @@ powershell -File .\preview_ui.ps1 --form Warehouse
 powershell -File .\preview_ui.ps1 --form Reports
 
 # 4. Filter by category
-powershell -File .\preview_ui.ps1 --tabs     # All 7 secondary tab views
+powershell -File .\preview_ui.ps1 --tabs     # All 8 secondary tab views
 powershell -File .\preview_ui.ps1 --states   # All interactive states (row selection details)
 powershell -File .\preview_ui.ps1 --dialogs  # Modal dialogs (FiscalPeriodForm)
 ```

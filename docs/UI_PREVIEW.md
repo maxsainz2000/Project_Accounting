@@ -57,8 +57,8 @@ c:\Users\maxsa\Documents\Project_Accounting\
 ├── Merchandising_Accounting_App.slnx          <-- Solution registering app, PreviewTool & Tests
 ├── preview_ui.ps1                            <-- Root PowerShell CLI launcher script
 ├── current_ui_screenshots/                   <-- Standardized output folder for generated PNGs
-│   ├── minimize/                             <-- 1280x720 Restored Desktop Viewport (17 PNGs)
-│   ├── maximize/                             <-- 1920x1080 Maximized Full HD Viewport (17 PNGs)
+│   ├── minimize/                             <-- 1280x720 Restored Desktop Viewport (18 PNGs)
+│   ├── maximize/                             <-- 1920x1080 Maximized Full HD Viewport (18 PNGs)
 │   ├── manual_screenshot_minimize/           <-- User-captured reference benchmarks (720p)
 │   └── manual_screenshot_maximize/           <-- User-captured reference benchmarks (1080p)
 ├── Merchandising_Accounting_App/             <-- Core desktop accounting application
@@ -70,17 +70,10 @@ c:\Users\maxsa\Documents\Project_Accounting\
 │       ├── Reporting/FinancialReportsForm.vb
 │       └── MainShellForm.vb
 ├── Merchandising_Accounting_App.PreviewTool/ <-- Headless STA preview engine (.NET 10)
-│   └── Program.vb                            <-- 17 scenarios, offscreen capture & dual-mode
-└── Merchandising_Accounting_App.Tests/       <-- Automated test suite (15 tests)
+│   ├── Merchandising_Accounting_App.PreviewTool.vbproj
+│   └── Program.vb                            <-- 18 scenarios, offscreen capture & dual-mode
+└── Merchandising_Accounting_App.Tests/       <-- Automated test suite (15 fixtures)
     └── FormInstantiationTests.vb             <-- Layout, handle & dual-resolution tests
-```
-│       ├── Sales/SalesDashboardForm.vb
-│       ├── Warehouse/WarehouseIntakeForm.vb
-│       ├── Reporting/FinancialReportsForm.vb
-│       └── MainShellForm.vb
-└── Merchandising_Accounting_App.PreviewTool/  <-- Dedicated preview tool
-    ├── Merchandising_Accounting_App.PreviewTool.vbproj
-    └── Program.vb
 ```
 
 ### 3.2 Compiler & Typing Invariants
@@ -148,11 +141,11 @@ The primary recommended command to preview forms is the root PowerShell script `
 ```
 *Generates:* `current_ui_screenshots/LedgerDashboardForm_Shell.png`
 
-#### Render All 34 UI Captures (Dual Resolution)
+#### Render All 36 UI Captures (Dual Resolution)
 ```powershell
 powershell -File .\preview_ui.ps1 --all --mode both
 ```
-*Renders 17 scenarios at 1280×720 into `current_ui_screenshots/minimize/` and 17 scenarios at 1920×1080 into `current_ui_screenshots/maximize/`.*
+*Renders 18 scenarios at 1280×720 into `current_ui_screenshots/minimize/` and 18 scenarios at 1920×1080 into `current_ui_screenshots/maximize/`.*
 
 #### Render Restored or Maximized Mode Only
 ```powershell
@@ -162,7 +155,7 @@ powershell -File .\preview_ui.ps1 --all --mode max       # Generates 1920x1080 o
 
 #### Category Filters
 ```powershell
-powershell -File .\preview_ui.ps1 --tabs     # All 7 secondary tab views
+powershell -File .\preview_ui.ps1 --tabs     # All 8 secondary tab views
 powershell -File .\preview_ui.ps1 --states   # All 3 interactive states (row-selection detail lines)
 powershell -File .\preview_ui.ps1 --dialogs  # Modal dialogs (FiscalPeriodForm)
 ```
@@ -187,7 +180,7 @@ dotnet run --project Merchandising_Accounting_App.PreviewTool -- --form "General
 dotnet run --project Merchandising_Accounting_App.PreviewTool -- --tabs
 ```
 
-### 4.3 Full Scenario Catalog (17 Distinct Targets)
+### 4.3 Full Scenario Catalog (18 Distinct Targets)
 
 | Category | Key | Module / Output File | Supported Aliases |
 | :--- | :--- | :--- | :--- |
@@ -202,6 +195,7 @@ dotnet run --project Merchandising_Accounting_App.PreviewTool -- --tabs
 | **Secondary Tab** | `SalesDashboardForm_Invoices` | `Sales - Invoices.png` | `sales_invoices`, `invoices` |
 | **Secondary Tab** | `SalesDashboardForm_StockMonitor` | `Sales - Stock Availability.png` | `sales_stock`, `stockmonitor` |
 | **Secondary Tab** | `WarehouseIntakeForm_Quarantine` | `Warehouse - RMA Quarantine.png` | `warehouse_quarantine`, `rma_quarantine` |
+| **Secondary Tab** | `WarehouseIntakeForm_Adjustments` | `Warehouse - Stock Adjustments.png` | `warehouse_adjustments`, `stockadjustments` |
 | **Secondary Tab** | `FinancialReportsForm_ProfitLoss` | `Financial Reports - Profit & Loss.png` | `reports_pnl`, `profitloss` |
 | **Secondary Tab** | `FinancialReportsForm_ProductMargins` | `Financial Reports - Product Margins.png` | `reports_margins`, `productmargins` |
 | **Interactive** | `LedgerDashboardForm_EntryDetails` | `General Ledger - Distribution Lines.png` | `ledger_details`, `entrydetails` |
@@ -231,8 +225,8 @@ To verify that the preview tool adheres to all project quality gates:
    ```powershell
    powershell -File .\preview_ui.ps1 --all --mode both
    ```
-   *Result:* Exits with code 0; renders all 34 captures across `current_ui_screenshots/minimize/` and `current_ui_screenshots/maximize/`.
+   *Result:* Exits with code 0; renders all 36 captures across `current_ui_screenshots/minimize/` and `current_ui_screenshots/maximize/`.
 
 4. **Cryptographic Image Independence:**
-   All 16 shell-hosted views exhibit completely distinct SHA-256 hashes between `minimize/` and `maximize/`, confirming true responsive layout execution rather than static image resizing.
+   All 17 shell-hosted views exhibit completely distinct SHA-256 hashes between `minimize/` and `maximize/`, confirming true responsive layout execution rather than static image resizing.
 

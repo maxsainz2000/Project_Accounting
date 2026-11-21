@@ -40,6 +40,8 @@ docs/archive/
 ├── plans/
 │   ├── 2026-11-19_functional_core_swarm/
 │   │   └── functional_core_transition_swarm_plan.md  # Multi-agent swarm implementation plan
+│   ├── 2026-11-21_drift_resolution/
+│   │   └── 2026-11-21_drift_resolution_and_documentation_governance_plan.md  # Drift resolution and documentation governance plan
 │   └── 2026-11-21_specification_drift_reconciliation/
 │       └── 2026-11-21_specification_drift_reconciliation_plan.md  # Living specification drift reconciliation plan
 └── reviews/
