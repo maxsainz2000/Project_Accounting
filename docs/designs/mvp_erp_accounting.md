@@ -90,16 +90,18 @@ The application enforces a layered architecture within a single project, organiz
 flowchart TD
     subgraph UI ["Presentation Layer (Windows Forms .NET 10)"]
         Shell["MainShellForm (Top-Level Container & Navigation)"]
-        ProcView["Purchasing & Receiving Views (PO, GRN, Bill)"]
-        SalesView["Sales & Fulfillment Views (SO, Invoice, Returns)"]
-        AcctView["Accounting & Ledger Views (COA, Journal, Periods)"]
-        RepView["Financial & Managerial Reporting Views"]
+        ProcView["Purchasing Views (PO, GRN, Bill Match, Vendor Payments)"]
+        SalesView["Sales Views (SO, Invoice, Stock Availability Monitor)"]
+        WarehouseView["Warehouse Views (GRN Intake, RMA Quarantine, Stock Adjustments)"]
+        AcctView["Accounting & Ledger Views (COA, Journal, Fiscal Periods)"]
+        RepView["Financial Reports Views (P&L, Margins, Trial Balance)"]
     end
 
     subgraph Service ["Application & Workflow Layer"]
-        P2PService["ProcureToPayService (PO -> GRN -> Bill -> Payment)"]
-        O2CService["OrderToCashService (SO -> Invoice Fulfillment -> Receipt)"]
-        ReturnService["ReturnsService (Return Intake -> Inspection -> Restock/Scrap)"]
+        P2PService["ProcureToPayService (PO -> GRN -> Bill -> Payment Voucher)"]
+        O2CService["OrderToCashService (SO -> Invoice Fulfillment -> Credit Limit Guard)"]
+        InvService["InventoryService (Stock Adjustments, Shrinkage Write-Down, Surplus Gain)"]
+        ReturnService["ReturnsService (RMA Dock Intake -> Inspection -> Restock/Scrap)"]
         PeriodService["PeriodService (Open / Closed Fiscal Period Guard)"]
         ReportService["ReportingService (GL Engine & Margin Analytical Bridge)"]
     end
@@ -111,14 +113,13 @@ flowchart TD
 
     subgraph Persistence ["Data & Storage Layer (SQLite / EF Core 10)"]
         DB[("Embedded SQLite DB: merchandising_erp.db<br/>WAL Mode, Foreign Key Checks ON, Busy Timeout 3000ms")]
-        DbContext["ErpDbContext (Unit of Work & Change Tracking)"]
+        DbContext["ErpDbContext (25 DbSets, Modular Configurations)"]
         CheckConstraint["CHECK (TotalQtyOnHand >= 0) Invariant Guard"]
     end
 
     UI --> Service
     Service --> Domain
     Service --> Persistence
-    Domain -.-> Persistence
 ```
 
 ---
@@ -131,6 +132,10 @@ flowchart TD
 2. **Application & Workflow Services (`Services/`)**:
    - `ProcureToPayService`: Orchestrates PO, GRN receiving, Supplier Bill 3-way matching with variance expensing, and Payment Voucher disbursements.
    - `OrderToCashService`: Orchestrates Sales Orders, Sales Invoice fulfillment (enforcing atomic conditional stock decrement), and Customer Payment Receipts.
+   - `InventoryService`:
+     - `RecordInventoryAdjustment(productId, quantityDelta, reason, eventDate, user)`: Adjusts on-hand stock forward-only.
+     - For negative variances (shrinkage, damage, physical stocktake deficit): Decrements stock, debits `5300 Inventory Shrinkage & Damaged Stock Expense`, credits `1300 Merchandise Inventory` at moving average cost.
+     - For positive variances (found stock, physical count surplus): Increments stock, debits `1300 Merchandise Inventory`, credits `4900 Inventory Adjustment Gain` at current moving average cost.
    - `ReturnsService`: Manages customer return intake into quarantine, inspection disposition recording (restock vs. scrap), Credit Note posting, and optional refund disbursements.
    - `PeriodService`: Verifies that the document `PostingDate` maps to an open accounting period before any journal posting is committed.
    - `ReportingService`: Executes read-only queries for standard accounting deliverables (Trial Balance, Balance Sheet, P&L, AR/AP Aging) and managerial landed margin calculations.
@@ -146,9 +151,9 @@ flowchart TD
 
 ---
 
-### 3. Streamlined Relational Schema Design (17 Core Tables)
+### 3. Streamlined Relational Schema Design (25 Core Tables)
 
-The relational schema is consolidated into 17 normalized tables:
+The relational schema is consolidated into 25 normalized tables, mapped through modular Entity Framework Core configurations (`Data/Configurations/*.vb`):
 
 | Domain Area | Table Name | Columns & Constraints | Description |
 | :--- | :--- | :--- | :--- |
@@ -168,6 +173,7 @@ The relational schema is consolidated into 17 normalized tables:
 | | `SupplierBills` | `BillId` (PK), `VendorId` (FK), `DocumentNumber` (VARCHAR(30), UNIQUE), `BillDate` (DATETIME), `PostingDate` (DATETIME), `DueDate` (DATETIME), `TotalAmount` (DECIMAL(18,4)), `Status` (VARCHAR(20)) | Invoiced supplier claims against open GRNs. |
 | | `BillLines` | `BillLineId` (PK), `BillId` (FK), `GRNLineId` (FK NULLABLE), `ProductId` (FK NULLABLE), `BilledQty` (INT), `BilledUnitPrice` (DECIMAL(18,4)), `LineTotal` (DECIMAL(18,4)), `FreightAmount` (DECIMAL(18,4)), `AccountId` (FK NULLABLE) | Billed merchandise and standalone carrier freight lines. |
 | | `PaymentVouchers` | `VoucherId` (PK), `VoucherType` (VARCHAR(20)), `VendorId` (FK NULLABLE), `CustomerId` (FK NULLABLE), `TargetDocId` (INT), `VoucherNumber` (VARCHAR(30), UNIQUE), `PaymentDate` (DATETIME), `PostingDate` (DATETIME), `DisbursedAmount` (DECIMAL(18,4)), `BankAccountId` (FK: Accounts.AccountId) | Cash disbursements for AP settlements & customer refunds. |
+| | `GRNIAdjustments` | `AdjustmentId` (PK), `DocumentNumber` (VARCHAR(30), UNIQUE), `GoodsReceiptLineId` (FK), `AdjustmentDate` (DATETIME), `PostingDate` (DATETIME), `ClearedQty` (INT), `ClearedAmount` (DECIMAL(18,4)), `Reason` (VARCHAR(255)), `Status` (VARCHAR(20)), `CreatedAt` (DATETIME) | Append-only unbilled GRNI clearing accrual write-offs posting Dr 2100 / Cr 5100. |
 | **Sales & AR** | `Customers` | `CustomerId` (PK), `Code` (VARCHAR(20), UNIQUE), `Name` (VARCHAR(150)), `CreditLimit` (DECIMAL(18,4)), `CurrentARBalance` (DECIMAL(18,4)) | Customer profiles and trade receivable balances. |
 | | `SalesOrders` | `SOId` (PK), `CustomerId` (FK), `DocumentNumber` (VARCHAR(30), UNIQUE), `OrderDate` (DATETIME), `Status` (VARCHAR(20)) | Commercial customer order commitments. |
 | | `SOLines` | `SOLineId` (PK), `SOId` (FK), `ProductId` (FK), `OrderedQty` (INT), `UnitPrice` (DECIMAL(18,4)) | Line items on sales orders. |
@@ -176,6 +182,38 @@ The relational schema is consolidated into 17 normalized tables:
 | | `PaymentReceipts` | `ReceiptId` (PK), `CustomerId` (FK), `InvoiceId` (FK NULLABLE), `ReceiptDate` (DATETIME), `PostingDate` (DATETIME), `AmountReceived` (DECIMAL(18,4)), `BankAccountId` (FK: Accounts.AccountId) | Customer payments clearing AR. |
 | **Returns** | `CustomerReturns` | `ReturnId` (PK), `CustomerId` (FK), `OriginalInvoiceId` (FK), `DocumentNumber` (VARCHAR(30), UNIQUE), `ReturnDate` (DATETIME), `PostingDate` (DATETIME), `Status` (VARCHAR(20)) | Customer return voucher (quarantine intake and disposition). |
 | | `CustomerReturnLines` | `ReturnLineId` (PK), `ReturnId` (FK), `ProductId` (FK), `ReturnedQty` (INT), `RestockQty` (INT), `ScrapQty` (INT), `OriginalUnitCost` (DECIMAL(18,4)), `SellingUnitPrice` (DECIMAL(18,4)), `DispositionStatus` (VARCHAR(20)) | Return inspection lines recording restock and scrap counts. |
+
+#### 3.1 Modular Entity Framework Core 10 Configuration Topology
+Rather than maintaining a monolithic OnModelCreating method, entity mappings are partitioned into domain-scoped configuration classes implementing `IEntityTypeConfiguration(Of T)` in `Data/Configurations/`:
+* `GeneralLedgerConfigurations.vb`: Account, AccountingPeriod, JournalEntry, JournalEntryLine.
+* `InventoryConfigurations.vb`: Product, InventoryTransaction, InventoryAdjustment, InventoryAdjustmentLine.
+* `ProcurementConfigurations.vb`: Vendor, PurchaseOrder, POLine, GoodsReceiptNote, GRNLine, SupplierBill, BillLine, PaymentVoucher, GRNIAdjustment.
+* `SalesConfigurations.vb`: Customer, SalesOrder, SOLine, SalesInvoice, SalesInvoiceLine, PaymentReceipt.
+* `ReturnsConfigurations.vb`: CustomerReturn, CustomerReturnLine.
+
+`ErpDbContext.OnModelCreating` registers all modular configurations dynamically via:
+```vb
+modelBuilder.ApplyConfigurationsFromAssembly(GetType(ErpDbContext).Assembly)
+```
+
+#### 3.2 Decoupled UserControl Architecture Standard
+In accordance with GEMINI.md Rule 6.4, complex desktop modules and views are built using decoupled, self-contained `UserControl` components with dedicated ViewModels and visual designers. Reusable atomic controls include:
+* `DoubleEntryDistributionGridControl`: Balanced debit/credit ledger distribution line presenter.
+* `FiscalPeriodChipControl`: Real-time statutory open/closed period validation badge.
+* `BalancedStatusBadgeControl`: Visual zero-sum variance indicator.
+
+#### 3.3 Presentation ViewModels
+Presentation state and grid data-binding logic are encapsulated within decoupled ViewModels:
+* `LedgerViewModels.vb`: Journal entry lines, account balance display rows, and period selection state.
+* `PurchasingViewModels.vb`: PO line items, 3-way matching rows with PPV/freight variance breakdown, and payment voucher allocation models.
+* `ReportingViewModels.vb`: Trial balance rows, P&L hierarchy models, and product gross margin summaries.
+* `SalesViewModels.vb`: Sales order line tracking, invoice dispatch rows, and stock availability monitoring view models.
+* `WarehouseViewModels.vb`: Dock intake rows, RMA quarantine inspection items, and stock adjustment lines.
+
+#### 3.4 Financial Protection Dialogs
+Modal operational dialogs provide protective safeguards for sensitive financial transactions:
+* `FiscalPeriodForm.vb`: Guarded interface for fiscal month closure administration and period sealing.
+* `DisburseVendorPaymentDialog.vb`: Dedicated disbursement dialog for selecting settled bills, choosing source bank accounts, and emitting Payment Vouchers.
 
 ---
 
@@ -356,6 +394,12 @@ sequenceDiagram
 | - Merchandising_Accounting_App/ApplicationEvents.vb                                     [Modify]        |
 | - Merchandising_Accounting_App/Form1.vb, Form1.Designer.vb, Form1.resx                 [Delete]        |
 | - Merchandising_Accounting_App.Tests/Merchandising_Accounting_App.Tests.vbproj         [Create]        |
+| - Merchandising_Accounting_App.PreviewTool/Merchandising_Accounting_App.PreviewTool.vbproj[Create]     |
+| - Merchandising_Accounting_App.PreviewTool/Program.vb                                   [Create]        |
+| - preview_ui.ps1                                                                        [Create]        |
+| - tools/check_workspace_hygiene.ps1                                                     [Create]        |
+| - tools/check_stop_hygiene.ps1                                                          [Create]        |
+| - .agents/hooks.json                                                                    [Create]        |
 +---------------------------------------------------------------------------------------------------------+
 | DOMAIN LAYER (ENTITIES, ENUMS, ENGINES):                                                                |
 | - Merchandising_Accounting_App/Domain/Enums.vb                                         [Create]        |
@@ -368,9 +412,14 @@ sequenceDiagram
 | - Merchandising_Accounting_App/Domain/Engines/InventoryCostingEngine.vb                [Create]        |
 | - Merchandising_Accounting_App/Domain/Engines/LedgerPostingEngine.vb                   [Create]        |
 +---------------------------------------------------------------------------------------------------------+
-| PERSISTENCE LAYER (EF CORE 10 & REPOSITORIES):                                                          |
+| PERSISTENCE LAYER (EF CORE 10, CONFIGURATIONS & REPOSITORIES):                                          |
 | - Merchandising_Accounting_App/Data/ErpDbContext.vb                                    [Create]        |
 | - Merchandising_Accounting_App/Data/DatabaseInitializer.vb                             [Create]        |
+| - Merchandising_Accounting_App/Data/Configurations/GeneralLedgerConfigurations.vb      [Create]        |
+| - Merchandising_Accounting_App/Data/Configurations/InventoryConfigurations.vb          [Create]        |
+| - Merchandising_Accounting_App/Data/Configurations/ProcurementConfigurations.vb        [Create]        |
+| - Merchandising_Accounting_App/Data/Configurations/ReturnsConfigurations.vb            [Create]        |
+| - Merchandising_Accounting_App/Data/Configurations/SalesConfigurations.vb              [Create]        |
 | - Merchandising_Accounting_App/Data/Repositories/AccountRepository.vb                  [Create]        |
 | - Merchandising_Accounting_App/Data/Repositories/ProductRepository.vb                  [Create]        |
 | - Merchandising_Accounting_App/Data/Repositories/LedgerRepository.vb                   [Create]        |
@@ -381,25 +430,46 @@ sequenceDiagram
 | - Merchandising_Accounting_App/Services/PeriodService.vb                               [Create]        |
 | - Merchandising_Accounting_App/Services/ProcureToPayService.vb                         [Create]        |
 | - Merchandising_Accounting_App/Services/OrderToCashService.vb                          [Create]        |
+| - Merchandising_Accounting_App/Services/InventoryService.vb                            [Create]        |
 | - Merchandising_Accounting_App/Services/ReturnsService.vb                              [Create]        |
 | - Merchandising_Accounting_App/Services/ReportingService.vb                            [Create]        |
 +---------------------------------------------------------------------------------------------------------+
-| PRESENTATION LAYER (WINDOWS FORMS & DESIGNERS):                                                         |
+| PRESENTATION LAYER (WINDOWS FORMS, CONTROLS, VIEWMODELS & DESIGNERS):                                   |
 | - Merchandising_Accounting_App/UI/MainShellForm.vb, .Designer.vb, .resx                 [Create]        |
+| - Merchandising_Accounting_App/UI/Controls/BalancedStatusBadgeControl.vb, .Des.., .resx[Create]        |
+| - Merchandising_Accounting_App/UI/Controls/DoubleEntryDistributionGridControl.vb, ...  [Create]        |
+| - Merchandising_Accounting_App/UI/Controls/FiscalPeriodChipControl.vb, .Des.., .resx   [Create]        |
 | - Merchandising_Accounting_App/UI/Purchasing/PurchasingDashboardForm.vb, .Des.., .resx  [Create]        |
+| - Merchandising_Accounting_App/UI/Purchasing/DisburseVendorPaymentDialog.vb, ...       [Create]        |
+| - Merchandising_Accounting_App/UI/Purchasing/PurchasingViewModels.vb                   [Create]        |
 | - Merchandising_Accounting_App/UI/Sales/SalesDashboardForm.vb, .Designer.vb, .resx     [Create]        |
+| - Merchandising_Accounting_App/UI/Sales/SalesViewModels.vb                              [Create]        |
 | - Merchandising_Accounting_App/UI/Warehouse/WarehouseIntakeForm.vb, .Designer.vb, .resx[Create]        |
+| - Merchandising_Accounting_App/UI/Warehouse/WarehouseViewModels.vb                      [Create]        |
 | - Merchandising_Accounting_App/UI/Accounting/LedgerDashboardForm.vb, .Designer.vb, .resx[Create]       |
+| - Merchandising_Accounting_App/UI/Accounting/FiscalPeriodForm.vb, .Designer.vb, .resx   [Create]        |
+| - Merchandising_Accounting_App/UI/Accounting/LedgerViewModels.vb                         [Create]        |
 | - Merchandising_Accounting_App/UI/Reporting/FinancialReportsForm.vb, .Designer.vb, .resx[Create]       |
+| - Merchandising_Accounting_App/UI/Reporting/ReportingViewModels.vb                     [Create]        |
 +---------------------------------------------------------------------------------------------------------+
 | AUTOMATED TEST SUITE & FIXTURES:                                                                        |
+| - Merchandising_Accounting_App.Tests/MSTestSettings.vb                                  [Create]        |
 | - Merchandising_Accounting_App.Tests/Infrastructure/TestDatabaseFixture.vb             [Create]        |
+| - Merchandising_Accounting_App.Tests/Infrastructure/PersistenceInfrastructureTests.vb   [Create]        |
 | - Merchandising_Accounting_App.Tests/Domain/InventoryCostingEngineTests.vb             [Create]        |
 | - Merchandising_Accounting_App.Tests/Domain/LedgerPostingEngineTests.vb                [Create]        |
 | - Merchandising_Accounting_App.Tests/Services/ProcureToPayServiceTests.vb              [Create]        |
 | - Merchandising_Accounting_App.Tests/Services/OrderToCashServiceTests.vb               [Create]        |
+| - Merchandising_Accounting_App.Tests/Services/InventoryServiceTests.vb                 [Create]        |
 | - Merchandising_Accounting_App.Tests/Services/ReturnsServiceTests.vb                   [Create]        |
+| - Merchandising_Accounting_App.Tests/Services/PeriodServiceTests.vb                    [Create]        |
+| - Merchandising_Accounting_App.Tests/Services/ReportingServiceTests.vb                 [Create]        |
+| - Merchandising_Accounting_App.Tests/Services/SalesDashboardSettlementTests.vb         [Create]        |
 | - Merchandising_Accounting_App.Tests/Integration/EndToEndCUJTests.vb                   [Create]        |
+| - Merchandising_Accounting_App.Tests/FormInstantiationTests.vb                         [Create]        |
+| - Merchandising_Accounting_App.Tests/BrandingAndBrandingStringsTests.vb                 [Create]        |
+| - Merchandising_Accounting_App.Tests/DecimalCurrencyFormattingTests.vb                 [Create]        |
+| - Merchandising_Accounting_App.Tests/WorkspaceHygieneTests.vb                          [Create]        |
 +---------------------------------------------------------------------------------------------------------+
 ```
 
@@ -420,7 +490,7 @@ sequenceDiagram
     2. Configure `Merchandising_Accounting_App.vbproj`:
        - Enable strict typing: `<OptionStrict>On</OptionStrict>`, `<OptionExplicit>On</OptionExplicit>`, `<OptionCompare>Binary</OptionCompare>`.
        - Enforce compiler warnings as errors: `<TreatWarningsAsErrors>true</TreatWarningsAsErrors>`.
-       - Add NuGet package: `Microsoft.EntityFrameworkCore.Sqlite` (Version `9.0.2` or .NET 10 preview).
+       - Add NuGet package: `Microsoft.EntityFrameworkCore.Sqlite` (Version `10.0.0`).
        - Exclude obsolete template files.
     3. Update `Application.myapp` replacing `<MainForm>Form1</MainForm>` with `<MainForm>MainShellForm</MainForm>`.
     4. Delete `Form1.vb`, `Form1.Designer.vb`, and `Form1.resx`.
@@ -556,7 +626,7 @@ sequenceDiagram
     ```powershell
     dotnet test Merchandising_Accounting_App.slnx -c Release --logger "console;verbosity=normal"
     ```
-    *All test fixtures must pass with 100% success rate, achieving $\ge 90\%$ branch coverage for Domain Engines and $\ge 85\%$ statement coverage for Workflow Services.*
+    *All 217 automated tests across 15 fixtures must pass with 100% success rate, achieving $\ge 90\%$ branch coverage for Domain Engines and $\ge 85\%$ statement coverage for Workflow Services.*
 
 ---
 

@@ -77,7 +77,7 @@ To ensure rapid context acquisition and prevent context pollution:
 ## 4. Quickstart Verification Commands
 
 ```powershell
-# Run all unit and integration test fixtures (159 tests)
+# Run all unit, integration, and workspace hygiene test fixtures (217 tests)
 dotnet test
 
 # Render offscreen UI preview screenshots (1280x720 and 1920x1080)
