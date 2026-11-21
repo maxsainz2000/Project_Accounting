@@ -1,12 +1,19 @@
 {
-  "workspace-hygiene": {
+  "workspace-governance": {
+    "Stop": [
+      {
+        "type": "command",
+        "command": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"& { $s = if (Test-Path 'tools/check_stop_hygiene.ps1') { 'tools/check_stop_hygiene.ps1' } else { '../tools/check_stop_hygiene.ps1' }; & $s }\"",
+        "timeout": 30
+      }
+    ],
     "PostToolUse": [
       {
         "matcher": "write_file|edit_file",
         "hooks": [
           {
             "type": "command",
-            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File ..\\tools\\check_workspace_hygiene.ps1 -Hook",
+            "command": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"& { $s = if (Test-Path 'tools/check_workspace_hygiene.ps1') { 'tools/check_workspace_hygiene.ps1' } else { '../tools/check_workspace_hygiene.ps1' }; & $s -Hook }\"",
             "timeout": 10
           }
         ]

@@ -71,14 +71,68 @@ if (Test-Path $plansDir) {
     }
 }
 
+# Check 4: Manifest Completeness Invariant - All .vb files must be in docs/designs/mvp_erp_accounting.md
+$specPath = Join-Path $workspaceRoot "docs/designs/mvp_erp_accounting.md"
+if (Test-Path $specPath) {
+    $specContent = [System.IO.File]::ReadAllText($specPath)
+    $scanDirs = @("Merchandising_Accounting_App", "Merchandising_Accounting_App.Tests", "Merchandising_Accounting_App.PreviewTool")
+    $missingFiles = @()
+    foreach ($subDir in $scanDirs) {
+        $fullSubDir = Join-Path $workspaceRoot $subDir
+        if (Test-Path $fullSubDir) {
+            $vbFiles = @(Get-ChildItem -Path $fullSubDir -Filter "*.vb" -File -Recurse | Where-Object {
+                $_.FullName -notmatch '[\\/](bin|obj)[\\/]' -and $_.Name -cne "Application.Designer.vb"
+            })
+            foreach ($file in $vbFiles) {
+                if ($specContent.IndexOf($file.Name, [System.StringComparison]::OrdinalIgnoreCase) -lt 0) {
+                    $relPath = $file.FullName.Substring($workspaceRoot.Length).TrimStart('\', '/')
+                    $missingFiles += $relPath
+                }
+            }
+        }
+    }
+    if ($missingFiles.Count -gt 0) {
+        $missingList = $missingFiles -join ", "
+        $violations += "[HYGIENE VIOLATION] Target file manifest in 'docs/designs/mvp_erp_accounting.md' is missing active source file(s): $missingList. All source files must be cataloged in the authoritative living specification manifest."
+    }
+} else {
+    $violations += "[HYGIENE VIOLATION] Authoritative specification 'docs/designs/mvp_erp_accounting.md' not found."
+}
+
+# Check 5: Test Metric Parity Invariant - docs/README.md and docs/designs/mvp_erp_accounting.md must cite '217 tests'
+$expectedSuiteCount = 217
+$readmePath = Join-Path $workspaceRoot "docs/README.md"
+if (Test-Path $readmePath) {
+    $readmeContent = [System.IO.File]::ReadAllText($readmePath)
+    if ($readmeContent.IndexOf("$expectedSuiteCount tests", [System.StringComparison]::OrdinalIgnoreCase) -lt 0) {
+        $violations += "[HYGIENE VIOLATION] 'docs/README.md' must cite '$expectedSuiteCount tests'."
+    }
+}
+if (Test-Path $specPath) {
+    $specContent = [System.IO.File]::ReadAllText($specPath)
+    if ($specContent.IndexOf("$expectedSuiteCount automated tests", [System.StringComparison]::OrdinalIgnoreCase) -lt 0 -and
+        $specContent.IndexOf("$expectedSuiteCount tests", [System.StringComparison]::OrdinalIgnoreCase) -lt 0) {
+        $violations += "[HYGIENE VIOLATION] 'docs/designs/mvp_erp_accounting.md' must cite '$expectedSuiteCount tests'."
+    }
+}
+
+# Check 6: EF Core Dependency Version Parity Invariant - docs/designs/mvp_erp_accounting.md must cite 10.0.0 and no obsolete versions
+if (Test-Path $specPath) {
+    $specContent = [System.IO.File]::ReadAllText($specPath)
+    if ($specContent.IndexOf("9.0.2 or .NET 10 preview", [System.StringComparison]::OrdinalIgnoreCase) -ge 0) {
+        $violations += "[HYGIENE VIOLATION] 'docs/designs/mvp_erp_accounting.md' must not reference obsolete '9.0.2 or .NET 10 preview' EF Core packages."
+    }
+    if ($specContent.IndexOf("10.0.0", [System.StringComparison]::OrdinalIgnoreCase) -lt 0) {
+        $violations += "[HYGIENE VIOLATION] 'docs/designs/mvp_erp_accounting.md' must reference official RTM '10.0.0' EF Core package."
+    }
+}
+
 # Process results
 if ($violations.Count -gt 0) {
     foreach ($violation in $violations) {
         [Console]::Error.WriteLine($violation)
     }
-    if (-not $Hook) {
-        exit 1
-    }
+    exit 1
 } else {
     if (-not $Hook) {
         Write-Host "Workspace hygiene check passed: Repository root is clean and conforms to Antigravity standards."

@@ -435,21 +435,32 @@ sequenceDiagram
 | - Merchandising_Accounting_App/Services/ReportingService.vb                            [Create]        |
 +---------------------------------------------------------------------------------------------------------+
 | PRESENTATION LAYER (WINDOWS FORMS, CONTROLS, VIEWMODELS & DESIGNERS):                                   |
-| - Merchandising_Accounting_App/UI/MainShellForm.vb, .Designer.vb, .resx                 [Create]        |
-| - Merchandising_Accounting_App/UI/Controls/BalancedStatusBadgeControl.vb, .Des.., .resx[Create]        |
-| - Merchandising_Accounting_App/UI/Controls/DoubleEntryDistributionGridControl.vb, ...  [Create]        |
-| - Merchandising_Accounting_App/UI/Controls/FiscalPeriodChipControl.vb, .Des.., .resx   [Create]        |
-| - Merchandising_Accounting_App/UI/Purchasing/PurchasingDashboardForm.vb, .Des.., .resx  [Create]        |
-| - Merchandising_Accounting_App/UI/Purchasing/DisburseVendorPaymentDialog.vb, ...       [Create]        |
+| - Merchandising_Accounting_App/UI/MainShellForm.vb                                      [Create]        |
+| - Merchandising_Accounting_App/UI/MainShellForm.Designer.vb                             [Create]        |
+| - Merchandising_Accounting_App/UI/Controls/BalancedStatusBadgeControl.vb                [Create]        |
+| - Merchandising_Accounting_App/UI/Controls/BalancedStatusBadgeControl.Designer.vb       [Create]        |
+| - Merchandising_Accounting_App/UI/Controls/DoubleEntryDistributionGridControl.vb        [Create]        |
+| - Merchandising_Accounting_App/UI/Controls/DoubleEntryDistributionGridControl.Designer.vb[Create]      |
+| - Merchandising_Accounting_App/UI/Controls/FiscalPeriodChipControl.vb                  [Create]        |
+| - Merchandising_Accounting_App/UI/Controls/FiscalPeriodChipControl.Designer.vb         [Create]        |
+| - Merchandising_Accounting_App/UI/Purchasing/PurchasingDashboardForm.vb                 [Create]        |
+| - Merchandising_Accounting_App/UI/Purchasing/PurchasingDashboardForm.Designer.vb        [Create]        |
+| - Merchandising_Accounting_App/UI/Purchasing/DisburseVendorPaymentDialog.vb             [Create]        |
+| - Merchandising_Accounting_App/UI/Purchasing/DisburseVendorPaymentDialog.Designer.vb    [Create]        |
 | - Merchandising_Accounting_App/UI/Purchasing/PurchasingViewModels.vb                   [Create]        |
-| - Merchandising_Accounting_App/UI/Sales/SalesDashboardForm.vb, .Designer.vb, .resx     [Create]        |
+| - Merchandising_Accounting_App/UI/Sales/SalesDashboardForm.vb                           [Create]        |
+| - Merchandising_Accounting_App/UI/Sales/SalesDashboardForm.Designer.vb                  [Create]        |
 | - Merchandising_Accounting_App/UI/Sales/SalesViewModels.vb                              [Create]        |
-| - Merchandising_Accounting_App/UI/Warehouse/WarehouseIntakeForm.vb, .Designer.vb, .resx[Create]        |
+| - Merchandising_Accounting_App/UI/Warehouse/WarehouseIntakeForm.vb                      [Create]        |
+| - Merchandising_Accounting_App/UI/Warehouse/WarehouseIntakeForm.Designer.vb             [Create]        |
 | - Merchandising_Accounting_App/UI/Warehouse/WarehouseViewModels.vb                      [Create]        |
-| - Merchandising_Accounting_App/UI/Accounting/LedgerDashboardForm.vb, .Designer.vb, .resx[Create]       |
-| - Merchandising_Accounting_App/UI/Accounting/FiscalPeriodForm.vb, .Designer.vb, .resx   [Create]        |
+| - Merchandising_Accounting_App/UI/Accounting/LedgerDashboardForm.vb                     [Create]        |
+| - Merchandising_Accounting_App/UI/Accounting/LedgerDashboardForm.Designer.vb            [Create]        |
+| - Merchandising_Accounting_App/UI/Accounting/FiscalPeriodForm.vb                         [Create]        |
+| - Merchandising_Accounting_App/UI/Accounting/FiscalPeriodForm.Designer.vb               [Create]        |
 | - Merchandising_Accounting_App/UI/Accounting/LedgerViewModels.vb                         [Create]        |
-| - Merchandising_Accounting_App/UI/Reporting/FinancialReportsForm.vb, .Designer.vb, .resx[Create]       |
+| - Merchandising_Accounting_App/UI/Reporting/FinancialReportsForm.vb                     [Create]        |
+| - Merchandising_Accounting_App/UI/Reporting/FinancialReportsForm.Designer.vb            [Create]        |
 | - Merchandising_Accounting_App/UI/Reporting/ReportingViewModels.vb                     [Create]        |
 +---------------------------------------------------------------------------------------------------------+
 | AUTOMATED TEST SUITE & FIXTURES:                                                                        |

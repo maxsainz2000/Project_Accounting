@@ -316,6 +316,75 @@ Namespace Merchandising_Accounting_App.Tests
             End Try
         End Sub
 
+        <TestMethod>
+        Public Sub SpecificationTargetManifestInvariant()
+            Dim repoRoot As String = GetRepositoryRoot()
+            Dim specPath As String = Path.Combine(repoRoot, "docs", "designs", "mvp_erp_accounting.md")
+            Assert.IsTrue(File.Exists(specPath), "mvp_erp_accounting.md must exist.")
+
+            Dim specContent As String = File.ReadAllText(specPath)
+
+            Dim appDir As String = Path.Combine(repoRoot, "Merchandising_Accounting_App")
+            Dim testDir As String = Path.Combine(repoRoot, "Merchandising_Accounting_App.Tests")
+            Dim previewDir As String = Path.Combine(repoRoot, "Merchandising_Accounting_App.PreviewTool")
+
+            Dim allVbFiles As New List(Of String)()
+            For Each dirPath As String In {appDir, testDir, previewDir}
+                If Directory.Exists(dirPath) Then
+                    For Each filePath As String In Directory.GetFiles(dirPath, "*.vb", SearchOption.AllDirectories)
+                        Dim relPath As String = Path.GetRelativePath(repoRoot, filePath).Replace("\"c, "/"c)
+                        If relPath.Contains("/bin/") OrElse relPath.Contains("/obj/") OrElse relPath.EndsWith("/Application.Designer.vb", StringComparison.OrdinalIgnoreCase) Then
+                            Continue For
+                        End If
+                        allVbFiles.Add(relPath)
+                    Next
+                End If
+            Next
+
+            Dim unmanifestedFiles As New List(Of String)()
+            For Each vbFile As String In allVbFiles
+                Dim baseFileName As String = Path.GetFileName(vbFile)
+                If Not specContent.Contains(baseFileName, StringComparison.OrdinalIgnoreCase) Then
+                    unmanifestedFiles.Add(vbFile)
+                End If
+            Next
+
+            Assert.AreEqual(0, unmanifestedFiles.Count,
+                $"The following source files are missing from the TARGET FILE MANIFEST in docs/designs/mvp_erp_accounting.md:{Environment.NewLine}" &
+                $"{String.Join(Environment.NewLine, unmanifestedFiles)}{Environment.NewLine}" &
+                "All classes, forms, services, and tests must be cataloged in the authoritative living specification manifest.")
+        End Sub
+
+        <TestMethod>
+        Public Sub DocumentationTestCountInvariant()
+            Dim repoRoot As String = GetRepositoryRoot()
+            Dim readmePath As String = Path.Combine(repoRoot, "docs", "README.md")
+            Dim specPath As String = Path.Combine(repoRoot, "docs", "designs", "mvp_erp_accounting.md")
+
+            Const ExpectedSuiteCount As Integer = 217
+
+            Dim readmeContent As String = File.ReadAllText(readmePath)
+            Assert.IsTrue(readmeContent.Contains($"{ExpectedSuiteCount} tests", StringComparison.OrdinalIgnoreCase),
+                $"docs/README.md must cite '{ExpectedSuiteCount} tests'.")
+
+            Dim specContent As String = File.ReadAllText(specPath)
+            Assert.IsTrue(specContent.Contains($"{ExpectedSuiteCount} automated tests", StringComparison.OrdinalIgnoreCase) OrElse specContent.Contains($"{ExpectedSuiteCount} tests", StringComparison.OrdinalIgnoreCase),
+                $"docs/designs/mvp_erp_accounting.md must cite '{ExpectedSuiteCount} tests'.")
+        End Sub
+
+        <TestMethod>
+        Public Sub DependencyVersionSyncInvariant()
+            Dim repoRoot As String = GetRepositoryRoot()
+            Dim vbprojPath As String = Path.Combine(repoRoot, "Merchandising_Accounting_App", "Merchandising_Accounting_App.vbproj")
+            Dim specPath As String = Path.Combine(repoRoot, "docs", "designs", "mvp_erp_accounting.md")
+
+            Dim specContent As String = File.ReadAllText(specPath)
+            Assert.IsFalse(specContent.Contains("9.0.2 or .NET 10 preview", StringComparison.OrdinalIgnoreCase),
+                "docs/designs/mvp_erp_accounting.md must not reference obsolete '9.0.2 or .NET 10 preview' EF Core packages.")
+            Assert.IsTrue(specContent.Contains("10.0.0", StringComparison.OrdinalIgnoreCase),
+                "docs/designs/mvp_erp_accounting.md must reference official RTM '10.0.0' EF Core package.")
+        End Sub
+
     End Class
 
 End Namespace

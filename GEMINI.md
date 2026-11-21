@@ -32,6 +32,20 @@ To avoid context bloat and ensure coding agents only read relevant, authoritativ
 4. **Output Destination Rule:** Never write new markdown documents, reports, or drafts to the workspace root directory. `GEMINI.md` is the only authorized markdown file in the workspace root. Direct temporary scratch files and conversational artifacts to conversation artifact directories, system architecture specifications to `docs/designs/`, and active execution plans to `docs/plans/`.
 5. **Plan Archival Definition of Done:** When an execution or migration plan in `docs/plans/` is completed or merged, moving it to `docs/archive/plans/YYYY-MM-DD_<name>/` is strictly required. Active plans in `docs/plans/` must never retain a terminal status (`Completed` or `Merged`).
 
+### 1.3 Living Technical Specification & Documentation Definition of Done (DoD)
+1. **Living Authoritative Specification**: `docs/designs/mvp_erp_accounting.md` is an Authoritative Living Specification. It is NOT immutable. Whenever codebase architecture evolves, new entities/services/forms/controls/viewmodels are added, or dependencies change, agents MUST synchronize the design specification in the same turn/commit.
+2. **Mandatory Documentation Gate**: Every session modifying code must satisfy the following before signaling task completion:
+   - [ ] Synchronize `docs/designs/mvp_erp_accounting.md` (Architecture diagram, Component breakdown, Schema, Target File Manifest).
+   - [ ] Synchronize `docs/README.md` test metrics and active indices.
+   - [ ] Execute `dotnet test` ensuring `WorkspaceHygieneTests` passes all manifest and parity invariants.
+   - [ ] Move any completed execution plan in `docs/plans/` to `docs/archive/plans/YYYY-MM-DD_<name>/`.
+   - [ ] Ensure `git status` has zero untracked files and working tree is clean.
+
+### 1.4 Mandatory Atomic Git Commit Protocol
+1. **Zero Uncommitted Work Invariant**: AI agents must never conclude a turn, end a session, or report a task complete while leaving uncommitted source code, test files, preview images, or documentation in the working tree.
+2. **Automated Commit Trigger**: Upon satisfying all verification gates (`dotnet test` 100% pass, `preview_ui.ps1` 100% pass, documentation synced, hygiene check clean), the agent MUST immediately stage all modified and untracked files and create a clean semantic commit (`feat: ...`, `fix: ...`, `docs: ...`, `refactor: ...`).
+3. **Local Commit Safety**: Commits are created locally. Remote pushes (`git push`) remain strictly gated by explicit user instruction.
+
 ---
 
 ## 2. Technology Stack & Project Topology
