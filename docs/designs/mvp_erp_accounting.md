@@ -1,8 +1,8 @@
 # MVP ERP Accounting System for Small-to-Mid Scale Merchandising Businesses
 
 *   **Author:** Max Sainz
-*   **Status:** Reviewed (Post-EGM Remediation)
-*   **Date:** 2026-11-16
+*   **Status:** Living Specification (Implemented & Reconciled)
+*   **Date:** 2026-11-21
 
 ---
 
@@ -130,15 +130,15 @@ flowchart TD
    - `MainShellForm`: Top-level window hosting task navigation (Purchasing, Sales, Inventory, Accounting, Reporting) and status strip displaying active database connectivity and open fiscal period.
    - Form-based document data-entry screens with reactive stock checks, input validation, and real-time document status indicators (`Draft`, `Posted`, `Settled`, `Cancelled`).
 2. **Application & Workflow Services (`Services/`)**:
-   - `ProcureToPayService`: Orchestrates PO, GRN receiving, Supplier Bill 3-way matching with variance expensing, and Payment Voucher disbursements.
-   - `OrderToCashService`: Orchestrates Sales Orders, Sales Invoice fulfillment (enforcing atomic conditional stock decrement), and Customer Payment Receipts.
+   - `ProcureToPayService`: Orchestrates PO creation, GRN dock intake receiving, Supplier Bill 3-way matching with variance expensing, Payment Voucher disbursements, stale GRNI accrual clearing (`ClearStaleGRNI` clearing unbilled receipts to `5100 PPV`), and PO short closure (`ClosePurchaseOrderShort`).
+   - `OrderToCashService`: Orchestrates Sales Orders with credit limit enforcement (`CreditLimitExceededException`), Sales Invoice fulfillment (enforcing atomic conditional stock decrement), Customer Payment Receipts, Sales Order cancellation (`CancelSalesOrder`), and Sales Order short closure (`CloseSalesOrderShort`).
    - `InventoryService`:
-     - `RecordInventoryAdjustment(productId, quantityDelta, reason, eventDate, user)`: Adjusts on-hand stock forward-only.
+     - `RecordInventoryAdjustment(documentNumber, reason, lines As IEnumerable(Of InventoryAdjustmentLine), adjustmentDate, notes, postingDate)`: Adjusts on-hand stock forward-only across multi-line batch counts.
      - For negative variances (shrinkage, damage, physical stocktake deficit): Decrements stock, debits `5300 Inventory Shrinkage & Damaged Stock Expense`, credits `1300 Merchandise Inventory` at moving average cost.
-     - For positive variances (found stock, physical count surplus): Increments stock, debits `1300 Merchandise Inventory`, credits `4900 Inventory Adjustment Gain` at current moving average cost.
-   - `ReturnsService`: Manages customer return intake into quarantine, inspection disposition recording (restock vs. scrap), Credit Note posting, and optional refund disbursements.
-   - `PeriodService`: Verifies that the document `PostingDate` maps to an open accounting period before any journal posting is committed.
-   - `ReportingService`: Executes read-only queries for standard accounting deliverables (Trial Balance, Balance Sheet, P&L, AR/AP Aging) and managerial landed margin calculations.
+     - For positive variances (found stock, physical count surplus): Increments stock, debits `1300 Merchandise Inventory`, credits `5400 Stocktake Revaluation Variance` at current moving average cost.
+   - `ReturnsService`: Manages customer return dock intake into quarantine (`ReceiveReturnToQuarantine`), inspection disposition recording (`ProcessReturnInspection` for restock vs. scrap), Credit Note posting against `1200 AR`, and customer refund disbursements (`DisburseCustomerRefund`).
+   - `PeriodService`: Verifies that document `PostingDate` maps to an open accounting period before any journal posting is committed (`ValidatePostingDate`), manages month-end fiscal period closure (`CloseFiscalPeriod`), and resolves statutory posting dates for historical operational events (`ResolveStatutoryPostingDate`).
+   - `ReportingService`: Executes read-only queries for standard accounting deliverables (Trial Balance, Balance Sheet, Income Statement / P&L, AR/AP Aging), managerial landed margin calculations (`GetProductProfitabilityBridge`), inventory stock valuation (`GetInventoryValuationReport`), and 30-day unbilled GRNI aging (`GetGrniAgingReport`).
 3. **Domain Engine (`Domain/`)**:
    - `LedgerPostingEngine`: Stateless domain accounting engine. Validates that $\sum \text{Debits} == \sum \text{Credits}$ to 4 decimal places before creating journal entities. Emits balanced `JournalEntry` and `JournalEntryLine` instances.
    - `InventoryCostingEngine`: Pure calculation engine. Computes moving weighted average costs for purchase intake and restocked returns:
@@ -295,6 +295,8 @@ sequenceDiagram
 | **Customer Refund Disbursement** | `1200 Accounts Receivable` | `1020 Operating Bank Account` | Authorized bank refund clearing negative AR |
 | **Inventory Shrinkage Write-Down** | `5300 Inventory Shrinkage` | `1300 Merchandise Inventory` | $\text{Adjusted Qty} \times \text{Current Unit Cost}$ |
 | **Inventory Stocktake Surplus** | `1300 Merchandise Inventory` | `5400 Stocktake Variance` | $\text{Surplus Qty} \times \text{Current Unit Cost}$ |
+| **GRNI Clearing Adjustment** | `2100 GRNI Clearing` | `5100 Purchase Price Variance` | $\text{Cleared Qty} \times \text{PO Unit Price}$ (Aging unbilled liability write-off) |
+| **Reversing Journal Entry** | Opposite of Target Debit Account | Opposite of Target Credit Account | Strict append-only inversion of target journal lines to correct posting errors |
 
 ---
 
@@ -496,6 +498,12 @@ sequenceDiagram
     *   `Merchandising_Accounting_App/ApplicationEvents.vb` (Modify)
     *   `Merchandising_Accounting_App/Form1.vb`, `Form1.Designer.vb`, `Form1.resx` (Delete)
     *   `Merchandising_Accounting_App.Tests/Merchandising_Accounting_App.Tests.vbproj` (Create)
+    *   `Merchandising_Accounting_App.PreviewTool/Merchandising_Accounting_App.PreviewTool.vbproj` (Create)
+    *   `Merchandising_Accounting_App.PreviewTool/Program.vb` (Create)
+    *   `preview_ui.ps1` (Create)
+    *   `tools/check_workspace_hygiene.ps1` (Create)
+    *   `tools/check_stop_hygiene.ps1` (Create)
+    *   `.agents/hooks.json` (Create)
 *   **Actionable Steps**:
     1. Relocate `Merchandising_Accounting_App.slnx` from subfolder to repository root `c:\Users\maxsa\Documents\Project_Accounting\Merchandising_Accounting_App.slnx`.
     2. Configure `Merchandising_Accounting_App.vbproj`:
@@ -507,6 +515,8 @@ sequenceDiagram
     4. Delete `Form1.vb`, `Form1.Designer.vb`, and `Form1.resx`.
     5. Create test project `Merchandising_Accounting_App.Tests.vbproj` targeting `net10.0`, referencing `Microsoft.NET.Test.Sdk`, `MSTest.TestAdapter`, `MSTest.TestFramework`, `Moq`, and project reference `..\Merchandising_Accounting_App\Merchandising_Accounting_App.vbproj`.
     6. Register both projects in `Merchandising_Accounting_App.slnx`.
+    7. Build headless automated UI preview engine (`Merchandising_Accounting_App.PreviewTool/` and `preview_ui.ps1`) to render and visually inspect application forms and controls offscreen across dual resolutions (1280×720 restored and 1920×1080 maximized).
+    8. Establish workspace hygiene and governance tooling (`tools/check_workspace_hygiene.ps1`, `tools/check_stop_hygiene.ps1`, and `.agents/hooks.json`) ensuring repository cleanliness, rule file length invariant, active plan archival, and living specification manifest parity.
 *   **Verification Gate (Checkpoint 1)**:
     ```powershell
     dotnet build Merchandising_Accounting_App.slnx -c Release
@@ -528,14 +538,19 @@ sequenceDiagram
     *   `Merchandising_Accounting_App.Tests/Domain/LedgerPostingEngineTests.vb` (Create)
 *   **Actionable Steps**:
     1. Define domain enums: `AccountType`, `DocumentStatus` (`Draft`, `Posted`, `Settled`, `Cancelled`), `ReturnDisposition` (`Restock`, `Scrap`), `AdjustmentReason` (`Shrinkage`, `Damage`, `CountSurplus`, `CountDeficit`).
-    2. Define business exceptions: `InsufficientStockException`, `UnbalancedJournalEntryException`, `ClosedPeriodPostingException`, `ThreeWayMatchException`.
+    2. Define business exceptions: `InsufficientStockException`, `UnbalancedJournalEntryException`, `ClosedPeriodPostingException`, `ThreeWayMatchException`, `CreditLimitExceededException`.
     3. Implement `InventoryCostingEngine` as pure functions:
        - `ValidateSufficientStock(currentQty As Integer, requiredQty As Integer) As Boolean`
+       - `EnsureSufficientStock(currentQty As Integer, requiredQty As Integer, Optional productId As Integer = 0)`
        - `CalculateNewMovingAverageCost(currentQty, currentCost, receivedQty, poUnitPrice) As Decimal`
        - `CalculateRestockMovingAverageCost(currentQty, currentCost, restockedQty, originalInvoiceCost) As Decimal`
        - `ConvertPackagingToUnits(packQty As Integer, multiplier As Integer) As Integer`
+       - `ConvertUnitsToPackaging(units As Integer, multiplier As Integer, ByRef remainderUnits As Integer) As Integer`
+       - `CalculateInventoryValuation(qty As Integer, unitCost As Decimal) As Decimal`
     4. Implement `LedgerPostingEngine` as pure functions:
+       - `IsBalanced(debits As Decimal, credits As Decimal) As Boolean` and `IsBalanced(lines As IEnumerable(Of JournalEntryLine)) As Boolean`
        - `ValidateJournalBalance(lines As IEnumerable(Of JournalEntryLine))` (Enforces $\sum \text{Debits} == \sum \text{Credits}$ to 4 decimal places).
+       - `AllocatePennyRounding(lines As IList(Of JournalEntryLine), Optional roundingAccountId As Integer = AccountCodes.CashRoundingVariance) As Boolean`
        - `GenerateGRNJournal(grn As GoodsReceiptNote, lines As IEnumerable(Of GRNLine)) As JournalEntry`
        - `GenerateSupplierBillJournal(bill As SupplierBill, lines As IEnumerable(Of BillLine)) As JournalEntry`
        - `GenerateSalesInvoiceJournal(invoice As SalesInvoice, lines As IEnumerable(Of SalesInvoiceLine)) As JournalEntry`
@@ -543,7 +558,9 @@ sequenceDiagram
        - `GeneratePaymentVoucherJournal(voucher As PaymentVoucher) As JournalEntry`
        - `GeneratePaymentReceiptJournal(receipt As PaymentReceipt) As JournalEntry`
        - `GenerateInventoryAdjustmentJournal(adj As InventoryAdjustment, lines As IEnumerable(Of InventoryAdjustmentLine)) As JournalEntry`
-    5. Write unit tests for all domain calculation engines in `Merchandising_Accounting_App.Tests`.
+       - `GenerateGRNIAdjustmentJournal(adjustment As GRNIAdjustment, grnLine As GRNLine) As JournalEntry`
+       - `GenerateReversingJournal(originalEntry As JournalEntry, reversalPostingDate As DateTime, Optional reason As String = Nothing) As JournalEntry`
+    5. Write unit tests for all domain calculation engines in `Merchandising_Accounting_App.Tests` (`InventoryCostingEngineTests.vb`, `LedgerPostingEngineTests.vb`).
 *   **Verification Gate (Checkpoint 2)**:
     ```powershell
     dotnet test Merchandising_Accounting_App.slnx -c Release --filter "FullyQualifiedName~Domain"
@@ -554,27 +571,33 @@ sequenceDiagram
 *   **Target Files**:
     *   `Merchandising_Accounting_App/Data/ErpDbContext.vb` (Create)
     *   `Merchandising_Accounting_App/Data/DatabaseInitializer.vb` (Create)
+    *   `Merchandising_Accounting_App/Data/Configurations/GeneralLedgerConfigurations.vb` (Create)
+    *   `Merchandising_Accounting_App/Data/Configurations/InventoryConfigurations.vb` (Create)
+    *   `Merchandising_Accounting_App/Data/Configurations/ProcurementConfigurations.vb` (Create)
+    *   `Merchandising_Accounting_App/Data/Configurations/ReturnsConfigurations.vb` (Create)
+    *   `Merchandising_Accounting_App/Data/Configurations/SalesConfigurations.vb` (Create)
     *   `Merchandising_Accounting_App/Data/Repositories/AccountRepository.vb` (Create)
     *   `Merchandising_Accounting_App/Data/Repositories/ProductRepository.vb` (Create)
     *   `Merchandising_Accounting_App/Data/Repositories/LedgerRepository.vb` (Create)
     *   `Merchandising_Accounting_App/Data/Repositories/DocumentRepository.vb` (Create)
     *   `Merchandising_Accounting_App/Data/Repositories/AccountingPeriodRepository.vb` (Create)
     *   `Merchandising_Accounting_App.Tests/Infrastructure/TestDatabaseFixture.vb` (Create)
+    *   `Merchandising_Accounting_App.Tests/Infrastructure/PersistenceInfrastructureTests.vb` (Create)
 *   **Actionable Steps**:
-    1. Define `ErpDbContext`:
-       - Configure entity models using Fluent API (`OnModelCreating`).
+    1. Define `ErpDbContext` and modular entity configurations:
+       - Partition Fluent API entity mappings into modular configuration classes implementing `IEntityTypeConfiguration(Of T)` in `Data/Configurations/` (`GeneralLedgerConfigurations.vb`, `InventoryConfigurations.vb`, `ProcurementConfigurations.vb`, `ReturnsConfigurations.vb`, `SalesConfigurations.vb`), discovered dynamically via `modelBuilder.ApplyConfigurationsFromAssembly`.
        - Apply `CHECK (TotalQtyOnHand >= 0)` constraint on table `Products`.
        - Seed Master Chart of Accounts (COA: Accounts 1010 through 5500) and the initial fiscal period.
        - Set database path: `Path.Combine(Application.StartupPath, "merchandising_erp.db")`.
     2. Implement `DatabaseInitializer` executing `context.Database.EnsureCreated()` and configuring SQLite PRAGMAs (`journal_mode=WAL; synchronous=NORMAL; foreign_keys=ON; busy_timeout=3000;`).
-    3. Implement repository classes accepting `ErpDbContext` to participate in ambient transactions.
+    3. Implement repository classes accepting `ErpDbContext` to participate in ambient transactions (`AccountRepository`, `ProductRepository`, `LedgerRepository`, `DocumentRepository`, `AccountingPeriodRepository`).
        - Implement atomic decrement in `ProductRepository`:
          ```sql
          UPDATE Products 
          SET TotalQtyOnHand = TotalQtyOnHand - @Qty 
          WHERE ProductId = @Id AND TotalQtyOnHand >= @Qty;
          ```
-    4. Implement `TestDatabaseFixture.vb` providing in-memory SQLite instances (`DataSource=:memory:`) for automated integration testing.
+    4. Implement `TestDatabaseFixture.vb` providing in-memory SQLite instances (`DataSource=:memory:`) and `PersistenceInfrastructureTests.vb` for automated database configuration and transaction verification.
 *   **Verification Gate (Checkpoint 3)**:
     ```powershell
     dotnet test Merchandising_Accounting_App.slnx -c Release --filter "FullyQualifiedName~Infrastructure|FullyQualifiedName~Data"
@@ -586,17 +609,23 @@ sequenceDiagram
     *   `Merchandising_Accounting_App/Services/PeriodService.vb` (Create)
     *   `Merchandising_Accounting_App/Services/ProcureToPayService.vb` (Create)
     *   `Merchandising_Accounting_App/Services/OrderToCashService.vb` (Create)
+    *   `Merchandising_Accounting_App/Services/InventoryService.vb` (Create)
     *   `Merchandising_Accounting_App/Services/ReturnsService.vb` (Create)
     *   `Merchandising_Accounting_App/Services/ReportingService.vb` (Create)
     *   `Merchandising_Accounting_App.Tests/Services/ProcureToPayServiceTests.vb` (Create)
     *   `Merchandising_Accounting_App.Tests/Services/OrderToCashServiceTests.vb` (Create)
+    *   `Merchandising_Accounting_App.Tests/Services/InventoryServiceTests.vb` (Create)
     *   `Merchandising_Accounting_App.Tests/Services/ReturnsServiceTests.vb` (Create)
+    *   `Merchandising_Accounting_App.Tests/Services/PeriodServiceTests.vb` (Create)
+    *   `Merchandising_Accounting_App.Tests/Services/ReportingServiceTests.vb` (Create)
+    *   `Merchandising_Accounting_App.Tests/Services/SalesDashboardSettlementTests.vb` (Create)
 *   **Actionable Steps**:
-    1. Implement `PeriodService`: Verifies that `PostingDate` maps to an open accounting period (`IsClosed = 0`), rejects closed period mutations, and handles month-end closing administration.
-    2. Implement `ProcureToPayService`: Orchestrates PO generation, GRN intake, Supplier Bill 3-way matching (throwing `ThreeWayMatchException` if `BilledQty > ReceivedQty` or vendor mismatch, expensing price differences to `5100 PPV` and freight to `5200 Freight Variance`), and Payment Voucher disbursement.
-    3. Implement `OrderToCashService`: Orchestrates Sales Order reservation, Sales Invoice fulfillment (under serializable transaction with atomic stock decrement), and Customer Payment Receipt settlement.
-    4. Implement `ReturnsService`: Records RMA intake to quarantine (`QuarantineQty`), inspection disposition (restock vs. scrap), Credit Note posting against `1200 AR`, and optional refund disbursements.
-    5. Implement `ReportingService`: Executes fast read-only queries for Trial Balance, Balance Sheet, Income Statement, AR/AP Aging, Stock Valuation, and Product Profitability.
+    1. Implement `PeriodService`: Verifies that `PostingDate` maps to an open accounting period (`IsClosed = 0`), rejects closed period mutations, resolves statutory posting dates for historical operational events, and handles month-end closing administration (`CloseFiscalPeriod`).
+    2. Implement `ProcureToPayService`: Orchestrates PO generation, GRN intake, Supplier Bill 3-way matching (throwing `ThreeWayMatchException` if `BilledQty > ReceivedQty` or vendor mismatch, expensing price differences to `5100 PPV` and freight to `5200 Freight Variance`), Payment Voucher disbursement, PO short-closure (`ClosePurchaseOrderShort`), and stale GRNI clearing (`ClearStaleGRNI`).
+    3. Implement `OrderToCashService`: Orchestrates Sales Order reservation with customer credit limit checking (`CreditLimitExceededException`), Sales Invoice fulfillment (under serializable transaction with atomic stock decrement), Customer Payment Receipt settlement, Sales Order cancellation (`CancelSalesOrder`), and Sales Order short closure (`CloseSalesOrderShort`).
+    4. Implement `InventoryService`: Orchestrates document-driven batch multi-line inventory adjustments (`RecordInventoryAdjustment`) with atomic product stock increments/decrements, routing shrinkage/damage write-downs to `5300 Inventory Shrinkage` and count surpluses to `5400 Stocktake Revaluation Variance`.
+    5. Implement `ReturnsService`: Records RMA intake into quarantine (`QuarantineQty`), inspection disposition (`ProcessReturnInspection` for restock vs. scrap), Credit Note posting against `1200 AR`, and customer refund disbursements (`DisburseCustomerRefund`).
+    6. Implement `ReportingService`: Executes fast read-only queries for Trial Balance, Balance Sheet, Income Statement, AR/AP Aging, Stock Valuation (`GetInventoryValuationReport`), 30-day unbilled GRNI aging (`GetGrniAgingReport`), and Product Profitability landed margin calculations.
 *   **Verification Gate (Checkpoint 4)**:
     ```powershell
     dotnet test Merchandising_Accounting_App.slnx -c Release --filter "FullyQualifiedName~Services"
@@ -605,19 +634,30 @@ sequenceDiagram
 
 #### Phase 5: Presentation Layer (Windows Forms UI Shell & Dashboards)
 *   **Target Files**:
-    *   `Merchandising_Accounting_App/UI/MainShellForm.vb`, `MainShellForm.Designer.vb`, `MainShellForm.resx` (Create)
-    *   `Merchandising_Accounting_App/UI/Purchasing/PurchasingDashboardForm.vb`, `.Designer.vb`, `.resx` (Create)
-    *   `Merchandising_Accounting_App/UI/Sales/SalesDashboardForm.vb`, `.Designer.vb`, `.resx` (Create)
-    *   `Merchandising_Accounting_App/UI/Warehouse/WarehouseIntakeForm.vb`, `.Designer.vb`, `.resx` (Create)
-    *   `Merchandising_Accounting_App/UI/Accounting/LedgerDashboardForm.vb`, `.Designer.vb`, `.resx` (Create)
-    *   `Merchandising_Accounting_App/UI/Reporting/FinancialReportsForm.vb`, `.Designer.vb`, `.resx` (Create)
+    *   `Merchandising_Accounting_App/UI/MainShellForm.vb`, `MainShellForm.Designer.vb` (Create)
+    *   `Merchandising_Accounting_App/UI/Controls/BalancedStatusBadgeControl.vb`, `BalancedStatusBadgeControl.Designer.vb` (Create)
+    *   `Merchandising_Accounting_App/UI/Controls/DoubleEntryDistributionGridControl.vb`, `DoubleEntryDistributionGridControl.Designer.vb` (Create)
+    *   `Merchandising_Accounting_App/UI/Controls/FiscalPeriodChipControl.vb`, `FiscalPeriodChipControl.Designer.vb` (Create)
+    *   `Merchandising_Accounting_App/UI/Purchasing/PurchasingDashboardForm.vb`, `PurchasingDashboardForm.Designer.vb` (Create)
+    *   `Merchandising_Accounting_App/UI/Purchasing/DisburseVendorPaymentDialog.vb`, `DisburseVendorPaymentDialog.Designer.vb` (Create)
+    *   `Merchandising_Accounting_App/UI/Purchasing/PurchasingViewModels.vb` (Create)
+    *   `Merchandising_Accounting_App/UI/Sales/SalesDashboardForm.vb`, `SalesDashboardForm.Designer.vb` (Create)
+    *   `Merchandising_Accounting_App/UI/Sales/SalesViewModels.vb` (Create)
+    *   `Merchandising_Accounting_App/UI/Warehouse/WarehouseIntakeForm.vb`, `WarehouseIntakeForm.Designer.vb` (Create)
+    *   `Merchandising_Accounting_App/UI/Warehouse/WarehouseViewModels.vb` (Create)
+    *   `Merchandising_Accounting_App/UI/Accounting/LedgerDashboardForm.vb`, `LedgerDashboardForm.Designer.vb` (Create)
+    *   `Merchandising_Accounting_App/UI/Accounting/FiscalPeriodForm.vb`, `FiscalPeriodForm.Designer.vb` (Create)
+    *   `Merchandising_Accounting_App/UI/Accounting/LedgerViewModels.vb` (Create)
+    *   `Merchandising_Accounting_App/UI/Reporting/FinancialReportsForm.vb`, `FinancialReportsForm.Designer.vb` (Create)
+    *   `Merchandising_Accounting_App/UI/Reporting/ReportingViewModels.vb` (Create)
 *   **Actionable Steps**:
     1. Build `MainShellForm`: Navigation menu strip, tool strip, active module container, and status bar showing current database path and open accounting period.
-    2. Build `PurchasingDashboardForm`: Grids for PO creation, GRN dock intake, and Supplier Bill 3-way matching.
-    3. Build `SalesDashboardForm`: Grids for Sales Orders and Sales Invoices with real-time stock availability warnings.
+    2. Build `PurchasingDashboardForm` and `DisburseVendorPaymentDialog`: Grids for PO creation, GRN dock intake, Supplier Bill 3-way matching, and vendor payment disbursement modal dialog.
+    3. Build `SalesDashboardForm`: Grids for Sales Orders and Sales Invoices with real-time stock availability warnings and settlement tracking.
     4. Build `WarehouseIntakeForm`: Operational interface for dock clerks to record Goods Receipts and RMA intake into quarantine with inspection disposition toggles.
-    5. Build `LedgerDashboardForm`: General journal entry history viewer, account balances, and period close administration controls.
+    5. Build `LedgerDashboardForm` and `FiscalPeriodForm`: General journal entry history viewer, account balances, and period close administration modal dialog.
     6. Build `FinancialReportsForm`: Filterable view displaying Trial Balance, Balance Sheet, Income Statement, and Product Profitability reports with CSV export.
+    7. Build reusable decoupled UserControls (`DoubleEntryDistributionGridControl`, `FiscalPeriodChipControl`, `BalancedStatusBadgeControl`) adhering to GEMINI.md Rule 6 standards (zero horizontal scrollbar at 1280×720, proportional Fill expansion at 1920×1080, and ambient font inheritance).
 *   **Verification Gate (Checkpoint 5)**:
     ```powershell
     dotnet build Merchandising_Accounting_App.slnx -c Release
@@ -626,13 +666,19 @@ sequenceDiagram
 
 #### Phase 6: End-to-End CUJ Verification & Test Coverage Gate
 *   **Target Files**:
+    *   `Merchandising_Accounting_App.Tests/MSTestSettings.vb` (Create)
     *   `Merchandising_Accounting_App.Tests/Integration/EndToEndCUJTests.vb` (Create)
+    *   `Merchandising_Accounting_App.Tests/FormInstantiationTests.vb` (Create)
+    *   `Merchandising_Accounting_App.Tests/BrandingAndBrandingStringsTests.vb` (Create)
+    *   `Merchandising_Accounting_App.Tests/DecimalCurrencyFormattingTests.vb` (Create)
+    *   `Merchandising_Accounting_App.Tests/WorkspaceHygieneTests.vb` (Create)
 *   **Actionable Steps**:
     1. Implement CUJ 1 Test: Post GRN for 100 units @ $10.00; verify `1300` debited $1,000, `2100` credited $1,000, and stock on hand = 100.
     2. Implement CUJ 2 Test: Attempt Sales Invoice for 110 units; verify validation block prevents posting and zero DB mutations occur. Post valid invoice for 40 units @ $15.00; verify stock decrements to 60, `1200` debited $600, `4000` credited $600, `5000` debited $400, and `1300` credited $400.
     3. Implement CUJ 3 Test: RMA return for 10 units; inspect 8 restock / 2 scrap; verify Credit Note credits `1200 AR` $150, restocks 8 units to `1300` ($80) with moving average recalculation, and writes off 2 units to `5300` ($20).
     4. Implement 3-Way Match Test: Post Supplier Bill with price variance ($11 vs $10) and $50 freight; verify `2100` debited $1,000, `5100` debited $100, `5200` debited $50, and `2000` credited $1,150.
     5. Implement Period Guard Test: Mark period closed; attempt posting operational document; verify `ClosedPeriodPostingException`.
+    6. Implement presentation, formatting, and workspace hygiene test suites (`FormInstantiationTests.vb`, `BrandingAndBrandingStringsTests.vb`, `DecimalCurrencyFormattingTests.vb`, `WorkspaceHygieneTests.vb`) verifying form instantiation, Segoe UI typography, currency decimals, zero unmanifested files, active plan status rules, and documentation test metric parity.
 *   **Verification Gate (Checkpoint 6)**:
     ```powershell
     dotnet test Merchandising_Accounting_App.slnx -c Release --logger "console;verbosity=normal"

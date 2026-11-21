@@ -38,8 +38,10 @@ docs/archive/
 │       ├── concepts_brief.md                  # Pre-audit concepts brief & contradiction analysis
 │       └── design_draft.md                    # Initial pre-audit system design draft
 ├── plans/
-│   └── 2026-11-19_functional_core_swarm/
-│       └── functional_core_transition_swarm_plan.md  # Multi-agent swarm implementation plan
+│   ├── 2026-11-19_functional_core_swarm/
+│   │   └── functional_core_transition_swarm_plan.md  # Multi-agent swarm implementation plan
+│   └── 2026-11-21_specification_drift_reconciliation/
+│       └── 2026-11-21_specification_drift_reconciliation_plan.md  # Living specification drift reconciliation plan
 └── reviews/
     └── 2026-11-16_egm_audit/
         ├── zoom_out_report.md                 # Stage 5 initial zoom-out audit report
