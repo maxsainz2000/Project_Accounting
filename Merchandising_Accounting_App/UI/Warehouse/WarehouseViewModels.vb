@@ -19,13 +19,32 @@ Namespace UI.Warehouse
         Public Property BaseUnit As String = "Units"
         Public Property CurrentUnitCost As Decimal
         Public Property TotalQtyOnHand As Integer
+        Public Property AllocatedQty As Integer = 0
         Public Property QuarantineQty As Integer
+
+        Public ReadOnly Property AvailableQty As Integer
+            Get
+                Return Math.Max(0, TotalQtyOnHand - AllocatedQty)
+            End Get
+        End Property
 
         Public ReadOnly Property DisplayText As String
             Get
-                Return $"{SKU} - {Name} (On Hand: {TotalQtyOnHand}, Quarantine: {QuarantineQty}, Cost: ${CurrentUnitCost:N2})"
+                Return $"{SKU} - {Name} (On Hand: {TotalQtyOnHand}, Reserved: {AllocatedQty}, Cost: ${CurrentUnitCost:N2})"
             End Get
         End Property
+    End Class
+
+    Public Class WarehouseAdjustmentLineModel
+        Public Property ProductId As Integer
+        Public Property SKU As String = String.Empty
+        Public Property ProductName As String = String.Empty
+        Public Property TotalQtyOnHand As Integer
+        Public Property VarianceQty As Integer
+        Public Property ReasonCode As String = String.Empty
+        Public Property UnitCost As Decimal
+        Public Property TotalImpact As Decimal
+        Public Property Notes As String = String.Empty
     End Class
 
     Public Class WarehousePOLineModel
@@ -226,6 +245,7 @@ Namespace UI.Warehouse
                         .BaseUnit = p.BaseUnitName,
                         .CurrentUnitCost = p.CurrentUnitCost,
                         .TotalQtyOnHand = p.TotalQtyOnHand,
+                        .AllocatedQty = p.AllocatedQty,
                         .QuarantineQty = p.QuarantineQty
                     })
                 Next
@@ -547,6 +567,13 @@ Namespace UI.Warehouse
             })
 
             Return journal
+        End Function
+
+        Public Function RecordAdjustment(documentNumber As String, reason As String, lines As IEnumerable(Of InventoryAdjustmentLine), Optional adjustmentDate As DateTime? = Nothing, Optional notes As String = Nothing) As InventoryAdjustment
+            Dim invService As New Services.InventoryService(_context)
+            Dim result = invService.RecordInventoryAdjustment(documentNumber, reason, lines, adjustmentDate, notes)
+            LoadData()
+            Return result
         End Function
 
     End Class

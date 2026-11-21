@@ -133,6 +133,7 @@ Namespace Services
             Next
 
             Dim effectiveReturnDate As DateTime = If(returnDate.HasValue, returnDate.Value, DateTime.Today)
+            Dim statutoryPostingDate As DateTime = _periodService.ResolveStatutoryPostingDate(effectiveReturnDate)
             Dim docNum As String = If(Not String.IsNullOrWhiteSpace(documentNumber), documentNumber, GenerateReturnNumber())
 
             Using tx = _context.Database.BeginTransaction()
@@ -143,7 +144,7 @@ Namespace Services
                     .OriginalInvoice = invoice,
                     .DocumentNumber = docNum,
                     .ReturnDate = effectiveReturnDate,
-                    .PostingDate = effectiveReturnDate,
+                    .PostingDate = statutoryPostingDate,
                     .Status = "Quarantine"
                 }
 
@@ -206,10 +207,11 @@ Namespace Services
                 Throw New InvalidOperationException($"Customer Return {returnDoc.DocumentNumber} has already been inspected and posted.")
             End If
 
-            Dim effectivePostingDate As DateTime = If(postingDate.HasValue, postingDate.Value, If(returnDoc.PostingDate <> DateTime.MinValue, returnDoc.PostingDate, DateTime.Today))
+            Dim effectiveEventDate As DateTime = If(returnDoc.ReturnDate <> DateTime.MinValue, returnDoc.ReturnDate, DateTime.Today)
+            Dim statutoryPostingDate As DateTime = If(postingDate.HasValue, postingDate.Value, _periodService.ResolveStatutoryPostingDate(effectiveEventDate))
 
             ' Validate statutory posting period
-            Dim period = _periodService.ValidatePostingDate(effectivePostingDate)
+            Dim period = _periodService.ValidatePostingDate(statutoryPostingDate)
 
             Using tx = _context.Database.BeginTransaction()
                 Dim customer = _context.Customers.Find(returnDoc.CustomerId)
@@ -267,7 +269,7 @@ Namespace Services
                             .SourceDocType = "CustomerReturn",
                             .SourceDocId = returnDoc.ReturnId,
                             .OperationalEventDate = returnDoc.ReturnDate,
-                            .PostingDate = effectivePostingDate,
+                            .PostingDate = statutoryPostingDate,
                             .QtyChange = disp.RestockQty,
                             .UnitCost = retLine.OriginalUnitCost,
                             .RunningQty = product.TotalQtyOnHand,
@@ -292,9 +294,11 @@ Namespace Services
                 ' Restock: Debit 1300 Inventory, Credit 5000 COGS
                 ' Scrap: Debit 5300 Inventory Shrinkage, Credit 5000 COGS
                 ' Allowance: Debit 4100 Sales Returns & Allowances, Credit 1200 AR
-                returnDoc.PostingDate = effectivePostingDate
+                returnDoc.PostingDate = statutoryPostingDate
                 Dim journalEntry = LedgerPostingEngine.GenerateCreditNoteJournal(returnDoc, returnDoc.Lines, GetAccountLookup())
                 journalEntry.PeriodId = period.PeriodId
+                journalEntry.PostingDate = statutoryPostingDate
+                journalEntry.OperationalEventDate = returnDoc.ReturnDate
                 _context.JournalEntries.Add(journalEntry)
 
                 ' Update customer AR subledger balance (credit memo decreases AR balance or creates customer credit)
@@ -351,9 +355,9 @@ Namespace Services
             End If
 
             Dim effectivePaymentDate As DateTime = If(paymentDate.HasValue, paymentDate.Value, DateTime.Today)
-            Dim effectivePostingDate As DateTime = If(postingDate.HasValue, postingDate.Value, effectivePaymentDate)
+            Dim statutoryPostingDate As DateTime = If(postingDate.HasValue, postingDate.Value, _periodService.ResolveStatutoryPostingDate(effectivePaymentDate))
 
-            Dim period = _periodService.ValidatePostingDate(effectivePostingDate)
+            Dim period = _periodService.ValidatePostingDate(statutoryPostingDate)
 
             Dim resolvedBankAccountId As Integer = bankAccountId
             If resolvedBankAccountId <= 0 Then
@@ -374,7 +378,7 @@ Namespace Services
                     .TargetDocId = If(returnId.HasValue, returnId.Value, 0),
                     .VoucherNumber = vNum,
                     .PaymentDate = effectivePaymentDate,
-                    .PostingDate = effectivePostingDate,
+                    .PostingDate = statutoryPostingDate,
                     .DisbursedAmount = amount,
                     .BankAccountId = resolvedBankAccountId
                 }
@@ -385,6 +389,8 @@ Namespace Services
                 ' Emit balanced General Ledger entry: Debit 1200 AR, Credit 1020 Operating Bank
                 Dim journalEntry = LedgerPostingEngine.GeneratePaymentVoucherJournal(voucher, GetAccountLookup())
                 journalEntry.PeriodId = period.PeriodId
+                journalEntry.PostingDate = statutoryPostingDate
+                journalEntry.OperationalEventDate = effectivePaymentDate
                 _context.JournalEntries.Add(journalEntry)
 
                 ' Update customer AR subledger balance (refunding credit balance brings AR back towards zero)

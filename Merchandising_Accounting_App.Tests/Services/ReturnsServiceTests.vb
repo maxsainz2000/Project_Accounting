@@ -629,6 +629,99 @@ Namespace Services
             End Using
         End Sub
 
+        <TestMethod>
+        Public Sub DisburseCustomerRefund_ClosedPeriodAutoShift_ResolvesStatutoryPostingDateToActivePeriodStart()
+            Using context = _fixture.CreateContext()
+                Dim periodService As New PeriodService(context)
+                Dim returnService As New ReturnsService(context, periodService)
+
+                ' Customer with credit balance of $200
+                Dim customer As New Customer("CUST-REF-LATE", "Customer Late Refund", 5000.0D, -200.0D)
+                context.Customers.Add(customer)
+                context.SaveChanges()
+
+                ' Operational payment date occurred on 2026-10-25 (outside or before active period FY2026-P11 starting 2026-11-01)
+                Dim latePaymentDate As New DateTime(2026, 10, 25)
+                Dim voucher = returnService.DisburseCustomerRefund(customer.CustomerId, Nothing, 200.0D, 0, paymentDate:=latePaymentDate, postingDate:=Nothing)
+
+                Assert.IsNotNull(voucher)
+                ' Physical payment date preserved
+                Assert.AreEqual(latePaymentDate, voucher.PaymentDate)
+                ' Statutory posting date auto-shifted to active period start (2026-11-01)
+                Assert.AreEqual(New DateTime(2026, 11, 1), voucher.PostingDate)
+
+                Dim journal = context.JournalEntries.First(Function(j) j.SourceDocId = voucher.VoucherId AndAlso j.SourceDocType = "PaymentVoucher")
+                Assert.AreEqual(latePaymentDate, journal.OperationalEventDate)
+                Assert.AreEqual(New DateTime(2026, 11, 1), journal.PostingDate)
+
+                ' Customer AR balance incremented back to 0
+                Dim reloadedCustomer = context.Customers.Find(customer.CustomerId)
+                Assert.AreEqual(0D, reloadedCustomer.CurrentARBalance)
+            End Using
+        End Sub
+
+        <TestMethod>
+        Public Sub DisburseCustomerRefund_ExplicitPostingDateInClosedPeriod_ThrowsClosedPeriodPostingException()
+            Using context = _fixture.CreateContext()
+                Dim periodService As New PeriodService(context)
+                Dim returnService As New ReturnsService(context, periodService)
+
+                Dim customer As New Customer("CUST-REF-CLOSED", "Customer Closed Refund", 5000.0D, -100.0D)
+                context.Customers.Add(customer)
+                context.SaveChanges()
+
+                ' Seal the current active period
+                Dim activePeriod = periodService.GetActiveFiscalPeriod()
+                periodService.CloseFiscalPeriod(activePeriod.PeriodId)
+
+                ' Explicitly specifying a posting date in a closed period must throw ClosedPeriodPostingException
+                Assert.Throws(Of ClosedPeriodPostingException)(Sub()
+                    returnService.DisburseCustomerRefund(customer.CustomerId, Nothing, 100.0D, 0, New DateTime(2026, 11, 15), postingDate:=New DateTime(2026, 11, 15))
+                End Sub)
+            End Using
+        End Sub
+
+        <TestMethod>
+        Public Sub ProcessReturnInspection_ClosedPeriodAutoShift_ResolvesStatutoryPostingDateToActivePeriodStart()
+            Using context = _fixture.CreateContext()
+                Dim periodService As New PeriodService(context)
+                Dim o2cService As New OrderToCashService(context, periodService)
+                Dim returnService As New ReturnsService(context, periodService)
+
+                Dim customer As New Customer("CUST-RMA-LATE", "Customer Late RMA", 10000.0D, 0D)
+                context.Customers.Add(customer)
+                Dim product As New Product("SKU-RMA-LATE", "Item Late RMA", "Each", 10.0D, 50)
+                context.Products.Add(product)
+                context.SaveChanges()
+
+                ' Active period is 2026-11-01 .. 2026-11-30
+                Dim invoice = o2cService.FulfillSalesInvoice(0, New List(Of SalesInvoiceLine) From {
+                    New SalesInvoiceLine() With {.ProductId = product.ProductId, .FulfilledQty = 5, .UnitPrice = 20.0D}
+                }, New DateTime(2026, 11, 15), customer.CustomerId)
+
+                ' Physical return occurred on 2026-10-25 (outside/before active period)
+                Dim lateReturnDate As New DateTime(2026, 10, 25)
+                Dim rma = returnService.ReceiveReturnToQuarantine(customer.CustomerId, invoice.InvoiceId, New List(Of CustomerReturnLine) From {
+                    New CustomerReturnLine() With {.ProductId = product.ProductId, .ReturnedQty = 5}
+                }, lateReturnDate)
+
+                Assert.AreEqual(lateReturnDate, rma.ReturnDate)
+                Assert.AreEqual(New DateTime(2026, 11, 1), rma.PostingDate)
+
+                ' Inspect with postingDate omitted -> auto-shift to active period start
+                Dim inspected = returnService.ProcessReturnInspection(rma.ReturnId, New List(Of ReturnDispositionLine) From {
+                    New ReturnDispositionLine(product.ProductId, restockQty:=5, scrapQty:=0)
+                }, postingDate:=Nothing)
+
+                Assert.IsNotNull(inspected)
+                Assert.AreEqual(New DateTime(2026, 11, 1), inspected.PostingDate)
+
+                Dim journal = context.JournalEntries.First(Function(j) j.SourceDocId = inspected.ReturnId AndAlso j.SourceDocType = "CustomerReturn")
+                Assert.AreEqual(lateReturnDate, journal.OperationalEventDate)
+                Assert.AreEqual(New DateTime(2026, 11, 1), journal.PostingDate)
+            End Using
+        End Sub
+
     End Class
 
 End Namespace

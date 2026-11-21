@@ -146,4 +146,44 @@ Namespace Domain
         End Sub
     End Class
 
+    ''' <summary>
+    ''' Raised when an operation would cause a customer's Accounts Receivable balance to exceed their authorized Credit Limit.
+    ''' </summary>
+    Public Class CreditLimitExceededException
+        Inherits Exception
+
+        Public Property CustomerId As Integer?
+        Public Property CurrentBalance As Decimal?
+        Public Property OrderTotal As Decimal?
+        Public Property CreditLimit As Decimal?
+
+        Public Sub New()
+            MyBase.New("Customer credit limit exceeded.")
+        End Sub
+
+        Public Sub New(message As String)
+            MyBase.New(message)
+        End Sub
+
+        Public Sub New(message As String, innerException As Exception)
+            MyBase.New(message, innerException)
+        End Sub
+
+        Public Sub New(customerId As Integer, currentBalance As Decimal, orderTotal As Decimal, creditLimit As Decimal)
+            MyBase.New($"Customer ID {customerId} credit limit exceeded. Current balance: {currentBalance:C2}, Order total: {orderTotal:C2}, Credit limit: {creditLimit:C2}.")
+            Me.CustomerId = customerId
+            Me.CurrentBalance = currentBalance
+            Me.OrderTotal = orderTotal
+            Me.CreditLimit = creditLimit
+        End Sub
+
+        Public Sub New(customerId As Integer, currentBalance As Decimal, orderTotal As Decimal, creditLimit As Decimal, message As String)
+            MyBase.New(message)
+            Me.CustomerId = customerId
+            Me.CurrentBalance = currentBalance
+            Me.OrderTotal = orderTotal
+            Me.CreditLimit = creditLimit
+        End Sub
+    End Class
+
 End Namespace

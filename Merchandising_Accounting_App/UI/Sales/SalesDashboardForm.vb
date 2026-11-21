@@ -7,20 +7,40 @@ Imports System.Collections.Generic
 Imports System.Drawing
 Imports System.Linq
 Imports System.Windows.Forms
+Imports Merchandising_Accounting_App.Domain
+Imports Merchandising_Accounting_App.Domain.Models
+Imports Merchandising_Accounting_App.Services
 
 Namespace UI.Sales
 
     Public Class SalesDashboardForm
 
-        Friend ReadOnly _dataService As New SalesDataService()
+        Friend _dataService As SalesDataService
+        Friend _o2cService As OrderToCashService
+        Friend _returnsService As ReturnsService
         Private _currentDraftOrder As SalesOrderViewModel
         Private _selectedExistingOrder As SalesOrderViewModel
+
+        Public Sub New()
+            InitializeComponent()
+            _dataService = New SalesDataService()
+            _o2cService = New OrderToCashService()
+            _returnsService = New ReturnsService()
+        End Sub
+
+        Public Sub New(dataService As SalesDataService, Optional o2cService As OrderToCashService = Nothing, Optional returnsService As ReturnsService = Nothing)
+            InitializeComponent()
+            _dataService = If(dataService, New SalesDataService())
+            _o2cService = If(o2cService, New OrderToCashService())
+            _returnsService = If(returnsService, New ReturnsService())
+        End Sub
 
         Private Sub SalesDashboardForm_Load(sender As Object, e As EventArgs) Handles Me.Load
             InitializeDraftOrder()
             SetupGrids()
             LoadCustomers()
             LoadProducts()
+            LoadPaymentMethods()
             RefreshExistingOrdersGrid()
             RefreshInvoicesGrid()
             RefreshProductsCatalogGrid()
@@ -43,6 +63,14 @@ Namespace UI.Sales
             If pnlOrderActions IsNot Nothing AndAlso btnGenerateInvoiceFromSO IsNot Nothing Then
                 btnGenerateInvoiceFromSO.Left = 8
                 btnGenerateInvoiceFromSO.Width = Math.Max(320, pnlOrderActions.ClientSize.Width - 16)
+            End If
+            If pnlRecordPaymentDialog IsNot Nothing AndAlso pnlRecordPaymentDialog.Visible Then
+                pnlRecordPaymentDialog.Left = Math.Max(10, (Me.ClientSize.Width - pnlRecordPaymentDialog.Width) \ 2)
+                pnlRecordPaymentDialog.Top = Math.Max(60, (Me.ClientSize.Height - pnlRecordPaymentDialog.Height) \ 2)
+            End If
+            If pnlRefundDialog IsNot Nothing AndAlso pnlRefundDialog.Visible Then
+                pnlRefundDialog.Left = Math.Max(10, (Me.ClientSize.Width - pnlRefundDialog.Width) \ 2)
+                pnlRefundDialog.Top = Math.Max(60, (Me.ClientSize.Height - pnlRefundDialog.Height) \ 2)
             End If
         End Sub
 
@@ -67,7 +95,7 @@ Namespace UI.Sales
         Private Sub SetupGrids()
             ' Setup dgvCurrentLines
             dgvCurrentLines.AutoGenerateColumns = False
-            dgvCurrentLines.ScrollBars = ScrollBars.Both
+            dgvCurrentLines.ScrollBars = ScrollBars.Vertical
             dgvCurrentLines.Columns.Clear()
             dgvCurrentLines.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "SKU", .HeaderText = "SKU", .FillWeight = 20.0!, .MinimumWidth = 90})
             dgvCurrentLines.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "ProductName", .HeaderText = "Product Name", .FillWeight = 50.0!, .MinimumWidth = 240})
@@ -77,7 +105,7 @@ Namespace UI.Sales
 
             ' Setup dgvExistingOrders
             dgvExistingOrders.AutoGenerateColumns = False
-            dgvExistingOrders.ScrollBars = ScrollBars.Both
+            dgvExistingOrders.ScrollBars = ScrollBars.Vertical
             dgvExistingOrders.Columns.Clear()
             dgvExistingOrders.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "DocumentNumber", .HeaderText = "Order #", .FillWeight = 20.0!, .MinimumWidth = 95})
             dgvExistingOrders.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "CustomerName", .HeaderText = "Customer", .FillWeight = 35.0!, .MinimumWidth = 140})
@@ -87,18 +115,18 @@ Namespace UI.Sales
 
             ' Setup dgvSelectedOrderLines
             dgvSelectedOrderLines.AutoGenerateColumns = False
-            dgvSelectedOrderLines.ScrollBars = ScrollBars.Both
+            dgvSelectedOrderLines.ScrollBars = ScrollBars.Vertical
             dgvSelectedOrderLines.Columns.Clear()
-            dgvSelectedOrderLines.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "SKU", .HeaderText = "SKU", .FillWeight = 20.0!, .MinimumWidth = 90})
-            dgvSelectedOrderLines.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "ProductName", .HeaderText = "Product", .FillWeight = 50.0!, .MinimumWidth = 240})
-            dgvSelectedOrderLines.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "OrderedQty", .HeaderText = "Qty", .FillWeight = 12.0!, .MinimumWidth = 60, .DefaultCellStyle = New DataGridViewCellStyle() With {.Alignment = DataGridViewContentAlignment.MiddleRight}})
-            dgvSelectedOrderLines.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "UnitPrice", .HeaderText = "Unit Price", .FillWeight = 15.0!, .MinimumWidth = 85, .DefaultCellStyle = New DataGridViewCellStyle() With {.Format = "C2", .Alignment = DataGridViewContentAlignment.MiddleRight}})
-            dgvSelectedOrderLines.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "LineTotal", .HeaderText = "Total", .FillWeight = 18.0!, .MinimumWidth = 95, .DefaultCellStyle = New DataGridViewCellStyle() With {.Format = "C2", .Alignment = DataGridViewContentAlignment.MiddleRight}})
-            dgvSelectedOrderLines.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "StockBadgeText", .HeaderText = "Stock Check", .FillWeight = 25.0!, .MinimumWidth = 100, .DefaultCellStyle = New DataGridViewCellStyle() With {.Alignment = DataGridViewContentAlignment.MiddleCenter}})
+            dgvSelectedOrderLines.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "SKU", .HeaderText = "SKU", .FillWeight = 15.0!, .MinimumWidth = 55})
+            dgvSelectedOrderLines.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "ProductName", .HeaderText = "Product", .FillWeight = 32.0!, .MinimumWidth = 95})
+            dgvSelectedOrderLines.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "OrderedQty", .HeaderText = "Qty", .FillWeight = 10.0!, .MinimumWidth = 40, .DefaultCellStyle = New DataGridViewCellStyle() With {.Alignment = DataGridViewContentAlignment.MiddleRight}})
+            dgvSelectedOrderLines.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "UnitPrice", .HeaderText = "Unit Price", .FillWeight = 14.0!, .MinimumWidth = 55, .DefaultCellStyle = New DataGridViewCellStyle() With {.Format = "C2", .Alignment = DataGridViewContentAlignment.MiddleRight}})
+            dgvSelectedOrderLines.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "LineTotal", .HeaderText = "Total", .FillWeight = 14.0!, .MinimumWidth = 55, .DefaultCellStyle = New DataGridViewCellStyle() With {.Format = "C2", .Alignment = DataGridViewContentAlignment.MiddleRight}})
+            dgvSelectedOrderLines.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "StockBadgeText", .HeaderText = "Stock Check", .FillWeight = 17.0!, .MinimumWidth = 65, .DefaultCellStyle = New DataGridViewCellStyle() With {.Alignment = DataGridViewContentAlignment.MiddleCenter}})
 
             ' Setup dgvInvoices
             dgvInvoices.AutoGenerateColumns = False
-            dgvInvoices.ScrollBars = ScrollBars.Both
+            dgvInvoices.ScrollBars = ScrollBars.Vertical
             dgvInvoices.Columns.Clear()
             dgvInvoices.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "DocumentNumber", .HeaderText = "Invoice #", .FillWeight = 15.0!, .MinimumWidth = 95})
             dgvInvoices.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "SODocumentNumber", .HeaderText = "SO Ref", .FillWeight = 15.0!, .MinimumWidth = 85})
@@ -112,40 +140,40 @@ Namespace UI.Sales
 
             ' Setup dgvInvoiceLines
             dgvInvoiceLines.AutoGenerateColumns = False
-            dgvInvoiceLines.ScrollBars = ScrollBars.Both
+            dgvInvoiceLines.ScrollBars = ScrollBars.Vertical
             dgvInvoiceLines.Columns.Clear()
-            dgvInvoiceLines.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "SKU", .HeaderText = "SKU", .FillWeight = 18.0!, .MinimumWidth = 90})
-            dgvInvoiceLines.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "ProductName", .HeaderText = "Product Name", .FillWeight = 50.0!, .MinimumWidth = 240})
-            dgvInvoiceLines.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "FulfilledQty", .HeaderText = "Fulfilled Qty", .FillWeight = 12.0!, .MinimumWidth = 65, .DefaultCellStyle = New DataGridViewCellStyle() With {.Alignment = DataGridViewContentAlignment.MiddleRight}})
-            dgvInvoiceLines.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "UnitPrice", .HeaderText = "Selling Price", .FillWeight = 15.0!, .MinimumWidth = 85, .DefaultCellStyle = New DataGridViewCellStyle() With {.Format = "C2", .Alignment = DataGridViewContentAlignment.MiddleRight}})
-            dgvInvoiceLines.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "COGSUnitCost", .HeaderText = "Avg Unit Cost", .FillWeight = 15.0!, .MinimumWidth = 85, .DefaultCellStyle = New DataGridViewCellStyle() With {.Format = "C2", .Alignment = DataGridViewContentAlignment.MiddleRight}})
-            dgvInvoiceLines.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "LineTotal", .HeaderText = "Revenue", .FillWeight = 16.0!, .MinimumWidth = 95, .DefaultCellStyle = New DataGridViewCellStyle() With {.Format = "C2", .Alignment = DataGridViewContentAlignment.MiddleRight}})
-            dgvInvoiceLines.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "LineMargin", .HeaderText = "Margin", .FillWeight = 15.0!, .MinimumWidth = 90, .DefaultCellStyle = New DataGridViewCellStyle() With {.Format = "C2", .Alignment = DataGridViewContentAlignment.MiddleRight}})
+            dgvInvoiceLines.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "SKU", .HeaderText = "SKU", .FillWeight = 14.0!, .MinimumWidth = 45})
+            dgvInvoiceLines.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "ProductName", .HeaderText = "Product Name", .FillWeight = 30.0!, .MinimumWidth = 70})
+            dgvInvoiceLines.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "FulfilledQty", .HeaderText = "Qty", .FillWeight = 10.0!, .MinimumWidth = 35, .DefaultCellStyle = New DataGridViewCellStyle() With {.Alignment = DataGridViewContentAlignment.MiddleRight}})
+            dgvInvoiceLines.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "UnitPrice", .HeaderText = "Selling Price", .FillWeight = 15.0!, .MinimumWidth = 45, .DefaultCellStyle = New DataGridViewCellStyle() With {.Format = "C2", .Alignment = DataGridViewContentAlignment.MiddleRight}})
+            dgvInvoiceLines.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "COGSUnitCost", .HeaderText = "Avg Cost", .FillWeight = 15.0!, .MinimumWidth = 45, .DefaultCellStyle = New DataGridViewCellStyle() With {.Format = "C2", .Alignment = DataGridViewContentAlignment.MiddleRight}})
+            dgvInvoiceLines.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "LineTotal", .HeaderText = "Revenue", .FillWeight = 15.0!, .MinimumWidth = 45, .DefaultCellStyle = New DataGridViewCellStyle() With {.Format = "C2", .Alignment = DataGridViewContentAlignment.MiddleRight}})
+            dgvInvoiceLines.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "LineMargin", .HeaderText = "Margin", .FillWeight = 15.0!, .MinimumWidth = 45, .DefaultCellStyle = New DataGridViewCellStyle() With {.Format = "C2", .Alignment = DataGridViewContentAlignment.MiddleRight}})
 
             ' Setup dgvJournalPreview
             dgvJournalPreview.AutoGenerateColumns = False
-            dgvJournalPreview.ScrollBars = ScrollBars.Both
+            dgvJournalPreview.ScrollBars = ScrollBars.Vertical
             dgvJournalPreview.Columns.Clear()
-            dgvJournalPreview.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "AccountCode", .HeaderText = "Account", .FillWeight = 12.0!, .MinimumWidth = 65, .DefaultCellStyle = New DataGridViewCellStyle() With {.Alignment = DataGridViewContentAlignment.MiddleCenter}})
-            dgvJournalPreview.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "AccountName", .HeaderText = "Account Title", .FillWeight = 28.0!, .MinimumWidth = 150})
-            dgvJournalPreview.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "DebitAmount", .HeaderText = "Debit ($)", .FillWeight = 18.0!, .MinimumWidth = 95, .DefaultCellStyle = New DataGridViewCellStyle() With {.Format = "C2", .Alignment = DataGridViewContentAlignment.MiddleRight}})
-            dgvJournalPreview.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "CreditAmount", .HeaderText = "Credit ($)", .FillWeight = 18.0!, .MinimumWidth = 95, .DefaultCellStyle = New DataGridViewCellStyle() With {.Format = "C2", .Alignment = DataGridViewContentAlignment.MiddleRight}})
-            dgvJournalPreview.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "Explanation", .HeaderText = "Posting Explanation", .FillWeight = 34.0!, .MinimumWidth = 160})
+            dgvJournalPreview.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "AccountCode", .HeaderText = "Account", .FillWeight = 12.0!, .MinimumWidth = 45, .DefaultCellStyle = New DataGridViewCellStyle() With {.Alignment = DataGridViewContentAlignment.MiddleCenter}})
+            dgvJournalPreview.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "AccountName", .HeaderText = "Account Title", .FillWeight = 26.0!, .MinimumWidth = 75})
+            dgvJournalPreview.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "DebitAmount", .HeaderText = "Debit ($)", .FillWeight = 16.0!, .MinimumWidth = 50, .DefaultCellStyle = New DataGridViewCellStyle() With {.Format = "C2", .Alignment = DataGridViewContentAlignment.MiddleRight}})
+            dgvJournalPreview.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "CreditAmount", .HeaderText = "Credit ($)", .FillWeight = 16.0!, .MinimumWidth = 50, .DefaultCellStyle = New DataGridViewCellStyle() With {.Format = "C2", .Alignment = DataGridViewContentAlignment.MiddleRight}})
+            dgvJournalPreview.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "Explanation", .HeaderText = "Posting Explanation", .FillWeight = 30.0!, .MinimumWidth = 75})
 
             ' Setup dgvProductsCatalog
             dgvProductsCatalog.AutoGenerateColumns = False
-            dgvProductsCatalog.ScrollBars = ScrollBars.Both
+            dgvProductsCatalog.ScrollBars = ScrollBars.Vertical
             dgvProductsCatalog.Columns.Clear()
-            dgvProductsCatalog.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "SKU", .HeaderText = "SKU", .FillWeight = 15.0!, .MinimumWidth = 90})
-            dgvProductsCatalog.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "Name", .HeaderText = "Product Description", .FillWeight = 45.0!, .MinimumWidth = 240})
-            dgvProductsCatalog.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "Category", .HeaderText = "Category", .FillWeight = 15.0!, .MinimumWidth = 90})
-            dgvProductsCatalog.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "QtyOnHand", .HeaderText = "On Hand", .FillWeight = 12.0!, .MinimumWidth = 70, .DefaultCellStyle = New DataGridViewCellStyle() With {.Alignment = DataGridViewContentAlignment.MiddleRight}})
-            dgvProductsCatalog.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "QtyReserved", .HeaderText = "Reserved", .FillWeight = 12.0!, .MinimumWidth = 70, .DefaultCellStyle = New DataGridViewCellStyle() With {.Alignment = DataGridViewContentAlignment.MiddleRight}})
-            dgvProductsCatalog.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "QtyAvailable", .HeaderText = "Free Qty", .FillWeight = 12.0!, .MinimumWidth = 70, .DefaultCellStyle = New DataGridViewCellStyle() With {.Alignment = DataGridViewContentAlignment.MiddleRight}})
-            dgvProductsCatalog.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "ReorderLevel", .HeaderText = "Min Level", .FillWeight = 12.0!, .MinimumWidth = 70, .DefaultCellStyle = New DataGridViewCellStyle() With {.Alignment = DataGridViewContentAlignment.MiddleRight}})
-            dgvProductsCatalog.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "MovingAvgCost", .HeaderText = "Avg Cost", .FillWeight = 14.0!, .MinimumWidth = 85, .DefaultCellStyle = New DataGridViewCellStyle() With {.Format = "C2", .Alignment = DataGridViewContentAlignment.MiddleRight}})
-            dgvProductsCatalog.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "UnitPrice", .HeaderText = "List Price", .FillWeight = 14.0!, .MinimumWidth = 85, .DefaultCellStyle = New DataGridViewCellStyle() With {.Format = "C2", .Alignment = DataGridViewContentAlignment.MiddleRight}})
-            dgvProductsCatalog.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "StockBadgeText", .HeaderText = "Availability Status", .FillWeight = 20.0!, .MinimumWidth = 110, .DefaultCellStyle = New DataGridViewCellStyle() With {.Alignment = DataGridViewContentAlignment.MiddleCenter}})
+            dgvProductsCatalog.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "SKU", .HeaderText = "SKU", .FillWeight = 11.0!, .MinimumWidth = 50})
+            dgvProductsCatalog.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "Name", .HeaderText = "Product Description", .FillWeight = 26.0!, .MinimumWidth = 85})
+            dgvProductsCatalog.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "Category", .HeaderText = "Category", .FillWeight = 13.0!, .MinimumWidth = 55})
+            dgvProductsCatalog.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "QtyOnHand", .HeaderText = "On Hand", .FillWeight = 9.0!, .MinimumWidth = 40, .DefaultCellStyle = New DataGridViewCellStyle() With {.Alignment = DataGridViewContentAlignment.MiddleRight}})
+            dgvProductsCatalog.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "QtyReserved", .HeaderText = "Reserved", .FillWeight = 9.0!, .MinimumWidth = 40, .DefaultCellStyle = New DataGridViewCellStyle() With {.Alignment = DataGridViewContentAlignment.MiddleRight}})
+            dgvProductsCatalog.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "QtyAvailable", .HeaderText = "Free Qty", .FillWeight = 9.0!, .MinimumWidth = 40, .DefaultCellStyle = New DataGridViewCellStyle() With {.Alignment = DataGridViewContentAlignment.MiddleRight}})
+            dgvProductsCatalog.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "ReorderLevel", .HeaderText = "Min Level", .FillWeight = 9.0!, .MinimumWidth = 40, .DefaultCellStyle = New DataGridViewCellStyle() With {.Alignment = DataGridViewContentAlignment.MiddleRight}})
+            dgvProductsCatalog.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "MovingAvgCost", .HeaderText = "Avg Cost", .FillWeight = 11.0!, .MinimumWidth = 50, .DefaultCellStyle = New DataGridViewCellStyle() With {.Format = "C2", .Alignment = DataGridViewContentAlignment.MiddleRight}})
+            dgvProductsCatalog.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "UnitPrice", .HeaderText = "List Price", .FillWeight = 11.0!, .MinimumWidth = 50, .DefaultCellStyle = New DataGridViewCellStyle() With {.Format = "C2", .Alignment = DataGridViewContentAlignment.MiddleRight}})
+            dgvProductsCatalog.Columns.Add(New DataGridViewTextBoxColumn() With {.DataPropertyName = "StockBadgeText", .HeaderText = "Availability Status", .FillWeight = 15.0!, .MinimumWidth = 60, .DefaultCellStyle = New DataGridViewCellStyle() With {.Alignment = DataGridViewContentAlignment.MiddleCenter}})
         End Sub
 
         Private Sub LoadCustomers()
@@ -180,16 +208,39 @@ Namespace UI.Sales
                 lblCurrentARVal.Text = cust.CurrentARBalance.ToString("C2")
                 lblAvailCreditVal.Text = cust.AvailableCredit.ToString("C2")
 
-                If cust.AvailableCredit <= 0D Then
-                    lblCustomerBadge.Text = "CREDIT EXCEEDED"
-                    lblCustomerBadge.BackColor = Color.FromArgb(220, 53, 69) ' Crimson Red
-                ElseIf cust.AvailableCredit < (cust.CreditLimit * 0.15D) Then
-                    lblCustomerBadge.Text = "NEAR CREDIT LIMIT"
-                    lblCustomerBadge.BackColor = Color.FromArgb(253, 126, 20) ' Orange
+                If cust.CurrentARBalance < 0D Then
+                    lblCustomerBadge.Text = "CREDIT BALANCE"
+                    lblCustomerBadge.BackColor = Color.FromArgb(13, 110, 253) ' Blue
+                    btnDisburseRefund.Enabled = True
+                    btnDisburseRefund.Text = $"💳 Disburse Refund ({Math.Abs(cust.CurrentARBalance):C2})"
+                    btnDisburseRefund.BackColor = Color.FromArgb(220, 53, 69) ' Crimson Red
+                    btnDisburseRefund.ForeColor = Color.White
                 Else
-                    lblCustomerBadge.Text = "CREDIT APPROVED"
-                    lblCustomerBadge.BackColor = Color.FromArgb(40, 167, 69) ' Green
+                    btnDisburseRefund.Enabled = False
+                    btnDisburseRefund.Text = "💳 Disburse Refund (No Credit)"
+                    btnDisburseRefund.BackColor = Color.FromArgb(108, 117, 125)
+                    btnDisburseRefund.ForeColor = Color.White
+
+                    If cust.AvailableCredit <= 0D Then
+                        lblCustomerBadge.Text = "CREDIT EXCEEDED"
+                        lblCustomerBadge.BackColor = Color.FromArgb(220, 53, 69) ' Crimson Red
+                    ElseIf cust.AvailableCredit < (cust.CreditLimit * 0.15D) Then
+                        lblCustomerBadge.Text = "NEAR CREDIT LIMIT"
+                        lblCustomerBadge.BackColor = Color.FromArgb(253, 126, 20) ' Orange
+                    Else
+                        lblCustomerBadge.Text = "CREDIT APPROVED"
+                        lblCustomerBadge.BackColor = Color.FromArgb(40, 167, 69) ' Green
+                    End If
                 End If
+                btnRecordPayment.Enabled = True
+            Else
+                lblCreditLimitVal.Text = "$0.00"
+                lblCurrentARVal.Text = "$0.00"
+                lblAvailCreditVal.Text = "$0.00"
+                lblCustomerBadge.Text = "NO CUSTOMER"
+                lblCustomerBadge.BackColor = Color.FromArgb(108, 117, 125)
+                btnRecordPayment.Enabled = False
+                btnDisburseRefund.Enabled = False
             End If
         End Sub
 
@@ -572,6 +623,291 @@ Namespace UI.Sales
             If lblKpiLowStockValue IsNot Nothing Then
                 lblKpiLowStockValue.Text = $"{lowStockCount} Items"
             End If
+        End Sub
+
+        ' =========================================================================
+        ' Cash Settlements & Customer Refunds (OrderToCash & Returns Services)
+        ' =========================================================================
+
+        Private Class PaymentInvoiceItem
+            Public Property InvoiceId As Integer
+            Public Property DisplayText As String
+            Public Property Amount As Decimal
+
+            Public Sub New(id As Integer, text As String, amt As Decimal)
+                Me.InvoiceId = id
+                Me.DisplayText = text
+                Me.Amount = amt
+            End Sub
+
+            Public Overrides Function ToString() As String
+                Return DisplayText
+            End Function
+        End Class
+
+        Private Sub LoadPaymentMethods()
+            cmbPaymentMethod.Items.Clear()
+            cmbPaymentMethod.Items.Add("BankTransfer")
+            cmbPaymentMethod.Items.Add("Cash")
+            cmbPaymentMethod.Items.Add("Cheque")
+            If cmbPaymentMethod.Items.Count > 0 Then cmbPaymentMethod.SelectedIndex = 0
+
+            cmbRefundMethod.Items.Clear()
+            cmbRefundMethod.Items.Add("BankTransfer")
+            cmbRefundMethod.Items.Add("Cash")
+            cmbRefundMethod.Items.Add("Cheque")
+            If cmbRefundMethod.Items.Count > 0 Then cmbRefundMethod.SelectedIndex = 0
+        End Sub
+
+        Private Sub LoadPaymentCustomers()
+            cmbPaymentCustomer.DisplayMember = "DisplayText"
+            cmbPaymentCustomer.ValueMember = "CustomerId"
+            cmbPaymentCustomer.DataSource = _dataService.Customers.ToList()
+        End Sub
+
+        Public Sub OpenRecordPaymentDialog(Optional customerId As Integer? = Nothing, Optional invoiceId As Integer? = Nothing)
+            LoadPaymentCustomers()
+
+            If customerId.HasValue AndAlso customerId.Value > 0 Then
+                For i As Integer = 0 To cmbPaymentCustomer.Items.Count - 1
+                    Dim c = TryCast(cmbPaymentCustomer.Items(i), CustomerViewModel)
+                    If c IsNot Nothing AndAlso c.CustomerId = customerId.Value Then
+                        cmbPaymentCustomer.SelectedIndex = i
+                        Exit For
+                    End If
+                Next
+            ElseIf cmbCustomer.SelectedItem IsNot Nothing Then
+                Dim selCust = TryCast(cmbCustomer.SelectedItem, CustomerViewModel)
+                If selCust IsNot Nothing Then
+                    For i As Integer = 0 To cmbPaymentCustomer.Items.Count - 1
+                        Dim c = TryCast(cmbPaymentCustomer.Items(i), CustomerViewModel)
+                        If c IsNot Nothing AndAlso c.CustomerId = selCust.CustomerId Then
+                            cmbPaymentCustomer.SelectedIndex = i
+                            Exit For
+                        End If
+                    Next
+                End If
+            End If
+
+            PopulatePaymentInvoicesForCustomer()
+
+            If invoiceId.HasValue AndAlso invoiceId.Value > 0 Then
+                For i As Integer = 0 To cmbPaymentInvoice.Items.Count - 1
+                    Dim itm = TryCast(cmbPaymentInvoice.Items(i), PaymentInvoiceItem)
+                    If itm IsNot Nothing AndAlso itm.InvoiceId = invoiceId.Value Then
+                        cmbPaymentInvoice.SelectedIndex = i
+                        numPaymentAmount.Value = Math.Max(0.01D, Math.Min(numPaymentAmount.Maximum, itm.Amount))
+                        Exit For
+                    End If
+                Next
+            End If
+
+            dtpPaymentDate.Value = DateTime.Today
+            If cmbPaymentMethod.Items.Count > 0 Then cmbPaymentMethod.SelectedIndex = 0
+
+            pnlRefundDialog.Visible = False
+            pnlRecordPaymentDialog.Left = Math.Max(10, (Me.ClientSize.Width - pnlRecordPaymentDialog.Width) \ 2)
+            pnlRecordPaymentDialog.Top = Math.Max(60, (Me.ClientSize.Height - pnlRecordPaymentDialog.Height) \ 2)
+            pnlRecordPaymentDialog.Visible = True
+            pnlRecordPaymentDialog.BringToFront()
+        End Sub
+
+        Public Sub CloseRecordPaymentDialog()
+            pnlRecordPaymentDialog.Visible = False
+        End Sub
+
+        Public Sub OpenDisburseRefundDialog(Optional customerId As Integer? = Nothing)
+            Dim targetCust As CustomerViewModel = Nothing
+            If customerId.HasValue AndAlso customerId.Value > 0 Then
+                targetCust = _dataService.Customers.FirstOrDefault(Function(c) c.CustomerId = customerId.Value)
+            End If
+            If targetCust Is Nothing Then
+                targetCust = TryCast(cmbCustomer.SelectedItem, CustomerViewModel)
+            End If
+
+            If targetCust Is Nothing Then
+                MessageBox.Show("Please select a customer account.", "Customer Required", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+                Return
+            End If
+
+            If targetCust.CurrentARBalance >= 0D Then
+                MessageBox.Show($"Customer '{targetCust.Name}' has no credit balance (Current AR: {targetCust.CurrentARBalance:C2}). Refund disbursement is only available for negative AR credit balances resulting from returns or credit notes.", "No Credit Balance", MessageBoxButtons.OK, MessageBoxIcon.Information)
+                Return
+            End If
+
+            Dim creditAmt As Decimal = Math.Abs(targetCust.CurrentARBalance)
+            lblRefundCustomerInfo.Text = $"Customer: {targetCust.Code} - {targetCust.Name}{Environment.NewLine}Negative AR Credit Balance: {creditAmt:C2}"
+            numRefundAmount.Maximum = Math.Max(10000000D, creditAmt)
+            numRefundAmount.Value = creditAmt
+            dtpRefundDate.Value = DateTime.Today
+            If cmbRefundMethod.Items.Count > 0 Then cmbRefundMethod.SelectedIndex = 0
+
+            pnlRecordPaymentDialog.Visible = False
+            pnlRefundDialog.Left = Math.Max(10, (Me.ClientSize.Width - pnlRefundDialog.Width) \ 2)
+            pnlRefundDialog.Top = Math.Max(60, (Me.ClientSize.Height - pnlRefundDialog.Height) \ 2)
+            pnlRefundDialog.Visible = True
+            pnlRefundDialog.BringToFront()
+        End Sub
+
+        Public Sub CloseDisburseRefundDialog()
+            pnlRefundDialog.Visible = False
+        End Sub
+
+        Private Sub PopulatePaymentInvoicesForCustomer()
+            Dim cust = TryCast(cmbPaymentCustomer.SelectedItem, CustomerViewModel)
+            cmbPaymentInvoice.Items.Clear()
+            cmbPaymentInvoice.Items.Add(New PaymentInvoiceItem(0, "(None - Unapplied Account Credit / Advance)", 0D))
+            If cust IsNot Nothing Then
+                Dim customerInvoices = _dataService.SalesInvoices _
+                    .Where(Function(i) i.CustomerId = cust.CustomerId AndAlso Not String.Equals(i.Status, "Settled", StringComparison.OrdinalIgnoreCase)) _
+                    .ToList()
+                For Each inv In customerInvoices
+                    cmbPaymentInvoice.Items.Add(New PaymentInvoiceItem(inv.InvoiceId, $"{inv.DocumentNumber} - {inv.TotalAmount:C2} (Due: {inv.DueDate:yyyy-MM-dd})", inv.TotalAmount))
+                Next
+            End If
+            cmbPaymentInvoice.SelectedIndex = 0
+        End Sub
+
+        Private Sub cmbPaymentCustomer_SelectedIndexChanged(sender As Object, e As EventArgs) Handles cmbPaymentCustomer.SelectedIndexChanged
+            PopulatePaymentInvoicesForCustomer()
+        End Sub
+
+        Private Sub cmbPaymentInvoice_SelectedIndexChanged(sender As Object, e As EventArgs) Handles cmbPaymentInvoice.SelectedIndexChanged
+            If cmbPaymentInvoice.SelectedIndex > 0 Then
+                Dim itm = TryCast(cmbPaymentInvoice.SelectedItem, PaymentInvoiceItem)
+                If itm IsNot Nothing AndAlso itm.Amount > 0D Then
+                    numPaymentAmount.Value = Math.Max(0.01D, Math.Min(numPaymentAmount.Maximum, itm.Amount))
+                End If
+            Else
+                Dim cust = TryCast(cmbPaymentCustomer.SelectedItem, CustomerViewModel)
+                If cust IsNot Nothing AndAlso cust.CurrentARBalance > 0D Then
+                    numPaymentAmount.Value = Math.Max(0.01D, Math.Min(numPaymentAmount.Maximum, cust.CurrentARBalance))
+                End If
+            End If
+        End Sub
+
+        Private Sub btnRecordPayment_Click(sender As Object, e As EventArgs) Handles btnRecordPayment.Click
+            Dim cust As CustomerViewModel = TryCast(cmbCustomer.SelectedItem, CustomerViewModel)
+            OpenRecordPaymentDialog(If(cust IsNot Nothing, CType(cust.CustomerId, Integer?), Nothing))
+        End Sub
+
+        Private Sub btnInvoiceRecordPayment_Click(sender As Object, e As EventArgs) Handles btnInvoiceRecordPayment.Click
+            If dgvInvoices.SelectedRows.Count > 0 Then
+                Dim inv = TryCast(dgvInvoices.SelectedRows(0).DataBoundItem, SalesInvoiceViewModel)
+                If inv IsNot Nothing Then
+                    OpenRecordPaymentDialog(inv.CustomerId, inv.InvoiceId)
+                    Return
+                End If
+            End If
+            OpenRecordPaymentDialog()
+        End Sub
+
+        Private Sub btnDisburseRefund_Click(sender As Object, e As EventArgs) Handles btnDisburseRefund.Click
+            Dim cust As CustomerViewModel = TryCast(cmbCustomer.SelectedItem, CustomerViewModel)
+            If cust Is Nothing Then
+                MessageBox.Show("Please select a customer account.", "Customer Required", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+                Return
+            End If
+            OpenDisburseRefundDialog(cust.CustomerId)
+        End Sub
+
+        Private Sub btnClosePaymentDialog_Click(sender As Object, e As EventArgs) Handles btnClosePaymentDialog.Click, btnCancelPaymentReceipt.Click
+            CloseRecordPaymentDialog()
+        End Sub
+
+        Private Sub btnCloseRefundDialog_Click(sender As Object, e As EventArgs) Handles btnCloseRefundDialog.Click, btnCancelRefund.Click
+            CloseDisburseRefundDialog()
+        End Sub
+
+        Private Sub btnConfirmPaymentReceipt_Click(sender As Object, e As EventArgs) Handles btnConfirmPaymentReceipt.Click
+            Try
+                Dim cust = TryCast(cmbPaymentCustomer.SelectedItem, CustomerViewModel)
+                If cust Is Nothing Then
+                    MessageBox.Show("Please select a valid customer.", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+                    Return
+                End If
+
+                Dim selectedInvoiceId As Integer? = Nothing
+                Dim itm = TryCast(cmbPaymentInvoice.SelectedItem, PaymentInvoiceItem)
+                If itm IsNot Nothing AndAlso itm.InvoiceId > 0 Then
+                    selectedInvoiceId = itm.InvoiceId
+                End If
+
+                Dim amount As Decimal = numPaymentAmount.Value
+                If amount <= 0D Then
+                    MessageBox.Show("Settlement amount must be greater than zero.", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+                    Return
+                End If
+
+                Dim receiptDate As DateTime = dtpPaymentDate.Value.Date
+                Dim receipt = _o2cService.RecordPaymentReceipt(cust.CustomerId, selectedInvoiceId, amount, 0, receiptDate, Nothing)
+
+                ' Refresh all UI data
+                _dataService.LoadData()
+                LoadCustomers()
+                RefreshExistingOrdersGrid()
+                RefreshInvoicesGrid()
+                UpdateCustomerInfo()
+                UpdateKpiCards()
+
+                CloseRecordPaymentDialog()
+
+                Dim invNote As String = If(selectedInvoiceId.HasValue, $" applied to Invoice #{selectedInvoiceId.Value}", " (Unapplied Customer Account Settlement)")
+                MessageBox.Show(
+                    $"Payment receipt #{receipt.ReceiptId} of {amount:C2} successfully posted{invNote}!{Environment.NewLine}{Environment.NewLine}" &
+                    $"--- AUTOMATIC DOUBLE-ENTRY POSTINGS ---{Environment.NewLine}" &
+                    $"Debit  1020 Operating Bank Account: {amount:C2}{Environment.NewLine}" &
+                    $"Credit 1200 Accounts Receivable:      {amount:C2}{Environment.NewLine}{Environment.NewLine}" &
+                    $"Customer '{cust.Name}' updated AR balance: {cust.CurrentARBalance - amount:C2}.",
+                    "Payment Receipt Posted",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information)
+
+            Catch ex As Exception
+                MessageBox.Show($"Failed to record payment receipt: {ex.Message}", "Posting Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            End Try
+        End Sub
+
+        Private Sub btnConfirmRefund_Click(sender As Object, e As EventArgs) Handles btnConfirmRefund.Click
+            Try
+                Dim cust = TryCast(cmbCustomer.SelectedItem, CustomerViewModel)
+                If cust Is Nothing Then
+                    MessageBox.Show("Please select a valid customer.", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+                    Return
+                End If
+
+                Dim refundAmount As Decimal = numRefundAmount.Value
+                If refundAmount <= 0D Then
+                    MessageBox.Show("Refund disbursement amount must be greater than zero.", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+                    Return
+                End If
+
+                Dim paymentDate As DateTime = dtpRefundDate.Value.Date
+                Dim voucher = _returnsService.DisburseCustomerRefund(cust.CustomerId, Nothing, refundAmount, 0, paymentDate, Nothing)
+
+                ' Refresh all UI data
+                _dataService.LoadData()
+                LoadCustomers()
+                RefreshExistingOrdersGrid()
+                RefreshInvoicesGrid()
+                UpdateCustomerInfo()
+                UpdateKpiCards()
+
+                CloseDisburseRefundDialog()
+
+                MessageBox.Show(
+                    $"Customer refund voucher {voucher.VoucherNumber} of {refundAmount:C2} disbursed successfully!{Environment.NewLine}{Environment.NewLine}" &
+                    $"--- AUTOMATIC DOUBLE-ENTRY POSTINGS ---{Environment.NewLine}" &
+                    $"Debit  1200 Accounts Receivable:      {refundAmount:C2}{Environment.NewLine}" &
+                    $"Credit 1020 Operating Bank Account: {refundAmount:C2}{Environment.NewLine}{Environment.NewLine}" &
+                    $"Customer credit balance cleared; updated AR balance: {cust.CurrentARBalance + refundAmount:C2}.",
+                    "Customer Refund Disbursed",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information)
+
+            Catch ex As Exception
+                MessageBox.Show($"Failed to disburse refund: {ex.Message}", "Disbursement Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            End Try
         End Sub
 
     End Class

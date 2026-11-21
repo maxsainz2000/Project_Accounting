@@ -40,7 +40,7 @@ Namespace Data
         Public Overridable Property InventoryAdjustmentLines As DbSet(Of InventoryAdjustmentLine)
 
         ' =========================================================================
-        ' Procurement (8 Entities)
+        ' Procurement (9 Entities)
         ' =========================================================================
         Public Overridable Property Vendors As DbSet(Of Vendor)
         Public Overridable Property PurchaseOrders As DbSet(Of PurchaseOrder)
@@ -50,6 +50,7 @@ Namespace Data
         Public Overridable Property SupplierBills As DbSet(Of SupplierBill)
         Public Overridable Property BillLines As DbSet(Of BillLine)
         Public Overridable Property PaymentVouchers As DbSet(Of PaymentVoucher)
+        Public Overridable Property GRNIAdjustments As DbSet(Of GRNIAdjustment)
 
         ' =========================================================================
         ' Sales & AR (6 Entities)

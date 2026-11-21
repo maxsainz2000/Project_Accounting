@@ -114,6 +114,7 @@ Namespace Domain.Models
         Public Overridable Property POLine As POLine
         Public Overridable Property Product As Product
         Public Overridable Property BillLines As ICollection(Of BillLine) = New List(Of BillLine)()
+        Public Overridable Property GRNIAdjustments As ICollection(Of GRNIAdjustment) = New List(Of GRNIAdjustment)()
 
         Public Sub New()
         End Sub
@@ -192,6 +193,40 @@ Namespace Domain.Models
         Public Overridable Property BankAccount As Account
 
         Public Sub New()
+        End Sub
+    End Class
+
+    ''' <summary>
+    ''' Represents a write-off or clearing adjustment for stale/unbilled Goods Receipt Note (GRN) accruals.
+    ''' </summary>
+    Public Class GRNIAdjustment
+        Public Property AdjustmentId As Integer
+        Public Property DocumentNumber As String = String.Empty
+        Public Property GoodsReceiptLineId As Integer
+        Public Property AdjustmentDate As DateTime
+        Public Property PostingDate As DateTime
+        Public Property ClearedQty As Integer
+        Public Property ClearedAmount As Decimal
+        Public Property Reason As String = String.Empty
+        Public Property Status As String = String.Empty
+        Public Property CreatedAt As DateTime = DateTime.UtcNow
+
+        ' Navigation Properties
+        Public Overridable Property GoodsReceiptLine As GRNLine
+
+        Public Sub New()
+        End Sub
+
+        Public Sub New(goodsReceiptLineId As Integer, clearedQty As Integer, clearedAmount As Decimal, reason As String, documentNumber As String, adjustmentDate As DateTime, postingDate As DateTime, Optional status As String = "Posted")
+            Me.GoodsReceiptLineId = goodsReceiptLineId
+            Me.ClearedQty = clearedQty
+            Me.ClearedAmount = clearedAmount
+            Me.Reason = reason
+            Me.DocumentNumber = documentNumber
+            Me.AdjustmentDate = adjustmentDate
+            Me.PostingDate = postingDate
+            Me.Status = status
+            Me.CreatedAt = DateTime.UtcNow
         End Sub
     End Class
 

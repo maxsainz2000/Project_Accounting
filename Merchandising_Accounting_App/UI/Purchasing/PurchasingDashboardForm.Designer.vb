@@ -73,6 +73,10 @@ Namespace UI.Purchasing
             Me.dgvGRNs = New System.Windows.Forms.DataGridView()
             Me.pnlGRNNotice = New System.Windows.Forms.Panel()
             Me.lblGRNNotice = New System.Windows.Forms.Label()
+            Me.btnDisbursePayment = New System.Windows.Forms.Button()
+            Me.pnlPOToolbar = New System.Windows.Forms.Panel()
+            Me.btnClosePOShort = New System.Windows.Forms.Button()
+            Me.btnClearUnbilledGRNI = New System.Windows.Forms.Button()
             Me.pnlHeader.SuspendLayout()
             Me.tabPurchasing.SuspendLayout()
             Me.tabThreeWayMatch.SuspendLayout()
@@ -96,6 +100,7 @@ Namespace UI.Purchasing
             Me.splitPOs.Panel2.SuspendLayout()
             Me.splitPOs.SuspendLayout()
             Me.grpPOList.SuspendLayout()
+            Me.pnlPOToolbar.SuspendLayout()
             CType(Me.dgvPurchaseOrders, System.ComponentModel.ISupportInitialize).BeginInit()
             Me.grpPOLines.SuspendLayout()
             CType(Me.dgvPurchasingPOLines, System.ComponentModel.ISupportInitialize).BeginInit()
@@ -250,12 +255,13 @@ Namespace UI.Purchasing
             '
             Me.tlpBillControls.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left) _
             Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-            Me.tlpBillControls.ColumnCount = 5
+            Me.tlpBillControls.ColumnCount = 6
             Me.tlpBillControls.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 25.0!))
             Me.tlpBillControls.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 25.0!))
             Me.tlpBillControls.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 25.0!))
             Me.tlpBillControls.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 25.0!))
-            Me.tlpBillControls.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 270.0!))
+            Me.tlpBillControls.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 200.0!))
+            Me.tlpBillControls.ColumnStyles.Add(New System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 180.0!))
             Me.tlpBillControls.RowCount = 2
             Me.tlpBillControls.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 22.0!))
             Me.tlpBillControls.RowStyles.Add(New System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 32.0!))
@@ -269,6 +275,8 @@ Namespace UI.Purchasing
             Me.tlpBillControls.Controls.Add(Me.numFreightAmount, 3, 1)
             Me.tlpBillControls.Controls.Add(Me.btnPostThreeWayMatch, 4, 0)
             Me.tlpBillControls.SetRowSpan(Me.btnPostThreeWayMatch, 2)
+            Me.tlpBillControls.Controls.Add(Me.btnDisbursePayment, 5, 0)
+            Me.tlpBillControls.SetRowSpan(Me.btnDisbursePayment, 2)
             Me.tlpBillControls.Location = New System.Drawing.Point(12, 44)
             Me.tlpBillControls.Name = "tlpBillControls"
             Me.tlpBillControls.Size = New System.Drawing.Size(984, 56)
@@ -279,15 +287,30 @@ Namespace UI.Purchasing
             Me.btnPostThreeWayMatch.BackColor = System.Drawing.Color.FromArgb(CType(CType(13, Byte), Integer), CType(CType(110, Byte), Integer), CType(CType(253, Byte), Integer))
             Me.btnPostThreeWayMatch.Dock = System.Windows.Forms.DockStyle.Fill
             Me.btnPostThreeWayMatch.FlatStyle = System.Windows.Forms.FlatStyle.Flat
-            Me.btnPostThreeWayMatch.Font = New System.Drawing.Font("Segoe UI", 9.5!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+            Me.btnPostThreeWayMatch.Font = New System.Drawing.Font("Segoe UI", 9.0!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
             Me.btnPostThreeWayMatch.ForeColor = System.Drawing.Color.White
-            Me.btnPostThreeWayMatch.Location = New System.Drawing.Point(717, 3)
+            Me.btnPostThreeWayMatch.Location = New System.Drawing.Point(607, 3)
             Me.btnPostThreeWayMatch.Name = "btnPostThreeWayMatch"
-            Me.btnPostThreeWayMatch.Size = New System.Drawing.Size(264, 50)
+            Me.btnPostThreeWayMatch.Size = New System.Drawing.Size(194, 50)
             Me.btnPostThreeWayMatch.TabIndex = 8
-            Me.btnPostThreeWayMatch.Text = "Commit Supplier Bill & Post Journal"
+            Me.btnPostThreeWayMatch.Text = "Commit Supplier Bill"
             Me.btnPostThreeWayMatch.UseMnemonic = False
             Me.btnPostThreeWayMatch.UseVisualStyleBackColor = False
+            '
+            'btnDisbursePayment
+            '
+            Me.btnDisbursePayment.BackColor = System.Drawing.Color.FromArgb(CType(CType(25, Byte), Integer), CType(CType(135, Byte), Integer), CType(CType(84, Byte), Integer))
+            Me.btnDisbursePayment.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.btnDisbursePayment.FlatStyle = System.Windows.Forms.FlatStyle.Flat
+            Me.btnDisbursePayment.Font = New System.Drawing.Font("Segoe UI", 9.0!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+            Me.btnDisbursePayment.ForeColor = System.Drawing.Color.White
+            Me.btnDisbursePayment.Location = New System.Drawing.Point(807, 3)
+            Me.btnDisbursePayment.Name = "btnDisbursePayment"
+            Me.btnDisbursePayment.Size = New System.Drawing.Size(174, 50)
+            Me.btnDisbursePayment.TabIndex = 9
+            Me.btnDisbursePayment.Text = "Disburse Payment (AP)"
+            Me.btnDisbursePayment.UseMnemonic = False
+            Me.btnDisbursePayment.UseVisualStyleBackColor = False
             '
             'lblVariancePreview
             '
@@ -457,6 +480,7 @@ Namespace UI.Purchasing
             'grpPOList
             '
             Me.grpPOList.Controls.Add(Me.dgvPurchaseOrders)
+            Me.grpPOList.Controls.Add(Me.pnlPOToolbar)
             Me.grpPOList.Dock = System.Windows.Forms.DockStyle.Fill
             Me.grpPOList.Font = New System.Drawing.Font("Segoe UI", 9.5!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
             Me.grpPOList.Location = New System.Drawing.Point(0, 0)
@@ -466,6 +490,29 @@ Namespace UI.Purchasing
             Me.grpPOList.TabStop = False
             Me.grpPOList.Text = "Purchase Orders Catalog"
             '
+            'pnlPOToolbar
+            '
+            Me.pnlPOToolbar.Controls.Add(Me.btnClosePOShort)
+            Me.pnlPOToolbar.Dock = System.Windows.Forms.DockStyle.Top
+            Me.pnlPOToolbar.Location = New System.Drawing.Point(3, 24)
+            Me.pnlPOToolbar.Name = "pnlPOToolbar"
+            Me.pnlPOToolbar.Size = New System.Drawing.Size(1002, 34)
+            Me.pnlPOToolbar.TabIndex = 1
+            '
+            'btnClosePOShort
+            '
+            Me.btnClosePOShort.Anchor = CType((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
+            Me.btnClosePOShort.BackColor = System.Drawing.Color.FromArgb(CType(CType(108, Byte), Integer), CType(CType(117, Byte), Integer), CType(CType(125, Byte), Integer))
+            Me.btnClosePOShort.FlatStyle = System.Windows.Forms.FlatStyle.Flat
+            Me.btnClosePOShort.Font = New System.Drawing.Font("Segoe UI", 9.0!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+            Me.btnClosePOShort.ForeColor = System.Drawing.Color.White
+            Me.btnClosePOShort.Location = New System.Drawing.Point(832, 2)
+            Me.btnClosePOShort.Name = "btnClosePOShort"
+            Me.btnClosePOShort.Size = New System.Drawing.Size(165, 30)
+            Me.btnClosePOShort.TabIndex = 0
+            Me.btnClosePOShort.Text = "Close PO Short"
+            Me.btnClosePOShort.UseVisualStyleBackColor = False
+            '
             'dgvPurchaseOrders
             '
             Me.dgvPurchaseOrders.AllowUserToAddRows = False
@@ -474,14 +521,14 @@ Namespace UI.Purchasing
             Me.dgvPurchaseOrders.BackgroundColor = System.Drawing.Color.White
             Me.dgvPurchaseOrders.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize
             Me.dgvPurchaseOrders.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.dgvPurchaseOrders.Location = New System.Drawing.Point(3, 24)
+            Me.dgvPurchaseOrders.Location = New System.Drawing.Point(3, 58)
             Me.dgvPurchaseOrders.MultiSelect = False
             Me.dgvPurchaseOrders.Name = "dgvPurchaseOrders"
             Me.dgvPurchaseOrders.ReadOnly = True
             Me.dgvPurchaseOrders.RowHeadersVisible = False
             Me.dgvPurchaseOrders.RowHeadersWidth = 51
             Me.dgvPurchaseOrders.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect
-            Me.dgvPurchaseOrders.Size = New System.Drawing.Size(1002, 213)
+            Me.dgvPurchaseOrders.Size = New System.Drawing.Size(1002, 179)
             Me.dgvPurchaseOrders.TabIndex = 0
             '
             'grpPOLines
@@ -668,6 +715,7 @@ Namespace UI.Purchasing
             '
             Me.pnlGRNNotice.BackColor = System.Drawing.Color.FromArgb(CType(CType(236, Byte), Integer), CType(CType(242, Byte), Integer), CType(CType(248, Byte), Integer))
             Me.pnlGRNNotice.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle
+            Me.pnlGRNNotice.Controls.Add(Me.btnClearUnbilledGRNI)
             Me.pnlGRNNotice.Controls.Add(Me.lblGRNNotice)
             Me.pnlGRNNotice.Dock = System.Windows.Forms.DockStyle.Top
             Me.pnlGRNNotice.Location = New System.Drawing.Point(12, 12)
@@ -676,13 +724,27 @@ Namespace UI.Purchasing
             Me.pnlGRNNotice.Size = New System.Drawing.Size(1008, 48)
             Me.pnlGRNNotice.TabIndex = 1
             '
+            'btnClearUnbilledGRNI
+            '
+            Me.btnClearUnbilledGRNI.Anchor = CType((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
+            Me.btnClearUnbilledGRNI.BackColor = System.Drawing.Color.FromArgb(CType(CType(220, Byte), Integer), CType(CType(53, Byte), Integer), CType(CType(69, Byte), Integer))
+            Me.btnClearUnbilledGRNI.FlatStyle = System.Windows.Forms.FlatStyle.Flat
+            Me.btnClearUnbilledGRNI.Font = New System.Drawing.Font("Segoe UI", 9.0!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+            Me.btnClearUnbilledGRNI.ForeColor = System.Drawing.Color.White
+            Me.btnClearUnbilledGRNI.Location = New System.Drawing.Point(825, 8)
+            Me.btnClearUnbilledGRNI.Name = "btnClearUnbilledGRNI"
+            Me.btnClearUnbilledGRNI.Size = New System.Drawing.Size(170, 30)
+            Me.btnClearUnbilledGRNI.TabIndex = 1
+            Me.btnClearUnbilledGRNI.Text = "Clear Unbilled GRNI"
+            Me.btnClearUnbilledGRNI.UseVisualStyleBackColor = False
+            '
             'lblGRNNotice
             '
-            Me.lblGRNNotice.AutoSize = True
+            Me.lblGRNNotice.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left) Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
             Me.lblGRNNotice.ForeColor = System.Drawing.Color.FromArgb(CType(CType(10, Byte), Integer), CType(CType(88, Byte), Integer), CType(CType(202, Byte), Integer))
             Me.lblGRNNotice.Location = New System.Drawing.Point(8, 12)
             Me.lblGRNNotice.Name = "lblGRNNotice"
-            Me.lblGRNNotice.Size = New System.Drawing.Size(950, 20)
+            Me.lblGRNNotice.Size = New System.Drawing.Size(800, 24)
             Me.lblGRNNotice.TabIndex = 0
             Me.lblGRNNotice.Text = "Audit Invariant: Goods receipts credit Account 2100 GRNI at PO price. Unbilled GRNs remain open until supplier bills are matched and cleared."
             '
@@ -722,6 +784,7 @@ Namespace UI.Purchasing
             CType(Me.splitPOs, System.ComponentModel.ISupportInitialize).EndInit()
             Me.splitPOs.ResumeLayout(False)
             Me.grpPOList.ResumeLayout(False)
+            Me.pnlPOToolbar.ResumeLayout(False)
             CType(Me.dgvPurchaseOrders, System.ComponentModel.ISupportInitialize).EndInit()
             Me.grpPOLines.ResumeLayout(False)
             CType(Me.dgvPurchasingPOLines, System.ComponentModel.ISupportInitialize).EndInit()
@@ -760,11 +823,14 @@ Namespace UI.Purchasing
         Friend WithEvents numFreightAmount As System.Windows.Forms.NumericUpDown
         Friend WithEvents lblVariancePreview As System.Windows.Forms.Label
         Friend WithEvents btnPostThreeWayMatch As System.Windows.Forms.Button
+        Friend WithEvents btnDisbursePayment As System.Windows.Forms.Button
         Friend WithEvents grpThreeWayJournal As System.Windows.Forms.GroupBox
         Friend WithEvents dgvThreeWayJournal As System.Windows.Forms.DataGridView
         Friend WithEvents tabPurchaseOrders As System.Windows.Forms.TabPage
         Friend WithEvents splitPOs As System.Windows.Forms.SplitContainer
         Friend WithEvents grpPOList As System.Windows.Forms.GroupBox
+        Friend WithEvents pnlPOToolbar As System.Windows.Forms.Panel
+        Friend WithEvents btnClosePOShort As System.Windows.Forms.Button
         Friend WithEvents dgvPurchaseOrders As System.Windows.Forms.DataGridView
         Friend WithEvents grpPOLines As System.Windows.Forms.GroupBox
         Friend WithEvents dgvPurchasingPOLines As System.Windows.Forms.DataGridView
@@ -783,6 +849,7 @@ Namespace UI.Purchasing
         Friend WithEvents dgvGRNs As System.Windows.Forms.DataGridView
         Friend WithEvents pnlGRNNotice As System.Windows.Forms.Panel
         Friend WithEvents lblGRNNotice As System.Windows.Forms.Label
+        Friend WithEvents btnClearUnbilledGRNI As System.Windows.Forms.Button
 
     End Class
 

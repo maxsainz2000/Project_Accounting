@@ -165,6 +165,188 @@ Namespace Data.Repositories
             Return True
         End Function
 
+        ''' <summary>
+        ''' Atomically increments physical on-hand stock for a product.
+        ''' </summary>
+        Public Function IncrementStock(productId As Integer, qty As Integer) As Boolean
+            If qty <= 0 Then
+                Throw New ArgumentOutOfRangeException(NameOf(qty), "Quantity to increment must be greater than zero.")
+            End If
+
+            Dim pQty As New SqliteParameter("@Qty", qty)
+            Dim pId As New SqliteParameter("@Id", productId)
+
+            Dim rowsAffected = _context.Database.ExecuteSqlRaw(
+                "UPDATE Products SET TotalQtyOnHand = TotalQtyOnHand + @Qty WHERE ProductId = @Id;",
+                pQty, pId)
+
+            If rowsAffected > 0 Then
+                Dim tracked = _context.ChangeTracker.Entries(Of Product)().FirstOrDefault(Function(e) e.Entity.ProductId = productId)
+                If tracked IsNot Nothing Then
+                    tracked.Reload()
+                End If
+                Return True
+            End If
+
+            Return False
+        End Function
+
+        ''' <summary>
+        ''' Asynchronously atomically increments physical on-hand stock for a product.
+        ''' </summary>
+        Public Async Function IncrementStockAsync(productId As Integer, qty As Integer) As Task(Of Boolean)
+            If qty <= 0 Then
+                Throw New ArgumentOutOfRangeException(NameOf(qty), "Quantity to increment must be greater than zero.")
+            End If
+
+            Dim pQty As New SqliteParameter("@Qty", qty)
+            Dim pId As New SqliteParameter("@Id", productId)
+
+            Dim rowsAffected = Await _context.Database.ExecuteSqlRawAsync(
+                "UPDATE Products SET TotalQtyOnHand = TotalQtyOnHand + @Qty WHERE ProductId = @Id;",
+                pQty, pId)
+
+            If rowsAffected > 0 Then
+                Dim tracked = _context.ChangeTracker.Entries(Of Product)().FirstOrDefault(Function(e) e.Entity.ProductId = productId)
+                If tracked IsNot Nothing Then
+                    Await tracked.ReloadAsync()
+                End If
+                Return True
+            End If
+
+            Return False
+        End Function
+
+        ''' <summary>
+        ''' Executes an atomic conditional update at the SQLite database layer to reserve allocated stock.
+        ''' Enforces that (TotalQtyOnHand - AllocatedQty) >= @Qty. Returns False if unallocated stock is insufficient.
+        ''' </summary>
+        Public Function ReserveAllocatedStock(productId As Integer, qty As Integer) As Boolean
+            If qty <= 0 Then
+                Throw New ArgumentOutOfRangeException(NameOf(qty), "Quantity to reserve must be greater than zero.")
+            End If
+
+            Dim pQty As New SqliteParameter("@Qty", qty)
+            Dim pId As New SqliteParameter("@Id", productId)
+
+            Dim rowsAffected = _context.Database.ExecuteSqlRaw(
+                "UPDATE Products SET AllocatedQty = AllocatedQty + @Qty WHERE ProductId = @Id AND (TotalQtyOnHand - AllocatedQty) >= @Qty;",
+                pQty, pId)
+
+            If rowsAffected > 0 Then
+                Dim tracked = _context.ChangeTracker.Entries(Of Product)().FirstOrDefault(Function(e) e.Entity.ProductId = productId)
+                If tracked IsNot Nothing Then
+                    tracked.Reload()
+                End If
+                Return True
+            End If
+
+            Return False
+        End Function
+
+        ''' <summary>
+        ''' Asynchronously executes an atomic conditional update at the SQLite database layer to reserve allocated stock.
+        ''' </summary>
+        Public Async Function ReserveAllocatedStockAsync(productId As Integer, qty As Integer) As Task(Of Boolean)
+            If qty <= 0 Then
+                Throw New ArgumentOutOfRangeException(NameOf(qty), "Quantity to reserve must be greater than zero.")
+            End If
+
+            Dim pQty As New SqliteParameter("@Qty", qty)
+            Dim pId As New SqliteParameter("@Id", productId)
+
+            Dim rowsAffected = Await _context.Database.ExecuteSqlRawAsync(
+                "UPDATE Products SET AllocatedQty = AllocatedQty + @Qty WHERE ProductId = @Id AND (TotalQtyOnHand - AllocatedQty) >= @Qty;",
+                pQty, pId)
+
+            If rowsAffected > 0 Then
+                Dim tracked = _context.ChangeTracker.Entries(Of Product)().FirstOrDefault(Function(e) e.Entity.ProductId = productId)
+                If tracked IsNot Nothing Then
+                    Await tracked.ReloadAsync()
+                End If
+                Return True
+            End If
+
+            Return False
+        End Function
+
+        ''' <summary>
+        ''' Reserves allocated stock atomically or raises an InsufficientStockException if unallocated stock is insufficient.
+        ''' </summary>
+        Public Function ReserveAllocatedStockOrThrow(productId As Integer, qty As Integer) As Boolean
+            If Not ReserveAllocatedStock(productId, qty) Then
+                Dim current = GetById(productId)
+                Dim available = If(current IsNot Nothing, current.TotalQtyOnHand - current.AllocatedQty, 0)
+                Throw New InsufficientStockException(productId, qty, available, $"Insufficient unallocated stock to reserve Product ID {productId}. Requested: {qty}, Available unallocated: {available}.")
+            End If
+            Return True
+        End Function
+
+        ''' <summary>
+        ''' Executes an atomic conditional update at the SQLite database layer to release allocated stock.
+        ''' Enforces that AllocatedQty >= @Qty. Returns False if allocated quantity is less than requested release.
+        ''' </summary>
+        Public Function ReleaseAllocatedStock(productId As Integer, qty As Integer) As Boolean
+            If qty <= 0 Then
+                Throw New ArgumentOutOfRangeException(NameOf(qty), "Quantity to release must be greater than zero.")
+            End If
+
+            Dim pQty As New SqliteParameter("@Qty", qty)
+            Dim pId As New SqliteParameter("@Id", productId)
+
+            Dim rowsAffected = _context.Database.ExecuteSqlRaw(
+                "UPDATE Products SET AllocatedQty = AllocatedQty - @Qty WHERE ProductId = @Id AND AllocatedQty >= @Qty;",
+                pQty, pId)
+
+            If rowsAffected > 0 Then
+                Dim tracked = _context.ChangeTracker.Entries(Of Product)().FirstOrDefault(Function(e) e.Entity.ProductId = productId)
+                If tracked IsNot Nothing Then
+                    tracked.Reload()
+                End If
+                Return True
+            End If
+
+            Return False
+        End Function
+
+        ''' <summary>
+        ''' Asynchronously executes an atomic conditional update at the SQLite database layer to release allocated stock.
+        ''' </summary>
+        Public Async Function ReleaseAllocatedStockAsync(productId As Integer, qty As Integer) As Task(Of Boolean)
+            If qty <= 0 Then
+                Throw New ArgumentOutOfRangeException(NameOf(qty), "Quantity to release must be greater than zero.")
+            End If
+
+            Dim pQty As New SqliteParameter("@Qty", qty)
+            Dim pId As New SqliteParameter("@Id", productId)
+
+            Dim rowsAffected = Await _context.Database.ExecuteSqlRawAsync(
+                "UPDATE Products SET AllocatedQty = AllocatedQty - @Qty WHERE ProductId = @Id AND AllocatedQty >= @Qty;",
+                pQty, pId)
+
+            If rowsAffected > 0 Then
+                Dim tracked = _context.ChangeTracker.Entries(Of Product)().FirstOrDefault(Function(e) e.Entity.ProductId = productId)
+                If tracked IsNot Nothing Then
+                    Await tracked.ReloadAsync()
+                End If
+                Return True
+            End If
+
+            Return False
+        End Function
+
+        ''' <summary>
+        ''' Releases allocated stock atomically or raises an InvalidOperationException if allocated stock is insufficient.
+        ''' </summary>
+        Public Function ReleaseAllocatedStockOrThrow(productId As Integer, qty As Integer) As Boolean
+            If Not ReleaseAllocatedStock(productId, qty) Then
+                Dim current = GetById(productId)
+                Dim currentAllocated = If(current IsNot Nothing, current.AllocatedQty, 0)
+                Throw New InvalidOperationException($"Cannot release {qty} units of allocated stock for Product ID {productId}; currently allocated: {currentAllocated}.")
+            End If
+            Return True
+        End Function
+
         Public Sub AddTransaction(transaction As InventoryTransaction)
             If transaction Is Nothing Then Throw New ArgumentNullException(NameOf(transaction))
             _context.InventoryTransactions.Add(transaction)

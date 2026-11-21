@@ -242,4 +242,35 @@ Namespace Data.Configurations
         End Sub
     End Class
 
+    Public Class GRNIAdjustmentConfiguration
+        Implements IEntityTypeConfiguration(Of GRNIAdjustment)
+
+        Public Sub Configure(builder As EntityTypeBuilder(Of GRNIAdjustment)) Implements IEntityTypeConfiguration(Of GRNIAdjustment).Configure
+            builder.ToTable("GRNIAdjustments")
+            builder.HasKey(Function(a) a.AdjustmentId)
+
+            builder.Property(Function(a) a.DocumentNumber) _
+                .HasMaxLength(30) _
+                .IsRequired()
+
+            builder.HasIndex(Function(a) a.DocumentNumber) _
+                .IsUnique()
+
+            builder.Property(Function(a) a.Status) _
+                .HasMaxLength(20)
+
+            builder.Property(Function(a) a.Reason) _
+                .HasMaxLength(255) _
+                .IsRequired()
+
+            builder.Property(Function(a) a.ClearedAmount) _
+                .HasPrecision(18, 4)
+
+            builder.HasOne(Function(a) a.GoodsReceiptLine) _
+                .WithMany(Function(g) g.GRNIAdjustments) _
+                .HasForeignKey(Function(a) a.GoodsReceiptLineId) _
+                .OnDelete(DeleteBehavior.Restrict)
+        End Sub
+    End Class
+
 End Namespace

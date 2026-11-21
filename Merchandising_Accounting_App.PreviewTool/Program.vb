@@ -254,6 +254,28 @@ Namespace Merchandising_Accounting_App.PreviewTool
             ))
 
             AvailableScenarios.Add(New PreviewScenario(
+                "WarehouseIntakeForm_Adjustments",
+                ScenarioType.SecondaryTab,
+                "WarehouseIntakeForm",
+                "WarehouseIntakeForm (Stock Adjustments Tab)",
+                "Warehouse - Stock Adjustments",
+                "Warehouse: Physical Inventory Adjustments & Shrinkage",
+                "Physical Count Variance Entry, GL Double-Entry Distribution Preview & Audit Logging",
+                New String() {"warehouse_adjustments", "stock_adjustments", "adjustments"},
+                Function() New UI.Warehouse.WarehouseIntakeForm(),
+                Sub(f As Form)
+                    Dim wf As UI.Warehouse.WarehouseIntakeForm = TryCast(f, UI.Warehouse.WarehouseIntakeForm)
+                    If wf IsNot Nothing Then
+                        Dim tc As TabControl = wf.Controls.Find("tabMain", True).OfType(Of TabControl)().FirstOrDefault()
+                        If tc IsNot Nothing Then
+                            Dim tp As TabPage = tc.TabPages("tabStockAdjustments")
+                            If tp IsNot Nothing Then tc.SelectedTab = tp
+                        End If
+                    End If
+                End Sub
+            ))
+
+            AvailableScenarios.Add(New PreviewScenario(
                 "FinancialReportsForm_ProfitLoss",
                 ScenarioType.SecondaryTab,
                 "FinancialReportsForm",

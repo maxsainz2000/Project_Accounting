@@ -75,6 +75,18 @@ Namespace Services
                 Return Math.Abs(TotalAssets - TotalLiabilitiesAndEquity)
             End Get
         End Property
+
+        Public ReadOnly Property NetAssets As Decimal
+            Get
+                Return TotalAssets - TotalLiabilities
+            End Get
+        End Property
+
+        Public ReadOnly Property NetAssetsToEquityVariance As Decimal
+            Get
+                Return Math.Abs(NetAssets - TotalEquity)
+            End Get
+        End Property
     End Class
 
     Public Class IncomeStatementRow
@@ -132,6 +144,164 @@ Namespace Services
                 End If
             End Get
         End Property
+    End Class
+
+    ' =========================================================================
+    ' Operational & Aging Report DTOs
+    ' =========================================================================
+
+    Public Class ArAgingLineItem
+        Public Property CustomerId As Integer
+        Public Property CustomerCode As String = String.Empty
+        Public Property CustomerName As String = String.Empty
+        Public Property CurrentAmount As Decimal
+        Public Property Days1To30 As Decimal
+        Public Property Days31To60 As Decimal
+        Public Property Days61To90 As Decimal
+        Public Property DaysOver90 As Decimal
+
+        Public ReadOnly Property Current As Decimal
+            Get
+                Return CurrentAmount
+            End Get
+        End Property
+
+        Public ReadOnly Property Over90Days As Decimal
+            Get
+                Return DaysOver90
+            End Get
+        End Property
+
+        Public ReadOnly Property TotalOutstanding As Decimal
+            Get
+                Return CurrentAmount + Days1To30 + Days31To60 + Days61To90 + DaysOver90
+            End Get
+        End Property
+    End Class
+
+    Public Class AccountsReceivableAgingReport
+        Public Property AsOfDate As DateTime
+        Public Property Rows As New List(Of ArAgingLineItem)()
+        Public Property TotalCurrent As Decimal
+        Public Property TotalDays1To30 As Decimal
+        Public Property TotalDays31To60 As Decimal
+        Public Property TotalDays61To90 As Decimal
+        Public Property TotalDaysOver90 As Decimal
+        Public Property GrandTotal As Decimal
+    End Class
+
+    Public Class ApAgingLineItem
+        Public Property VendorId As Integer
+        Public Property VendorCode As String = String.Empty
+        Public Property VendorName As String = String.Empty
+        Public Property CurrentAmount As Decimal
+        Public Property Days1To30 As Decimal
+        Public Property Days31To60 As Decimal
+        Public Property Days61To90 As Decimal
+        Public Property DaysOver90 As Decimal
+
+        Public ReadOnly Property Current As Decimal
+            Get
+                Return CurrentAmount
+            End Get
+        End Property
+
+        Public ReadOnly Property Over90Days As Decimal
+            Get
+                Return DaysOver90
+            End Get
+        End Property
+
+        Public ReadOnly Property TotalOutstanding As Decimal
+            Get
+                Return CurrentAmount + Days1To30 + Days31To60 + Days61To90 + DaysOver90
+            End Get
+        End Property
+    End Class
+
+    Public Class AccountsPayableAgingReport
+        Public Property AsOfDate As DateTime
+        Public Property Rows As New List(Of ApAgingLineItem)()
+        Public Property TotalCurrent As Decimal
+        Public Property TotalDays1To30 As Decimal
+        Public Property TotalDays31To60 As Decimal
+        Public Property TotalDays61To90 As Decimal
+        Public Property TotalDaysOver90 As Decimal
+        Public Property GrandTotal As Decimal
+    End Class
+
+    Public Class InventoryValuationLineItem
+        Public Property ProductId As Integer
+        Public Property Sku As String = String.Empty
+        Public Property Name As String = String.Empty
+        Public Property Category As String = String.Empty
+        Public Property BaseUnit As String = String.Empty
+        Public Property QtyOnHand As Integer
+        Public Property MovingAvgCost As Decimal
+        Public Property TotalValuation As Decimal
+    End Class
+
+    Public Class InventoryValuationReport
+        Public Property AsOfDate As DateTime
+        Public Property Rows As New List(Of InventoryValuationLineItem)()
+        Public Property TotalStockQuantity As Integer
+        Public Property TotalValuation As Decimal
+        Public Property GlAccount1300Balance As Decimal
+
+        Public ReadOnly Property ReconciliationVariance As Decimal
+            Get
+                Return TotalValuation - GlAccount1300Balance
+            End Get
+        End Property
+
+        Public ReadOnly Property IsReconciled As Boolean
+            Get
+                Return Math.Abs(TotalValuation - GlAccount1300Balance) <= 0.02D
+            End Get
+        End Property
+    End Class
+
+    Public Class GrniAgingLineItem
+        Public Property GrnNumber As String = String.Empty
+        Public Property GrnDate As DateTime
+        Public Property Vendor As String = String.Empty
+        Public Property Item As String = String.Empty
+        Public Property ReceivedQty As Integer
+        Public Property BilledQty As Integer
+        Public Property UnbilledQty As Integer
+        Public Property PoPrice As Decimal
+        Public Property AccrualBalance As Decimal
+        Public Property DaysOpen As Integer
+        Public Property FlaggedOver30Days As Boolean
+
+        Public Property VendorName As String
+            Get
+                Return Vendor
+            End Get
+            Set(value As String)
+                Vendor = value
+            End Set
+        End Property
+
+        Public Property ItemDescription As String
+            Get
+                Return Item
+            End Get
+            Set(value As String)
+                Item = value
+            End Set
+        End Property
+    End Class
+
+    Public Class GrniAgingReport
+        Public Property AsOfDate As DateTime
+        Public Property Rows As New List(Of GrniAgingLineItem)()
+        Public Property TotalReceivedQty As Integer
+        Public Property TotalBilledQty As Integer
+        Public Property TotalUnbilledQty As Integer
+        Public Property TotalAccrualBalance As Decimal
+        Public Property TotalFlaggedOver30Days As Integer
+        Public Property TotalFlaggedAmount As Decimal
     End Class
 
     Public Class AccountDto
@@ -645,6 +815,365 @@ Namespace Services
                 report.TotalFreightVariance += freightAmount
                 report.TotalPurchasePriceVariance += ppvAmount
                 report.TotalNetMargin += netMargin
+            Next
+
+            Return report
+        End Function
+
+        ' -------------------------------------------------------------------------
+        ' 5. Accounts Receivable Aging Report
+        ' -------------------------------------------------------------------------
+
+        ''' <summary>
+        ''' Generates the Accounts Receivable Aging report as of a specified cutoff date.
+        ''' Buckets open customer balances into: Current, 1-30, 31-60, 61-90, and 90+ days past due.
+        ''' </summary>
+        Public Function GetAccountsReceivableAging(Optional asOfDate As DateTime? = Nothing) As AccountsReceivableAgingReport
+            Dim cutoffDate As DateTime = If(asOfDate.HasValue, asOfDate.Value, DateTime.MaxValue)
+            Dim report As New AccountsReceivableAgingReport() With {
+                .AsOfDate = cutoffDate
+            }
+
+            Dim customers = _context.Customers.OrderBy(Function(c) c.Code).ToList()
+            Dim invoices = _context.SalesInvoices _
+                .Where(Function(i) i.PostingDate <= cutoffDate AndAlso i.Status <> "Draft" AndAlso i.Status <> "Cancelled") _
+                .ToList()
+
+            Dim invoiceIds = invoices.Select(Function(i) i.InvoiceId).ToList()
+
+            Dim receipts = _context.PaymentReceipts _
+                .Where(Function(r) r.PostingDate <= cutoffDate) _
+                .ToList()
+
+            Dim receiptsByInvoice = receipts _
+                .Where(Function(r) r.InvoiceId.HasValue AndAlso invoiceIds.Contains(r.InvoiceId.Value)) _
+                .GroupBy(Function(r) r.InvoiceId.Value) _
+                .ToDictionary(Function(g) g.Key, Function(g) g.Sum(Function(r) r.AmountReceived))
+
+            ' Fetch customer returns posted up to cutoff date
+            Dim returns = _context.CustomerReturns _
+                .Include(Function(cr) cr.Lines) _
+                .Where(Function(cr) cr.PostingDate <= cutoffDate AndAlso cr.Status = "Posted") _
+                .ToList()
+
+            Dim returnCreditsByInvoice As New Dictionary(Of Integer, Decimal)()
+            For Each ret In returns
+                Dim allowance As Decimal = 0D
+                For Each line In ret.Lines
+                    Dim qty As Integer = line.RestockQty + line.ScrapQty
+                    If qty > 0 Then
+                        allowance += Math.Round(CDec(qty) * line.SellingUnitPrice, 4, MidpointRounding.AwayFromZero)
+                    End If
+                Next
+                If returnCreditsByInvoice.ContainsKey(ret.OriginalInvoiceId) Then
+                    returnCreditsByInvoice(ret.OriginalInvoiceId) += allowance
+                Else
+                    returnCreditsByInvoice(ret.OriginalInvoiceId) = allowance
+                End If
+            Next
+
+            Dim invoicesByCustomer = invoices.GroupBy(Function(i) i.CustomerId).ToDictionary(Function(g) g.Key, Function(g) g.ToList())
+
+            For Each cust In customers
+                Dim currentAmt As Decimal = 0D
+                Dim days1To30Amt As Decimal = 0D
+                Dim days31To60Amt As Decimal = 0D
+                Dim days61To90Amt As Decimal = 0D
+                Dim daysOver90Amt As Decimal = 0D
+
+                If invoicesByCustomer.ContainsKey(cust.CustomerId) Then
+                    For Each inv In invoicesByCustomer(cust.CustomerId)
+                        Dim paidAmt As Decimal = 0D
+                        If receiptsByInvoice.ContainsKey(inv.InvoiceId) Then
+                            paidAmt = receiptsByInvoice(inv.InvoiceId)
+                        End If
+
+                        Dim creditAmt As Decimal = 0D
+                        If returnCreditsByInvoice.ContainsKey(inv.InvoiceId) Then
+                            creditAmt = returnCreditsByInvoice(inv.InvoiceId)
+                        End If
+
+                        Dim openAmt As Decimal = inv.TotalAmount - paidAmt - creditAmt
+                        If openAmt > 0.0001D Then
+                            Dim effectiveDueDate As DateTime = If(inv.DueDate <> DateTime.MinValue, inv.DueDate, inv.PostingDate.AddDays(30))
+                            Dim daysPastDue As Integer = (cutoffDate.Date - effectiveDueDate.Date).Days
+
+                            If daysPastDue <= 0 Then
+                                currentAmt += openAmt
+                            ElseIf daysPastDue <= 30 Then
+                                days1To30Amt += openAmt
+                            ElseIf daysPastDue <= 60 Then
+                                days31To60Amt += openAmt
+                            ElseIf daysPastDue <= 90 Then
+                                days61To90Amt += openAmt
+                            Else
+                                daysOver90Amt += openAmt
+                            End If
+                        End If
+                    Next
+                End If
+
+                Dim totalCustOutstanding As Decimal = currentAmt + days1To30Amt + days31To60Amt + days61To90Amt + daysOver90Amt
+                If totalCustOutstanding <> 0D Then
+                    Dim row As New ArAgingLineItem() With {
+                        .CustomerId = cust.CustomerId,
+                        .CustomerCode = cust.Code,
+                        .CustomerName = cust.Name,
+                        .CurrentAmount = currentAmt,
+                        .Days1To30 = days1To30Amt,
+                        .Days31To60 = days31To60Amt,
+                        .Days61To90 = days61To90Amt,
+                        .DaysOver90 = daysOver90Amt
+                    }
+                    report.Rows.Add(row)
+                    report.TotalCurrent += currentAmt
+                    report.TotalDays1To30 += days1To30Amt
+                    report.TotalDays31To60 += days31To60Amt
+                    report.TotalDays61To90 += days61To90Amt
+                    report.TotalDaysOver90 += daysOver90Amt
+                    report.GrandTotal += totalCustOutstanding
+                End If
+            Next
+
+            Return report
+        End Function
+
+        ' -------------------------------------------------------------------------
+        ' 6. Accounts Payable Aging Report
+        ' -------------------------------------------------------------------------
+
+        ''' <summary>
+        ''' Generates the Accounts Payable Aging report as of a specified cutoff date.
+        ''' Buckets open supplier obligations into: Current, 1-30, 31-60, 61-90, and 90+ days past due.
+        ''' </summary>
+        Public Function GetAccountsPayableAging(Optional asOfDate As DateTime? = Nothing) As AccountsPayableAgingReport
+            Dim cutoffDate As DateTime = If(asOfDate.HasValue, asOfDate.Value, DateTime.MaxValue)
+            Dim report As New AccountsPayableAgingReport() With {
+                .AsOfDate = cutoffDate
+            }
+
+            Dim vendors = _context.Vendors.OrderBy(Function(v) v.Code).ToList()
+            Dim bills = _context.SupplierBills _
+                .Where(Function(b) b.PostingDate <= cutoffDate AndAlso b.Status <> "Draft" AndAlso b.Status <> "Cancelled") _
+                .ToList()
+
+            Dim billIds = bills.Select(Function(b) b.BillId).ToList()
+
+            Dim vouchers = _context.PaymentVouchers _
+                .Where(Function(v) v.PostingDate <= cutoffDate AndAlso v.VoucherType = "VendorPayment" AndAlso billIds.Contains(v.TargetDocId)) _
+                .GroupBy(Function(v) v.TargetDocId) _
+                .ToDictionary(Function(g) g.Key, Function(g) g.Sum(Function(v) v.DisbursedAmount))
+
+            Dim billsByVendor = bills.GroupBy(Function(b) b.VendorId).ToDictionary(Function(g) g.Key, Function(g) g.ToList())
+
+            For Each vend In vendors
+                Dim currentAmt As Decimal = 0D
+                Dim days1To30Amt As Decimal = 0D
+                Dim days31To60Amt As Decimal = 0D
+                Dim days61To90Amt As Decimal = 0D
+                Dim daysOver90Amt As Decimal = 0D
+
+                If billsByVendor.ContainsKey(vend.VendorId) Then
+                    For Each bill In billsByVendor(vend.VendorId)
+                        Dim disbursedAmt As Decimal = 0D
+                        If vouchers.ContainsKey(bill.BillId) Then
+                            disbursedAmt = vouchers(bill.BillId)
+                        End If
+
+                        Dim openAmt As Decimal = bill.TotalAmount - disbursedAmt
+                        If openAmt > 0.0001D Then
+                            Dim termDays As Integer = If(vend.PaymentTermsDays > 0, vend.PaymentTermsDays, 30)
+                            Dim effectiveDueDate As DateTime = If(bill.DueDate <> DateTime.MinValue, bill.DueDate, bill.PostingDate.AddDays(termDays))
+                            Dim daysPastDue As Integer = (cutoffDate.Date - effectiveDueDate.Date).Days
+
+                            If daysPastDue <= 0 Then
+                                currentAmt += openAmt
+                            ElseIf daysPastDue <= 30 Then
+                                days1To30Amt += openAmt
+                            ElseIf daysPastDue <= 60 Then
+                                days31To60Amt += openAmt
+                            ElseIf daysPastDue <= 90 Then
+                                days61To90Amt += openAmt
+                            Else
+                                daysOver90Amt += openAmt
+                            End If
+                        End If
+                    Next
+                End If
+
+                Dim totalVendOutstanding As Decimal = currentAmt + days1To30Amt + days31To60Amt + days61To90Amt + daysOver90Amt
+                If totalVendOutstanding <> 0D Then
+                    Dim row As New ApAgingLineItem() With {
+                        .VendorId = vend.VendorId,
+                        .VendorCode = vend.Code,
+                        .VendorName = vend.Name,
+                        .CurrentAmount = currentAmt,
+                        .Days1To30 = days1To30Amt,
+                        .Days31To60 = days31To60Amt,
+                        .Days61To90 = days61To90Amt,
+                        .DaysOver90 = daysOver90Amt
+                    }
+                    report.Rows.Add(row)
+                    report.TotalCurrent += currentAmt
+                    report.TotalDays1To30 += days1To30Amt
+                    report.TotalDays31To60 += days31To60Amt
+                    report.TotalDays61To90 += days61To90Amt
+                    report.TotalDaysOver90 += daysOver90Amt
+                    report.GrandTotal += totalVendOutstanding
+                End If
+            Next
+
+            Return report
+        End Function
+
+        ' -------------------------------------------------------------------------
+        ' 7. Inventory Stock Valuation Report (Reconciling to GL Account 1300)
+        ' -------------------------------------------------------------------------
+
+        ''' <summary>
+        ''' Generates the perpetual moving average inventory valuation report.
+        ''' Evaluates SKU-level on-hand quantities, moving average costs, and reconciles total valuation against GL Account 1300.
+        ''' </summary>
+        Public Function GetInventoryValuationReport(Optional asOfDate As DateTime? = Nothing) As InventoryValuationReport
+            Dim cutoffDate As DateTime = If(asOfDate.HasValue, asOfDate.Value, DateTime.MaxValue)
+            Dim report As New InventoryValuationReport() With {
+                .AsOfDate = cutoffDate
+            }
+
+            Dim products = _context.Products.Where(Function(p) p.IsActive).OrderBy(Function(p) p.SKU).ToList()
+
+            Dim transactions = _context.InventoryTransactions _
+                .Where(Function(t) t.PostingDate <= cutoffDate) _
+                .OrderBy(Function(t) t.TransactionId) _
+                .ToList()
+
+            Dim txByProduct = transactions.GroupBy(Function(t) t.ProductId).ToDictionary(Function(g) g.Key, Function(g) g.Last())
+
+            For Each prod In products
+                Dim qty As Integer
+                Dim cost As Decimal
+
+                If txByProduct.ContainsKey(prod.ProductId) Then
+                    Dim lastTx = txByProduct(prod.ProductId)
+                    qty = lastTx.RunningQty
+                    cost = lastTx.RunningUnitCost
+                Else
+                    qty = prod.TotalQtyOnHand
+                    cost = prod.CurrentUnitCost
+                End If
+
+                Dim val As Decimal = Math.Round(CDec(qty) * cost, 4, MidpointRounding.AwayFromZero)
+
+                Dim row As New InventoryValuationLineItem() With {
+                    .ProductId = prod.ProductId,
+                    .Sku = prod.SKU,
+                    .Name = prod.Name,
+                    .Category = If(String.IsNullOrEmpty(prod.PackUnitName), "Merchandise", prod.PackUnitName),
+                    .BaseUnit = prod.BaseUnitName,
+                    .QtyOnHand = qty,
+                    .MovingAvgCost = cost,
+                    .TotalValuation = val
+                }
+
+                report.Rows.Add(row)
+                report.TotalStockQuantity += qty
+                report.TotalValuation += val
+            Next
+
+            ' Calculate GL Account 1300 balance as of cutoff date
+            Dim acct1300 = _context.Accounts.FirstOrDefault(Function(a) a.Code = "1300")
+            If acct1300 IsNot Nothing Then
+                Dim lines1300 = _context.JournalEntryLines _
+                    .Where(Function(l) l.AccountId = acct1300.AccountId AndAlso l.JournalEntry.PostingDate <= cutoffDate) _
+                    .ToList()
+
+                Dim debits As Decimal = lines1300.Sum(Function(l) l.DebitAmount)
+                Dim credits As Decimal = lines1300.Sum(Function(l) l.CreditAmount)
+                report.GlAccount1300Balance = debits - credits
+            End If
+
+            Return report
+        End Function
+
+        ' -------------------------------------------------------------------------
+        ' 8. Goods Received Not Invoiced (GRNI) Aging Report
+        ' -------------------------------------------------------------------------
+
+        ''' <summary>
+        ''' Generates the Goods Received Not Invoiced (GRNI) aging inquiry report.
+        ''' Tracks unbilled purchase dock receipts valued at PO price and flags items unbilled past 30 days.
+        ''' </summary>
+        Public Function GetGrniAgingReport(Optional asOfDate As DateTime? = Nothing) As GrniAgingReport
+            Dim cutoffDate As DateTime = If(asOfDate.HasValue, asOfDate.Value, DateTime.MaxValue)
+            Dim report As New GrniAgingReport() With {
+                .AsOfDate = cutoffDate
+            }
+
+            Dim grnLines = _context.GRNLines _
+                .Include(Function(gl) gl.GoodsReceiptNote) _
+                    .ThenInclude(Function(grn) grn.PurchaseOrder) _
+                        .ThenInclude(Function(po) po.Vendor) _
+                .Include(Function(gl) gl.Product) _
+                .Where(Function(gl) gl.GoodsReceiptNote.PostingDate <= cutoffDate AndAlso gl.GoodsReceiptNote.Status = "Posted") _
+                .OrderBy(Function(gl) gl.GoodsReceiptNote.DocumentNumber) _
+                .ThenBy(Function(gl) gl.GRNLineId) _
+                .ToList()
+
+            Dim grnLineIds = grnLines.Select(Function(gl) gl.GRNLineId).ToList()
+            Dim billLines = _context.BillLines _
+                .Include(Function(bl) bl.SupplierBill) _
+                .Where(Function(bl) bl.GRNLineId.HasValue AndAlso grnLineIds.Contains(bl.GRNLineId.Value) AndAlso bl.SupplierBill.PostingDate <= cutoffDate AndAlso bl.SupplierBill.Status <> "Cancelled") _
+                .ToList()
+
+            Dim billedByGrnLine = billLines _
+                .GroupBy(Function(bl) bl.GRNLineId.Value) _
+                .ToDictionary(Function(g) g.Key, Function(g) g.Sum(Function(bl) bl.BilledQty))
+
+            For Each gl In grnLines
+                Dim billedQty As Integer = 0
+                If billedByGrnLine.ContainsKey(gl.GRNLineId) Then
+                    billedQty = billedByGrnLine(gl.GRNLineId)
+                End If
+
+                Dim unbilledQty As Integer = gl.ReceivedQty - billedQty
+                If unbilledQty > 0 Then
+                    Dim accrual As Decimal = Math.Round(CDec(unbilledQty) * gl.POUnitPrice, 4, MidpointRounding.AwayFromZero)
+                    Dim receiptDate As DateTime = gl.GoodsReceiptNote.ReceiptDate
+                    Dim daysOpen As Integer = Math.Max(0, (cutoffDate.Date - receiptDate.Date).Days)
+                    Dim isOver30 As Boolean = (daysOpen > 30)
+
+                    Dim vendName As String = "Unknown Vendor"
+                    If gl.GoodsReceiptNote.PurchaseOrder IsNot Nothing AndAlso gl.GoodsReceiptNote.PurchaseOrder.Vendor IsNot Nothing Then
+                        vendName = gl.GoodsReceiptNote.PurchaseOrder.Vendor.Name
+                    End If
+
+                    Dim itemDesc As String = If(gl.Product IsNot Nothing, $"{gl.Product.SKU} - {gl.Product.Name}", $"Product #{gl.ProductId}")
+
+                    Dim row As New GrniAgingLineItem() With {
+                        .GrnNumber = gl.GoodsReceiptNote.DocumentNumber,
+                        .GrnDate = receiptDate,
+                        .Vendor = vendName,
+                        .Item = itemDesc,
+                        .ReceivedQty = gl.ReceivedQty,
+                        .BilledQty = billedQty,
+                        .UnbilledQty = unbilledQty,
+                        .PoPrice = gl.POUnitPrice,
+                        .AccrualBalance = accrual,
+                        .DaysOpen = daysOpen,
+                        .FlaggedOver30Days = isOver30
+                    }
+
+                    report.Rows.Add(row)
+                    report.TotalReceivedQty += gl.ReceivedQty
+                    report.TotalBilledQty += billedQty
+                    report.TotalUnbilledQty += unbilledQty
+                    report.TotalAccrualBalance += accrual
+
+                    If isOver30 Then
+                        report.TotalFlaggedOver30Days += 1
+                        report.TotalFlaggedAmount += accrual
+                    End If
+                End If
             Next
 
             Return report

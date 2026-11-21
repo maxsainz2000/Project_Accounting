@@ -46,13 +46,19 @@ Namespace Services
 
         ''' <summary>
         ''' Creates and persists a commercial Sales Order commitment.
+        ''' Enforces customer credit limit (with configurable override) and reserves allocated stock atomically.
         ''' </summary>
         ''' <param name="customerId">The customer identifier.</param>
         ''' <param name="lines">Collection of sales order lines specifying product, ordered quantity, and unit price.</param>
         ''' <param name="orderDate">Optional order date (defaults to current date).</param>
         ''' <param name="documentNumber">Optional document number (auto-generated if omitted).</param>
+        ''' <param name="allowCreditOverride">Optional flag to bypass credit limit validation.</param>
         ''' <returns>The created and tracked SalesOrder entity.</returns>
-        Public Function CreateSalesOrder(customerId As Integer, lines As IEnumerable(Of SOLine), Optional orderDate As DateTime? = Nothing, Optional documentNumber As String = Nothing) As SalesOrder
+        Public Function CreateSalesOrder(customerId As Integer,
+                                         lines As IEnumerable(Of SOLine),
+                                         Optional orderDate As DateTime? = Nothing,
+                                         Optional documentNumber As String = Nothing,
+                                         Optional allowCreditOverride As Boolean = False) As SalesOrder
             If customerId <= 0 Then
                 Throw New ArgumentException("Valid CustomerId must be specified.", NameOf(customerId))
             End If
@@ -68,6 +74,11 @@ Namespace Services
             Dim customer = _context.Customers.Find(customerId)
             If customer Is Nothing Then
                 Throw New ArgumentException($"Customer with ID {customerId} was not found.", NameOf(customerId))
+            End If
+
+            Dim orderTotal As Decimal = lineList.Sum(Function(l) Math.Round(CDec(l.OrderedQty) * l.UnitPrice, 4, MidpointRounding.AwayFromZero))
+            If Not allowCreditOverride AndAlso (customer.CurrentARBalance + orderTotal > customer.CreditLimit) Then
+                Throw New CreditLimitExceededException(customer.CustomerId, customer.CurrentARBalance, orderTotal, customer.CreditLimit)
             End If
 
             For Each line In lineList
@@ -90,28 +101,53 @@ Namespace Services
             Dim effectiveOrderDate As DateTime = If(orderDate.HasValue, orderDate.Value, DateTime.Today)
             Dim docNum As String = If(Not String.IsNullOrWhiteSpace(documentNumber), documentNumber, GenerateSalesOrderNumber())
 
-            Dim salesOrder As New SalesOrder() With {
-                .CustomerId = customerId,
-                .Customer = customer,
-                .DocumentNumber = docNum,
-                .OrderDate = effectiveOrderDate,
-                .Status = DocumentStatus.Draft.ToString()
-            }
+            Using tx = _context.Database.BeginTransaction()
+                Try
+                    ' Atomic conditional stock reservation
+                    For Each line In lineList
+                        Dim reserved = _productRepo.ReserveAllocatedStock(line.ProductId, line.OrderedQty)
+                        If Not reserved Then
+                            Dim currentProduct = _productRepo.GetById(line.ProductId)
+                            Dim available = If(currentProduct IsNot Nothing, currentProduct.TotalQtyOnHand - currentProduct.AllocatedQty, 0)
+                            Throw New InsufficientStockException(line.ProductId, line.OrderedQty, available,
+                                $"Insufficient available unallocated stock for Product ID {line.ProductId}. Requested: {line.OrderedQty}, Available: {available}.")
+                        End If
+                    Next
 
-            For Each line In lineList
-                Dim soLine As New SOLine() With {
-                    .ProductId = line.ProductId,
-                    .OrderedQty = line.OrderedQty,
-                    .UnitPrice = line.UnitPrice,
-                    .SalesOrder = salesOrder
-                }
-                salesOrder.Lines.Add(soLine)
-            Next
+                    Dim salesOrder As New SalesOrder() With {
+                        .CustomerId = customerId,
+                        .Customer = customer,
+                        .DocumentNumber = docNum,
+                        .OrderDate = effectiveOrderDate,
+                        .Status = DocumentStatus.Draft.ToString()
+                    }
 
-            _context.SalesOrders.Add(salesOrder)
-            _context.SaveChanges()
+                    For Each line In lineList
+                        Dim soLine As New SOLine() With {
+                            .ProductId = line.ProductId,
+                            .OrderedQty = line.OrderedQty,
+                            .UnitPrice = line.UnitPrice,
+                            .SalesOrder = salesOrder
+                        }
+                        salesOrder.Lines.Add(soLine)
+                    Next
 
-            Return salesOrder
+                    _context.SalesOrders.Add(salesOrder)
+                    _context.SaveChanges()
+                    tx.Commit()
+
+                    Return salesOrder
+                Catch ex As Exception
+                    tx.Rollback()
+                    For Each line In lineList
+                        Dim tracked = _context.ChangeTracker.Entries(Of Product)().FirstOrDefault(Function(e) e.Entity.ProductId = line.ProductId)
+                        If tracked IsNot Nothing Then
+                            tracked.Reload()
+                        End If
+                    Next
+                    Throw
+                End Try
+            End Using
         End Function
 
         ''' <summary>
@@ -152,12 +188,17 @@ Namespace Services
         ''' </summary>
         ''' <param name="soId">The Sales Order ID, or 0 if a direct invoice without a pre-existing SO.</param>
         ''' <param name="lines">Fulfillment line items.</param>
-        ''' <param name="postingDate">Statutory General Ledger posting date.</param>
+        ''' <param name="postingDate">Optional statutory General Ledger posting date (auto-shifts if omitted).</param>
         ''' <param name="customerId">Optional customer identifier (inferred from SO if omitted).</param>
         ''' <param name="invoiceDate">Optional physical invoice date (defaults to posting date).</param>
         ''' <param name="documentNumber">Optional invoice document number (auto-generated if omitted).</param>
         ''' <returns>The posted and balanced SalesInvoice entity.</returns>
-        Public Function FulfillSalesInvoice(soId As Integer, lines As IEnumerable(Of SalesInvoiceLine), postingDate As DateTime, Optional customerId As Integer = 0, Optional invoiceDate As DateTime? = Nothing, Optional documentNumber As String = Nothing) As SalesInvoice
+        Public Function FulfillSalesInvoice(soId As Integer,
+                                            lines As IEnumerable(Of SalesInvoiceLine),
+                                            Optional postingDate As DateTime? = Nothing,
+                                            Optional customerId As Integer = 0,
+                                            Optional invoiceDate As DateTime? = Nothing,
+                                            Optional documentNumber As String = Nothing) As SalesInvoice
             If lines Is Nothing Then
                 Throw New ArgumentNullException(NameOf(lines), "Fulfillment lines cannot be null.")
             End If
@@ -189,8 +230,10 @@ Namespace Services
                 Throw New ArgumentException($"Customer with ID {resolvedCustomerId} was not found.", NameOf(customerId))
             End If
 
-            ' 1. Validate statutory posting period
-            Dim period = _periodService.ValidatePostingDate(postingDate)
+            ' 1. Resolve dates and validate statutory fiscal period
+            Dim effectiveInvoiceDate As DateTime = If(invoiceDate.HasValue, invoiceDate.Value, If(postingDate.HasValue, postingDate.Value, DateTime.Today))
+            Dim statutoryPostingDate As DateTime = If(postingDate.HasValue, postingDate.Value, _periodService.ResolveStatutoryPostingDate(effectiveInvoiceDate))
+            Dim period = _periodService.ValidatePostingDate(statutoryPostingDate)
 
             ' 2. Validate line input & stock pre-check via InventoryCostingEngine.ValidateSufficientStock
             For Each line In lineList
@@ -214,14 +257,37 @@ Namespace Services
                 End If
             Next
 
-            Dim effectiveInvoiceDate As DateTime = If(invoiceDate.HasValue, invoiceDate.Value, postingDate)
             Dim docNum As String = If(Not String.IsNullOrWhiteSpace(documentNumber), documentNumber, GenerateInvoiceNumber())
 
             ' 3. Execute atomic transaction
             Using tx = _context.Database.BeginTransaction()
-                ' Step A: Atomic conditional stock decrement via ProductRepository
+                ' Step A: Atomic conditional stock release & decrement via ProductRepository
                 For Each line In lineList
                     Dim product = _productRepo.GetById(line.ProductId)
+
+                    ' If this invoice fulfills a Sales Order, release the reserved allocated stock
+                    If soId > 0 Then
+                        Dim remainingAllocated As Integer = 0
+                        If salesOrder IsNot Nothing Then
+                            Dim matchingLine = If(line.SOLineId.HasValue,
+                                salesOrder.Lines.FirstOrDefault(Function(l) l.SOLineId = line.SOLineId.Value),
+                                salesOrder.Lines.FirstOrDefault(Function(l) l.ProductId = line.ProductId))
+
+                            If matchingLine IsNot Nothing Then
+                                Dim prevFulfilled = _context.SalesInvoiceLines _
+                                    .Where(Function(sil) sil.SOLineId.HasValue AndAlso sil.SOLineId.Value = matchingLine.SOLineId) _
+                                    .Sum(Function(sil) sil.FulfilledQty)
+                                remainingAllocated = Math.Max(0, matchingLine.OrderedQty - prevFulfilled)
+                            End If
+                        End If
+
+                        Dim qtyToRelease As Integer = Math.Min(line.FulfilledQty, remainingAllocated)
+                        If qtyToRelease > 0 Then
+                            _productRepo.ReleaseAllocatedStock(line.ProductId, qtyToRelease)
+                        End If
+                    End If
+
+                    ' Decrement physical stock atomically
                     Dim success As Boolean = _productRepo.DecrementStock(line.ProductId, line.FulfilledQty)
                     If Not success Then
                         ' Atomic conditional update failed (concurrent depletion or insufficient stock)
@@ -243,8 +309,8 @@ Namespace Services
                     .CustomerId = resolvedCustomerId,
                     .DocumentNumber = docNum,
                     .InvoiceDate = effectiveInvoiceDate,
-                    .PostingDate = postingDate,
-                    .DueDate = postingDate.AddDays(30),
+                    .PostingDate = statutoryPostingDate,
+                    .DueDate = statutoryPostingDate.AddDays(30),
                     .TotalAmount = totalAmount,
                     .Status = DocumentStatus.Posted.ToString()
                 }
@@ -271,8 +337,8 @@ Namespace Services
                         .ProductId = invLine.ProductId,
                         .SourceDocType = "SalesInvoice",
                         .SourceDocId = invoice.InvoiceId,
-                        .OperationalEventDate = invoice.InvoiceDate,
-                        .PostingDate = postingDate,
+                        .OperationalEventDate = effectiveInvoiceDate,
+                        .PostingDate = statutoryPostingDate,
                         .QtyChange = -invLine.FulfilledQty,
                         .UnitCost = invLine.InvoicedCOGSUnitCost,
                         .RunningQty = currentProduct.TotalQtyOnHand,
@@ -284,6 +350,8 @@ Namespace Services
                 ' Step E: Emit balanced journal entry: Debit 1200 AR, Credit 4000 Sales Revenue, Debit 5000 COGS, Credit 1300 Inventory
                 Dim journalEntry = LedgerPostingEngine.GenerateSalesInvoiceJournal(invoice, invoice.Lines, GetAccountLookup())
                 journalEntry.PeriodId = period.PeriodId
+                journalEntry.PostingDate = statutoryPostingDate
+                journalEntry.OperationalEventDate = effectiveInvoiceDate
                 _context.JournalEntries.Add(journalEntry)
 
                 ' Step F: Update customer AR subledger balance
@@ -291,7 +359,23 @@ Namespace Services
 
                 ' Step G: If backed by SalesOrder, update status
                 If salesOrder IsNot Nothing Then
-                    salesOrder.Status = DocumentStatus.Settled.ToString()
+                    Dim allFulfilled As Boolean = True
+                    For Each soLine In salesOrder.Lines
+                        Dim totalFulfilled = _context.SalesInvoiceLines _
+                            .Where(Function(sil) sil.SOLineId.HasValue AndAlso sil.SOLineId.Value = soLine.SOLineId) _
+                            .Sum(Function(sil) sil.FulfilledQty)
+
+                        If totalFulfilled < soLine.OrderedQty Then
+                            allFulfilled = False
+                            Exit For
+                        End If
+                    Next
+
+                    If allFulfilled Then
+                        salesOrder.Status = DocumentStatus.Settled.ToString()
+                    Else
+                        salesOrder.Status = "Partially Invoiced"
+                    End If
                 End If
 
                 _context.SaveChanges()
@@ -299,6 +383,92 @@ Namespace Services
 
                 Return invoice
             End Using
+        End Function
+
+        ''' <summary>
+        ''' Cancels an active Sales Order, releasing all remaining reserved/allocated stock.
+        ''' </summary>
+        Public Function CancelSalesOrder(salesOrderId As Integer) As SalesOrder
+            If salesOrderId <= 0 Then
+                Throw New ArgumentException("Sales Order ID must be greater than zero.", NameOf(salesOrderId))
+            End If
+
+            Dim salesOrder = _context.SalesOrders _
+                .Include(Function(so) so.Lines) _
+                .FirstOrDefault(Function(so) so.SOId = salesOrderId)
+
+            If salesOrder Is Nothing Then
+                Throw New ArgumentException($"Sales Order with ID {salesOrderId} was not found.", NameOf(salesOrderId))
+            End If
+
+            If String.Equals(salesOrder.Status, DocumentStatus.Cancelled.ToString(), StringComparison.OrdinalIgnoreCase) Then
+                Throw New InvalidOperationException($"Sales Order {salesOrder.DocumentNumber} is already cancelled.")
+            End If
+            If String.Equals(salesOrder.Status, DocumentStatus.Settled.ToString(), StringComparison.OrdinalIgnoreCase) Then
+                Throw New InvalidOperationException($"Sales Order {salesOrder.DocumentNumber} is already settled and cannot be cancelled.")
+            End If
+
+            Using tx = _context.Database.BeginTransaction()
+                For Each soLine In salesOrder.Lines
+                    Dim totalFulfilled = _context.SalesInvoiceLines _
+                        .Where(Function(sil) sil.SOLineId.HasValue AndAlso sil.SOLineId.Value = soLine.SOLineId) _
+                        .Sum(Function(sil) sil.FulfilledQty)
+
+                    Dim remainingReserved = Math.Max(0, soLine.OrderedQty - totalFulfilled)
+                    If remainingReserved > 0 Then
+                        _productRepo.ReleaseAllocatedStock(soLine.ProductId, remainingReserved)
+                    End If
+                Next
+
+                salesOrder.Status = DocumentStatus.Cancelled.ToString()
+                _context.SaveChanges()
+                tx.Commit()
+            End Using
+
+            Return salesOrder
+        End Function
+
+        ''' <summary>
+        ''' Closes a partially invoiced Sales Order short, releasing any remaining unfulfilled reserved stock.
+        ''' </summary>
+        Public Function CloseSalesOrderShort(salesOrderId As Integer) As SalesOrder
+            If salesOrderId <= 0 Then
+                Throw New ArgumentException("Sales Order ID must be greater than zero.", NameOf(salesOrderId))
+            End If
+
+            Dim salesOrder = _context.SalesOrders _
+                .Include(Function(so) so.Lines) _
+                .FirstOrDefault(Function(so) so.SOId = salesOrderId)
+
+            If salesOrder Is Nothing Then
+                Throw New ArgumentException($"Sales Order with ID {salesOrderId} was not found.", NameOf(salesOrderId))
+            End If
+
+            If String.Equals(salesOrder.Status, DocumentStatus.Cancelled.ToString(), StringComparison.OrdinalIgnoreCase) Then
+                Throw New InvalidOperationException($"Sales Order {salesOrder.DocumentNumber} is cancelled.")
+            End If
+            If String.Equals(salesOrder.Status, DocumentStatus.Settled.ToString(), StringComparison.OrdinalIgnoreCase) Then
+                Throw New InvalidOperationException($"Sales Order {salesOrder.DocumentNumber} is already settled.")
+            End If
+
+            Using tx = _context.Database.BeginTransaction()
+                For Each soLine In salesOrder.Lines
+                    Dim totalFulfilled = _context.SalesInvoiceLines _
+                        .Where(Function(sil) sil.SOLineId.HasValue AndAlso sil.SOLineId.Value = soLine.SOLineId) _
+                        .Sum(Function(sil) sil.FulfilledQty)
+
+                    Dim remainingReserved = Math.Max(0, soLine.OrderedQty - totalFulfilled)
+                    If remainingReserved > 0 Then
+                        _productRepo.ReleaseAllocatedStock(soLine.ProductId, remainingReserved)
+                    End If
+                Next
+
+                salesOrder.Status = "Closed Short"
+                _context.SaveChanges()
+                tx.Commit()
+            End Using
+
+            Return salesOrder
         End Function
 
         ''' <summary>
@@ -311,7 +481,7 @@ Namespace Services
         ''' <param name="amount">Payment received amount.</param>
         ''' <param name="bankAccountId">Bank asset account identifier (defaults to 1020 Operating Bank if 0).</param>
         ''' <param name="receiptDate">Optional receipt event date.</param>
-        ''' <param name="postingDate">Optional statutory posting date (defaults to receipt date or today).</param>
+        ''' <param name="postingDate">Optional statutory posting date (auto-shifts if omitted).</param>
         ''' <returns>The created and posted PaymentReceipt entity.</returns>
         Public Function RecordPaymentReceipt(customerId As Integer, invoiceId As Integer?, amount As Decimal, bankAccountId As Integer, Optional receiptDate As DateTime? = Nothing, Optional postingDate As DateTime? = Nothing) As PaymentReceipt
             If customerId <= 0 Then
@@ -338,7 +508,7 @@ Namespace Services
             End If
 
             Dim effectiveReceiptDate As DateTime = If(receiptDate.HasValue, receiptDate.Value, DateTime.Today)
-            Dim effectivePostingDate As DateTime = If(postingDate.HasValue, postingDate.Value, effectiveReceiptDate)
+            Dim effectivePostingDate As DateTime = If(postingDate.HasValue, postingDate.Value, _periodService.ResolveStatutoryPostingDate(effectiveReceiptDate))
 
             ' Validate statutory posting period
             Dim period = _periodService.ValidatePostingDate(effectivePostingDate)

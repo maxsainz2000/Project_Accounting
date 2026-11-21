@@ -660,6 +660,98 @@ Namespace Domain.Engines
         End Function
 
         ''' <summary>
+        ''' Generates a balanced General Ledger journal entry for clearing stale unbilled GRNI accrual:
+        ''' Debit: 2100 GRNI Clearing (ClearedAmount)
+        ''' Credit: 5100 Purchase Price Variance (ClearedAmount)
+        ''' </summary>
+        Public Shared Function GenerateGRNIAdjustmentJournal(adjustment As GRNIAdjustment, grnLine As GRNLine, Optional accountLookup As Func(Of String, Integer) = Nothing) As JournalEntry
+            If adjustment Is Nothing Then
+                Throw New ArgumentNullException(NameOf(adjustment), "GRNIAdjustment cannot be null.")
+            End If
+            If adjustment.ClearedAmount <= 0D Then
+                Throw New ArgumentOutOfRangeException(NameOf(adjustment), "Cleared amount must be strictly positive.")
+            End If
+            If adjustment.ClearedQty <= 0 Then
+                Throw New ArgumentOutOfRangeException(NameOf(adjustment), "Cleared quantity must be strictly positive.")
+            End If
+
+            Dim grniAccountId As Integer = ResolveAccountId(AccountCodes.GRNIClearing, accountLookup)
+            Dim ppvAccountId As Integer = ResolveAccountId(AccountCodes.PurchasePriceVariance, accountLookup)
+
+            Dim entry As New JournalEntry() With {
+                .SourceDocType = "GRNIAdjustment",
+                .SourceDocId = adjustment.AdjustmentId,
+                .PostingDate = adjustment.PostingDate,
+                .OperationalEventDate = adjustment.AdjustmentDate,
+                .Description = $"GRNI Clearing Adjustment {adjustment.DocumentNumber} - {adjustment.Reason}",
+                .CreatedBy = "System"
+            }
+
+            Dim memoPrefix As String = If(grnLine IsNot Nothing AndAlso grnLine.GoodsReceiptNote IsNot Nothing,
+                                         $"GRN {grnLine.GoodsReceiptNote.DocumentNumber} line {grnLine.GRNLineId}",
+                                         $"GRN line {adjustment.GoodsReceiptLineId}")
+
+            entry.Lines.Add(New JournalEntryLine(grniAccountId, adjustment.ClearedAmount, 0D, $"Clear unbilled GRNI liability - {memoPrefix}") With {
+                .JournalEntry = entry
+            })
+            entry.Lines.Add(New JournalEntryLine(ppvAccountId, 0D, adjustment.ClearedAmount, $"Unbilled GRNI variance write-off - {adjustment.Reason}") With {
+                .JournalEntry = entry
+            })
+
+            ValidateJournalBalance(entry.Lines)
+            Return entry
+        End Function
+
+        ''' <summary>
+        ''' Generates a balanced reversing journal entry for an existing journal entry.
+        ''' Directive 1: Operational journal entries (Sales Invoices, GRNs, Supplier Bills, Credit Notes, etc.)
+        ''' must NEVER be reversed directly in the GL. Throws InvalidOperationException unless SourceDocType is 'Manual' or 'Adjustment'.
+        ''' </summary>
+        Public Shared Function GenerateReversingJournal(originalEntry As JournalEntry, reversalPostingDate As DateTime, Optional reason As String = Nothing) As JournalEntry
+            If originalEntry Is Nothing Then
+                Throw New ArgumentNullException(NameOf(originalEntry), "Original journal entry cannot be null.")
+            End If
+
+            Dim docType As String = If(originalEntry.SourceDocType, String.Empty).Trim()
+            If Not String.Equals(docType, "Manual", StringComparison.OrdinalIgnoreCase) AndAlso
+               Not String.Equals(docType, "Adjustment", StringComparison.OrdinalIgnoreCase) Then
+                Throw New InvalidOperationException(
+                    $"Direct General Ledger reversal is prohibited for operational document type '{originalEntry.SourceDocType}'. " &
+                    "Operational entries (Sales Invoices, GRNs, Supplier Bills, Credit Notes) must be corrected via explicit domain workflow documents to preserve subledger reconciliation.")
+            End If
+
+            If originalEntry.Lines Is Nothing OrElse originalEntry.Lines.Count = 0 Then
+                Throw New ArgumentException("Original journal entry contains no distribution lines to reverse.", NameOf(originalEntry))
+            End If
+
+            Dim memoReason As String = If(String.IsNullOrWhiteSpace(reason), $"Reversal of Entry #{originalEntry.EntryId}", reason.Trim())
+
+            Dim reversalEntry As New JournalEntry() With {
+                .SourceDocType = "Reversal",
+                .SourceDocId = originalEntry.EntryId,
+                .PostingDate = reversalPostingDate,
+                .OperationalEventDate = reversalPostingDate,
+                .PeriodId = originalEntry.PeriodId,
+                .Description = $"Reversal of Entry #{originalEntry.EntryId}: {memoReason}",
+                .CreatedBy = "System"
+            }
+
+            For Each line In originalEntry.Lines
+                reversalEntry.Lines.Add(New JournalEntryLine(
+                    line.AccountId,
+                    line.CreditAmount,
+                    line.DebitAmount,
+                    $"Reversal: {line.LineMemo}"
+                ) With {
+                    .JournalEntry = reversalEntry
+                })
+            Next
+
+            ValidateJournalBalance(reversalEntry.Lines)
+            Return reversalEntry
+        End Function
+
+        ''' <summary>
         ''' Resolves the numeric account ID from an optional lookup delegate, defaulting to the authoritative standard code.
         ''' </summary>
         Private Shared Function ResolveAccountId(defaultCode As Integer, accountLookup As Func(Of String, Integer)) As Integer

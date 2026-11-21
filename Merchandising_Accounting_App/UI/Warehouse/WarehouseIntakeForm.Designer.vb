@@ -77,6 +77,31 @@ Namespace UI.Warehouse
             Me.lblSelectedRMA = New System.Windows.Forms.Label()
             Me.grpRMAJournal = New System.Windows.Forms.GroupBox()
             Me.dgvRMAJournal = New System.Windows.Forms.DataGridView()
+            Me.tabStockAdjustments = New System.Windows.Forms.TabPage()
+            Me.pnlAdjMain = New System.Windows.Forms.Panel()
+            Me.splitStockAdjustments = New System.Windows.Forms.SplitContainer()
+            Me.grpAdjustmentEntry = New System.Windows.Forms.GroupBox()
+            Me.lblAdjProduct = New System.Windows.Forms.Label()
+            Me.cmbAdjProduct = New System.Windows.Forms.ComboBox()
+            Me.lblAdjOnHand = New System.Windows.Forms.Label()
+            Me.lblAdjUnitCost = New System.Windows.Forms.Label()
+            Me.lblAdjReason = New System.Windows.Forms.Label()
+            Me.cmbAdjReason = New System.Windows.Forms.ComboBox()
+            Me.lblAdjVariance = New System.Windows.Forms.Label()
+            Me.numAdjVariance = New System.Windows.Forms.NumericUpDown()
+            Me.lblAdjNotes = New System.Windows.Forms.Label()
+            Me.txtAdjNotes = New System.Windows.Forms.TextBox()
+            Me.btnAddAdjLine = New System.Windows.Forms.Button()
+            Me.btnClearAdjLines = New System.Windows.Forms.Button()
+            Me.grpAdjLines = New System.Windows.Forms.GroupBox()
+            Me.dgvAdjLines = New System.Windows.Forms.DataGridView()
+            Me.pnlAdjLineButtons = New System.Windows.Forms.Panel()
+            Me.btnRemoveAdjLine = New System.Windows.Forms.Button()
+            Me.grpAdjJournal = New System.Windows.Forms.GroupBox()
+            Me.ctrlAdjJournal = New Merchandising_Accounting_App.UI.Controls.DoubleEntryDistributionGridControl()
+            Me.pnlAdjSubmit = New System.Windows.Forms.Panel()
+            Me.lblAdjStatus = New System.Windows.Forms.Label()
+            Me.btnSubmitAdjustment = New System.Windows.Forms.Button()
             Me.pnlHeader.SuspendLayout()
             Me.tabMain.SuspendLayout()
             Me.tabDockReceiving.SuspendLayout()
@@ -111,6 +136,19 @@ Namespace UI.Warehouse
             CType(Me.numRestockQty, System.ComponentModel.ISupportInitialize).BeginInit()
             Me.grpRMAJournal.SuspendLayout()
             CType(Me.dgvRMAJournal, System.ComponentModel.ISupportInitialize).BeginInit()
+            Me.tabStockAdjustments.SuspendLayout()
+            Me.pnlAdjMain.SuspendLayout()
+            CType(Me.splitStockAdjustments, System.ComponentModel.ISupportInitialize).BeginInit()
+            Me.splitStockAdjustments.Panel1.SuspendLayout()
+            Me.splitStockAdjustments.Panel2.SuspendLayout()
+            Me.splitStockAdjustments.SuspendLayout()
+            Me.grpAdjustmentEntry.SuspendLayout()
+            CType(Me.numAdjVariance, System.ComponentModel.ISupportInitialize).BeginInit()
+            Me.grpAdjLines.SuspendLayout()
+            CType(Me.dgvAdjLines, System.ComponentModel.ISupportInitialize).BeginInit()
+            Me.pnlAdjLineButtons.SuspendLayout()
+            Me.grpAdjJournal.SuspendLayout()
+            Me.pnlAdjSubmit.SuspendLayout()
             Me.SuspendLayout()
             '
             'pnlHeader
@@ -153,6 +191,7 @@ Namespace UI.Warehouse
             '
             Me.tabMain.Controls.Add(Me.tabDockReceiving)
             Me.tabMain.Controls.Add(Me.tabQuarantine)
+            Me.tabMain.Controls.Add(Me.tabStockAdjustments)
             Me.tabMain.Dock = System.Windows.Forms.DockStyle.Fill
             Me.tabMain.Location = New System.Drawing.Point(0, 0)
             Me.tabMain.Name = "tabMain"
@@ -716,6 +755,289 @@ Namespace UI.Warehouse
             Me.dgvRMAJournal.Size = New System.Drawing.Size(602, 175)
             Me.dgvRMAJournal.TabIndex = 0
             '
+            'tabStockAdjustments
+            '
+            Me.tabStockAdjustments.BackColor = System.Drawing.Color.FromArgb(CType(CType(248, Byte), Integer), CType(CType(249, Byte), Integer), CType(CType(250, Byte), Integer))
+            Me.tabStockAdjustments.Controls.Add(Me.pnlAdjMain)
+            Me.tabStockAdjustments.Location = New System.Drawing.Point(4, 30)
+            Me.tabStockAdjustments.Name = "tabStockAdjustments"
+            Me.tabStockAdjustments.Padding = New System.Windows.Forms.Padding(12)
+            Me.tabStockAdjustments.Size = New System.Drawing.Size(1016, 576)
+            Me.tabStockAdjustments.TabIndex = 2
+            Me.tabStockAdjustments.Text = "Stock Adjustments & Cycle Count"
+            '
+            'pnlAdjMain
+            '
+            Me.pnlAdjMain.Controls.Add(Me.splitStockAdjustments)
+            Me.pnlAdjMain.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.pnlAdjMain.Location = New System.Drawing.Point(12, 12)
+            Me.pnlAdjMain.Name = "pnlAdjMain"
+            Me.pnlAdjMain.Size = New System.Drawing.Size(992, 552)
+            Me.pnlAdjMain.TabIndex = 0
+            '
+            'splitStockAdjustments
+            '
+            Me.splitStockAdjustments.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.splitStockAdjustments.Location = New System.Drawing.Point(0, 0)
+            Me.splitStockAdjustments.Name = "splitStockAdjustments"
+            Me.splitStockAdjustments.Orientation = System.Windows.Forms.Orientation.Horizontal
+            '
+            'splitStockAdjustments.Panel1
+            '
+            Me.splitStockAdjustments.Panel1.Controls.Add(Me.grpAdjLines)
+            Me.splitStockAdjustments.Panel1.Controls.Add(Me.grpAdjustmentEntry)
+            '
+            'splitStockAdjustments.Panel2
+            '
+            Me.splitStockAdjustments.Panel2.Controls.Add(Me.grpAdjJournal)
+            Me.splitStockAdjustments.Size = New System.Drawing.Size(992, 552)
+            Me.splitStockAdjustments.SplitterDistance = 320
+            Me.splitStockAdjustments.TabIndex = 0
+            '
+            'grpAdjustmentEntry
+            '
+            Me.grpAdjustmentEntry.Controls.Add(Me.btnClearAdjLines)
+            Me.grpAdjustmentEntry.Controls.Add(Me.btnAddAdjLine)
+            Me.grpAdjustmentEntry.Controls.Add(Me.txtAdjNotes)
+            Me.grpAdjustmentEntry.Controls.Add(Me.lblAdjNotes)
+            Me.grpAdjustmentEntry.Controls.Add(Me.numAdjVariance)
+            Me.grpAdjustmentEntry.Controls.Add(Me.lblAdjVariance)
+            Me.grpAdjustmentEntry.Controls.Add(Me.cmbAdjReason)
+            Me.grpAdjustmentEntry.Controls.Add(Me.lblAdjReason)
+            Me.grpAdjustmentEntry.Controls.Add(Me.lblAdjUnitCost)
+            Me.grpAdjustmentEntry.Controls.Add(Me.lblAdjOnHand)
+            Me.grpAdjustmentEntry.Controls.Add(Me.cmbAdjProduct)
+            Me.grpAdjustmentEntry.Controls.Add(Me.lblAdjProduct)
+            Me.grpAdjustmentEntry.Dock = System.Windows.Forms.DockStyle.Left
+            Me.grpAdjustmentEntry.Location = New System.Drawing.Point(0, 0)
+            Me.grpAdjustmentEntry.Name = "grpAdjustmentEntry"
+            Me.grpAdjustmentEntry.Padding = New System.Windows.Forms.Padding(12, 24, 12, 12)
+            Me.grpAdjustmentEntry.Size = New System.Drawing.Size(330, 320)
+            Me.grpAdjustmentEntry.TabIndex = 0
+            Me.grpAdjustmentEntry.TabStop = False
+            Me.grpAdjustmentEntry.Text = "1. Physical Count & Adjustment Input"
+            '
+            'lblAdjProduct
+            '
+            Me.lblAdjProduct.AutoSize = True
+            Me.lblAdjProduct.Location = New System.Drawing.Point(12, 24)
+            Me.lblAdjProduct.Name = "lblAdjProduct"
+            Me.lblAdjProduct.Size = New System.Drawing.Size(142, 20)
+            Me.lblAdjProduct.TabIndex = 0
+            Me.lblAdjProduct.Text = "Select Product (SKU):"
+            '
+            'cmbAdjProduct
+            '
+            Me.cmbAdjProduct.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList
+            Me.cmbAdjProduct.FormattingEnabled = True
+            Me.cmbAdjProduct.Location = New System.Drawing.Point(12, 46)
+            Me.cmbAdjProduct.Name = "cmbAdjProduct"
+            Me.cmbAdjProduct.Size = New System.Drawing.Size(305, 28)
+            Me.cmbAdjProduct.TabIndex = 1
+            '
+            'lblAdjOnHand
+            '
+            Me.lblAdjOnHand.AutoSize = True
+            Me.lblAdjOnHand.Font = New System.Drawing.Font("Segoe UI", 9.0!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+            Me.lblAdjOnHand.ForeColor = System.Drawing.Color.FromArgb(CType(CType(13, Byte), Integer), CType(CType(110, Byte), Integer), CType(CType(253, Byte), Integer))
+            Me.lblAdjOnHand.Location = New System.Drawing.Point(12, 78)
+            Me.lblAdjOnHand.Name = "lblAdjOnHand"
+            Me.lblAdjOnHand.Size = New System.Drawing.Size(116, 20)
+            Me.lblAdjOnHand.TabIndex = 2
+            Me.lblAdjOnHand.Text = "On Hand: 0 Units"
+            '
+            'lblAdjUnitCost
+            '
+            Me.lblAdjUnitCost.AutoSize = True
+            Me.lblAdjUnitCost.ForeColor = System.Drawing.Color.FromArgb(CType(CType(108, Byte), Integer), CType(CType(117, Byte), Integer), CType(CType(125, Byte), Integer))
+            Me.lblAdjUnitCost.Location = New System.Drawing.Point(170, 78)
+            Me.lblAdjUnitCost.Name = "lblAdjUnitCost"
+            Me.lblAdjUnitCost.Size = New System.Drawing.Size(118, 20)
+            Me.lblAdjUnitCost.TabIndex = 3
+            Me.lblAdjUnitCost.Text = "Unit Cost: $0.00"
+            '
+            'lblAdjReason
+            '
+            Me.lblAdjReason.AutoSize = True
+            Me.lblAdjReason.Location = New System.Drawing.Point(12, 105)
+            Me.lblAdjReason.Name = "lblAdjReason"
+            Me.lblAdjReason.Size = New System.Drawing.Size(123, 20)
+            Me.lblAdjReason.TabIndex = 4
+            Me.lblAdjReason.Text = "Adjustment Reason:"
+            '
+            'cmbAdjReason
+            '
+            Me.cmbAdjReason.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList
+            Me.cmbAdjReason.FormattingEnabled = True
+            Me.cmbAdjReason.Location = New System.Drawing.Point(12, 127)
+            Me.cmbAdjReason.Name = "cmbAdjReason"
+            Me.cmbAdjReason.Size = New System.Drawing.Size(305, 28)
+            Me.cmbAdjReason.TabIndex = 5
+            '
+            'lblAdjVariance
+            '
+            Me.lblAdjVariance.AutoSize = True
+            Me.lblAdjVariance.Location = New System.Drawing.Point(12, 160)
+            Me.lblAdjVariance.Name = "lblAdjVariance"
+            Me.lblAdjVariance.Size = New System.Drawing.Size(193, 20)
+            Me.lblAdjVariance.TabIndex = 6
+            Me.lblAdjVariance.Text = "Count Variance (+/- Qty):"
+            '
+            'numAdjVariance
+            '
+            Me.numAdjVariance.Location = New System.Drawing.Point(12, 182)
+            Me.numAdjVariance.Maximum = New Decimal(New Integer() {99999, 0, 0, 0})
+            Me.numAdjVariance.Minimum = New Decimal(New Integer() {99999, 0, 0, -2147483648})
+            Me.numAdjVariance.Name = "numAdjVariance"
+            Me.numAdjVariance.Size = New System.Drawing.Size(145, 27)
+            Me.numAdjVariance.TabIndex = 7
+            Me.numAdjVariance.TextAlign = System.Windows.Forms.HorizontalAlignment.Right
+            '
+            'lblAdjNotes
+            '
+            Me.lblAdjNotes.AutoSize = True
+            Me.lblAdjNotes.Location = New System.Drawing.Point(12, 215)
+            Me.lblAdjNotes.Name = "lblAdjNotes"
+            Me.lblAdjNotes.Size = New System.Drawing.Size(142, 20)
+            Me.lblAdjNotes.TabIndex = 8
+            Me.lblAdjNotes.Text = "Notes / Reason Detail:"
+            '
+            'txtAdjNotes
+            '
+            Me.txtAdjNotes.Location = New System.Drawing.Point(12, 237)
+            Me.txtAdjNotes.Name = "txtAdjNotes"
+            Me.txtAdjNotes.Size = New System.Drawing.Size(305, 27)
+            Me.txtAdjNotes.TabIndex = 9
+            '
+            'btnAddAdjLine
+            '
+            Me.btnAddAdjLine.BackColor = System.Drawing.Color.FromArgb(CType(CType(13, Byte), Integer), CType(CType(110, Byte), Integer), CType(CType(253, Byte), Integer))
+            Me.btnAddAdjLine.FlatStyle = System.Windows.Forms.FlatStyle.Flat
+            Me.btnAddAdjLine.ForeColor = System.Drawing.Color.White
+            Me.btnAddAdjLine.Location = New System.Drawing.Point(12, 272)
+            Me.btnAddAdjLine.Name = "btnAddAdjLine"
+            Me.btnAddAdjLine.Size = New System.Drawing.Size(145, 34)
+            Me.btnAddAdjLine.TabIndex = 10
+            Me.btnAddAdjLine.Text = "+ Add Line"
+            Me.btnAddAdjLine.UseVisualStyleBackColor = False
+            '
+            'btnClearAdjLines
+            '
+            Me.btnClearAdjLines.FlatStyle = System.Windows.Forms.FlatStyle.Flat
+            Me.btnClearAdjLines.Location = New System.Drawing.Point(170, 272)
+            Me.btnClearAdjLines.Name = "btnClearAdjLines"
+            Me.btnClearAdjLines.Size = New System.Drawing.Size(145, 34)
+            Me.btnClearAdjLines.TabIndex = 11
+            Me.btnClearAdjLines.Text = "Clear All"
+            Me.btnClearAdjLines.UseVisualStyleBackColor = True
+            '
+            'grpAdjLines
+            '
+            Me.grpAdjLines.Controls.Add(Me.dgvAdjLines)
+            Me.grpAdjLines.Controls.Add(Me.pnlAdjLineButtons)
+            Me.grpAdjLines.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.grpAdjLines.Location = New System.Drawing.Point(330, 0)
+            Me.grpAdjLines.Name = "grpAdjLines"
+            Me.grpAdjLines.Padding = New System.Windows.Forms.Padding(8, 24, 8, 8)
+            Me.grpAdjLines.Size = New System.Drawing.Size(662, 320)
+            Me.grpAdjLines.TabIndex = 1
+            Me.grpAdjLines.TabStop = False
+            Me.grpAdjLines.Text = "2. Pending Stock Adjustment Lines"
+            '
+            'dgvAdjLines
+            '
+            Me.dgvAdjLines.AllowUserToAddRows = False
+            Me.dgvAdjLines.AllowUserToDeleteRows = False
+            Me.dgvAdjLines.BackgroundColor = System.Drawing.Color.White
+            Me.dgvAdjLines.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize
+            Me.dgvAdjLines.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.dgvAdjLines.Location = New System.Drawing.Point(8, 24)
+            Me.dgvAdjLines.MultiSelect = False
+            Me.dgvAdjLines.Name = "dgvAdjLines"
+            Me.dgvAdjLines.ReadOnly = True
+            Me.dgvAdjLines.RowHeadersVisible = False
+            Me.dgvAdjLines.RowHeadersWidth = 51
+            Me.dgvAdjLines.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect
+            Me.dgvAdjLines.Size = New System.Drawing.Size(646, 252)
+            Me.dgvAdjLines.TabIndex = 0
+            '
+            'pnlAdjLineButtons
+            '
+            Me.pnlAdjLineButtons.Controls.Add(Me.btnRemoveAdjLine)
+            Me.pnlAdjLineButtons.Dock = System.Windows.Forms.DockStyle.Bottom
+            Me.pnlAdjLineButtons.Location = New System.Drawing.Point(8, 276)
+            Me.pnlAdjLineButtons.Name = "pnlAdjLineButtons"
+            Me.pnlAdjLineButtons.Size = New System.Drawing.Size(646, 36)
+            Me.pnlAdjLineButtons.TabIndex = 1
+            '
+            'btnRemoveAdjLine
+            '
+            Me.btnRemoveAdjLine.Dock = System.Windows.Forms.DockStyle.Right
+            Me.btnRemoveAdjLine.FlatStyle = System.Windows.Forms.FlatStyle.Flat
+            Me.btnRemoveAdjLine.Location = New System.Drawing.Point(506, 0)
+            Me.btnRemoveAdjLine.Name = "btnRemoveAdjLine"
+            Me.btnRemoveAdjLine.Size = New System.Drawing.Size(140, 36)
+            Me.btnRemoveAdjLine.TabIndex = 0
+            Me.btnRemoveAdjLine.Text = "Remove Line"
+            Me.btnRemoveAdjLine.UseVisualStyleBackColor = True
+            '
+            'grpAdjJournal
+            '
+            Me.grpAdjJournal.Controls.Add(Me.ctrlAdjJournal)
+            Me.grpAdjJournal.Controls.Add(Me.pnlAdjSubmit)
+            Me.grpAdjJournal.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.grpAdjJournal.Location = New System.Drawing.Point(0, 0)
+            Me.grpAdjJournal.Name = "grpAdjJournal"
+            Me.grpAdjJournal.Padding = New System.Windows.Forms.Padding(8, 24, 8, 8)
+            Me.grpAdjJournal.Size = New System.Drawing.Size(992, 228)
+            Me.grpAdjJournal.TabIndex = 0
+            Me.grpAdjJournal.TabStop = False
+            Me.grpAdjJournal.Text = "3. Live Double-Entry General Ledger Impact Preview"
+            '
+            'ctrlAdjJournal
+            '
+            Me.ctrlAdjJournal.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.ctrlAdjJournal.Location = New System.Drawing.Point(8, 24)
+            Me.ctrlAdjJournal.Name = "ctrlAdjJournal"
+            Me.ctrlAdjJournal.Size = New System.Drawing.Size(976, 150)
+            Me.ctrlAdjJournal.TabIndex = 0
+            '
+            'pnlAdjSubmit
+            '
+            Me.pnlAdjSubmit.Controls.Add(Me.lblAdjStatus)
+            Me.pnlAdjSubmit.Controls.Add(Me.btnSubmitAdjustment)
+            Me.pnlAdjSubmit.Dock = System.Windows.Forms.DockStyle.Bottom
+            Me.pnlAdjSubmit.Location = New System.Drawing.Point(8, 174)
+            Me.pnlAdjSubmit.Name = "pnlAdjSubmit"
+            Me.pnlAdjSubmit.Padding = New System.Windows.Forms.Padding(0, 4, 0, 0)
+            Me.pnlAdjSubmit.Size = New System.Drawing.Size(976, 46)
+            Me.pnlAdjSubmit.TabIndex = 1
+            '
+            'lblAdjStatus
+            '
+            Me.lblAdjStatus.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.lblAdjStatus.ForeColor = System.Drawing.Color.FromArgb(CType(CType(108, Byte), Integer), CType(CType(117, Byte), Integer), CType(CType(125, Byte), Integer))
+            Me.lblAdjStatus.Location = New System.Drawing.Point(0, 4)
+            Me.lblAdjStatus.Name = "lblAdjStatus"
+            Me.lblAdjStatus.Size = New System.Drawing.Size(656, 42)
+            Me.lblAdjStatus.TabIndex = 0
+            Me.lblAdjStatus.Text = "Add items above to preview double-entry postings."
+            Me.lblAdjStatus.TextAlign = System.Drawing.ContentAlignment.MiddleLeft
+            '
+            'btnSubmitAdjustment
+            '
+            Me.btnSubmitAdjustment.BackColor = System.Drawing.Color.FromArgb(CType(CType(25, Byte), Integer), CType(CType(135, Byte), Integer), CType(CType(84, Byte), Integer))
+            Me.btnSubmitAdjustment.Dock = System.Windows.Forms.DockStyle.Right
+            Me.btnSubmitAdjustment.FlatStyle = System.Windows.Forms.FlatStyle.Flat
+            Me.btnSubmitAdjustment.Font = New System.Drawing.Font("Segoe UI", 9.5!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+            Me.btnSubmitAdjustment.ForeColor = System.Drawing.Color.White
+            Me.btnSubmitAdjustment.Location = New System.Drawing.Point(656, 4)
+            Me.btnSubmitAdjustment.Name = "btnSubmitAdjustment"
+            Me.btnSubmitAdjustment.Size = New System.Drawing.Size(320, 42)
+            Me.btnSubmitAdjustment.TabIndex = 1
+            Me.btnSubmitAdjustment.Text = "Post Adjustment & Update Ledger"
+            Me.btnSubmitAdjustment.UseVisualStyleBackColor = False
+            '
             'WarehouseIntakeForm
             '
             Me.AutoScaleDimensions = New System.Drawing.SizeF(7.0!, 17.0!)
@@ -764,6 +1086,20 @@ Namespace UI.Warehouse
             CType(Me.numRestockQty, System.ComponentModel.ISupportInitialize).EndInit()
             Me.grpRMAJournal.ResumeLayout(False)
             CType(Me.dgvRMAJournal, System.ComponentModel.ISupportInitialize).EndInit()
+            Me.tabStockAdjustments.ResumeLayout(False)
+            Me.pnlAdjMain.ResumeLayout(False)
+            Me.splitStockAdjustments.Panel1.ResumeLayout(False)
+            Me.splitStockAdjustments.Panel2.ResumeLayout(False)
+            CType(Me.splitStockAdjustments, System.ComponentModel.ISupportInitialize).EndInit()
+            Me.splitStockAdjustments.ResumeLayout(False)
+            Me.grpAdjustmentEntry.ResumeLayout(False)
+            Me.grpAdjustmentEntry.PerformLayout()
+            CType(Me.numAdjVariance, System.ComponentModel.ISupportInitialize).EndInit()
+            Me.grpAdjLines.ResumeLayout(False)
+            CType(Me.dgvAdjLines, System.ComponentModel.ISupportInitialize).EndInit()
+            Me.pnlAdjLineButtons.ResumeLayout(False)
+            Me.grpAdjJournal.ResumeLayout(False)
+            Me.pnlAdjSubmit.ResumeLayout(False)
             Me.ResumeLayout(False)
 
         End Sub
@@ -774,6 +1110,31 @@ Namespace UI.Warehouse
         Friend WithEvents tabMain As System.Windows.Forms.TabControl
         Friend WithEvents tabDockReceiving As System.Windows.Forms.TabPage
         Friend WithEvents tabQuarantine As System.Windows.Forms.TabPage
+        Friend WithEvents tabStockAdjustments As System.Windows.Forms.TabPage
+        Friend WithEvents pnlAdjMain As System.Windows.Forms.Panel
+        Friend WithEvents splitStockAdjustments As System.Windows.Forms.SplitContainer
+        Friend WithEvents grpAdjustmentEntry As System.Windows.Forms.GroupBox
+        Friend WithEvents lblAdjProduct As System.Windows.Forms.Label
+        Friend WithEvents cmbAdjProduct As System.Windows.Forms.ComboBox
+        Friend WithEvents lblAdjOnHand As System.Windows.Forms.Label
+        Friend WithEvents lblAdjUnitCost As System.Windows.Forms.Label
+        Friend WithEvents lblAdjReason As System.Windows.Forms.Label
+        Friend WithEvents cmbAdjReason As System.Windows.Forms.ComboBox
+        Friend WithEvents lblAdjVariance As System.Windows.Forms.Label
+        Friend WithEvents numAdjVariance As System.Windows.Forms.NumericUpDown
+        Friend WithEvents lblAdjNotes As System.Windows.Forms.Label
+        Friend WithEvents txtAdjNotes As System.Windows.Forms.TextBox
+        Friend WithEvents btnAddAdjLine As System.Windows.Forms.Button
+        Friend WithEvents btnClearAdjLines As System.Windows.Forms.Button
+        Friend WithEvents grpAdjLines As System.Windows.Forms.GroupBox
+        Friend WithEvents dgvAdjLines As System.Windows.Forms.DataGridView
+        Friend WithEvents pnlAdjLineButtons As System.Windows.Forms.Panel
+        Friend WithEvents btnRemoveAdjLine As System.Windows.Forms.Button
+        Friend WithEvents grpAdjJournal As System.Windows.Forms.GroupBox
+        Friend WithEvents ctrlAdjJournal As Merchandising_Accounting_App.UI.Controls.DoubleEntryDistributionGridControl
+        Friend WithEvents pnlAdjSubmit As System.Windows.Forms.Panel
+        Friend WithEvents lblAdjStatus As System.Windows.Forms.Label
+        Friend WithEvents btnSubmitAdjustment As System.Windows.Forms.Button
         Friend WithEvents pnlDockMain As System.Windows.Forms.Panel
         Friend WithEvents splitDock As System.Windows.Forms.SplitContainer
         Friend WithEvents grpOpenPOs As System.Windows.Forms.GroupBox

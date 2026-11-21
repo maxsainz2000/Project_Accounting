@@ -28,23 +28,23 @@ Namespace UI.Purchasing
         Private Sub SetupThreeWayMatchGrid()
             dgvThreeWayMatch.Columns.Clear()
             dgvThreeWayMatch.AutoGenerateColumns = False
-            dgvThreeWayMatch.ScrollBars = ScrollBars.Both
+            dgvThreeWayMatch.ScrollBars = ScrollBars.Vertical
             dgvThreeWayMatch.ColumnHeadersDefaultCellStyle.WrapMode = DataGridViewTriState.True
             dgvThreeWayMatch.ColumnHeadersHeight = 36
 
-            dgvThreeWayMatch.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "Match Status", .DataPropertyName = "MatchStatus", .AutoSizeMode = DataGridViewAutoSizeColumnMode.None, .Width = 130, .MinimumWidth = 120})
-            dgvThreeWayMatch.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "Vendor", .DataPropertyName = "VendorName", .AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill, .FillWeight = 160.0!, .MinimumWidth = 180})
-            dgvThreeWayMatch.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "PO #", .DataPropertyName = "PONumber", .AutoSizeMode = DataGridViewAutoSizeColumnMode.None, .Width = 110, .MinimumWidth = 105})
-            dgvThreeWayMatch.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "PO Qty", .DataPropertyName = "POQty", .AutoSizeMode = DataGridViewAutoSizeColumnMode.None, .DefaultCellStyle = New DataGridViewCellStyle() With {.Alignment = DataGridViewContentAlignment.MiddleRight}, .Width = 70, .MinimumWidth = 65})
-            dgvThreeWayMatch.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "PO Price", .DataPropertyName = "POUnitPrice", .AutoSizeMode = DataGridViewAutoSizeColumnMode.None, .DefaultCellStyle = New DataGridViewCellStyle() With {.Format = "C2", .Alignment = DataGridViewContentAlignment.MiddleRight}, .Width = 85, .MinimumWidth = 80})
-            dgvThreeWayMatch.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "GRN #", .DataPropertyName = "GRNNumber", .AutoSizeMode = DataGridViewAutoSizeColumnMode.None, .Width = 120, .MinimumWidth = 115})
-            dgvThreeWayMatch.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "GRN Qty", .DataPropertyName = "GRNQty", .AutoSizeMode = DataGridViewAutoSizeColumnMode.None, .DefaultCellStyle = New DataGridViewCellStyle() With {.Alignment = DataGridViewContentAlignment.MiddleRight}, .Width = 70, .MinimumWidth = 65})
-            dgvThreeWayMatch.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "Bill #", .DataPropertyName = "BillNumber", .AutoSizeMode = DataGridViewAutoSizeColumnMode.None, .Width = 120, .MinimumWidth = 115})
-            dgvThreeWayMatch.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "Bill Qty", .DataPropertyName = "BillQty", .AutoSizeMode = DataGridViewAutoSizeColumnMode.None, .DefaultCellStyle = New DataGridViewCellStyle() With {.Alignment = DataGridViewContentAlignment.MiddleRight}, .Width = 70, .MinimumWidth = 65})
-            dgvThreeWayMatch.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "Billed Price", .DataPropertyName = "BilledUnitPrice", .AutoSizeMode = DataGridViewAutoSizeColumnMode.None, .DefaultCellStyle = New DataGridViewCellStyle() With {.Format = "C2", .Alignment = DataGridViewContentAlignment.MiddleRight}, .Width = 85, .MinimumWidth = 80})
-            dgvThreeWayMatch.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "Freight ($)", .DataPropertyName = "InboundFreight", .AutoSizeMode = DataGridViewAutoSizeColumnMode.None, .DefaultCellStyle = New DataGridViewCellStyle() With {.Format = "C2", .Alignment = DataGridViewContentAlignment.MiddleRight}, .Width = 85, .MinimumWidth = 80})
-            dgvThreeWayMatch.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "PPV ($)", .DataPropertyName = "PurchasePriceVariance", .AutoSizeMode = DataGridViewAutoSizeColumnMode.None, .DefaultCellStyle = New DataGridViewCellStyle() With {.Format = "C2", .Alignment = DataGridViewContentAlignment.MiddleRight}, .Width = 80, .MinimumWidth = 75})
-            dgvThreeWayMatch.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "Net Payable ($)", .DataPropertyName = "NetTotalPayable", .AutoSizeMode = DataGridViewAutoSizeColumnMode.None, .DefaultCellStyle = New DataGridViewCellStyle() With {.Format = "C2", .Alignment = DataGridViewContentAlignment.MiddleRight}, .Width = 110, .MinimumWidth = 100})
+            dgvThreeWayMatch.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "Match Status", .DataPropertyName = "MatchStatus", .AutoSizeMode = DataGridViewAutoSizeColumnMode.None, .Width = 95, .MinimumWidth = 85})
+            dgvThreeWayMatch.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "Vendor", .DataPropertyName = "VendorName", .AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill, .FillWeight = 140.0!, .MinimumWidth = 110})
+            dgvThreeWayMatch.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "PO #", .DataPropertyName = "PONumber", .AutoSizeMode = DataGridViewAutoSizeColumnMode.None, .Width = 75, .MinimumWidth = 70})
+            dgvThreeWayMatch.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "PO Qty", .DataPropertyName = "POQty", .AutoSizeMode = DataGridViewAutoSizeColumnMode.None, .DefaultCellStyle = New DataGridViewCellStyle() With {.Alignment = DataGridViewContentAlignment.MiddleRight}, .Width = 55, .MinimumWidth = 50})
+            dgvThreeWayMatch.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "PO Price", .DataPropertyName = "POUnitPrice", .AutoSizeMode = DataGridViewAutoSizeColumnMode.None, .DefaultCellStyle = New DataGridViewCellStyle() With {.Format = "C2", .Alignment = DataGridViewContentAlignment.MiddleRight}, .Width = 65, .MinimumWidth = 60})
+            dgvThreeWayMatch.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "GRN #", .DataPropertyName = "GRNNumber", .AutoSizeMode = DataGridViewAutoSizeColumnMode.None, .Width = 75, .MinimumWidth = 70})
+            dgvThreeWayMatch.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "GRN Qty", .DataPropertyName = "GRNQty", .AutoSizeMode = DataGridViewAutoSizeColumnMode.None, .DefaultCellStyle = New DataGridViewCellStyle() With {.Alignment = DataGridViewContentAlignment.MiddleRight}, .Width = 55, .MinimumWidth = 50})
+            dgvThreeWayMatch.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "Bill #", .DataPropertyName = "BillNumber", .AutoSizeMode = DataGridViewAutoSizeColumnMode.None, .Width = 75, .MinimumWidth = 70})
+            dgvThreeWayMatch.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "Bill Qty", .DataPropertyName = "BillQty", .AutoSizeMode = DataGridViewAutoSizeColumnMode.None, .DefaultCellStyle = New DataGridViewCellStyle() With {.Alignment = DataGridViewContentAlignment.MiddleRight}, .Width = 55, .MinimumWidth = 50})
+            dgvThreeWayMatch.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "Billed Price", .DataPropertyName = "BilledUnitPrice", .AutoSizeMode = DataGridViewAutoSizeColumnMode.None, .DefaultCellStyle = New DataGridViewCellStyle() With {.Format = "C2", .Alignment = DataGridViewContentAlignment.MiddleRight}, .Width = 68, .MinimumWidth = 60})
+            dgvThreeWayMatch.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "Freight ($)", .DataPropertyName = "InboundFreight", .AutoSizeMode = DataGridViewAutoSizeColumnMode.None, .DefaultCellStyle = New DataGridViewCellStyle() With {.Format = "C2", .Alignment = DataGridViewContentAlignment.MiddleRight}, .Width = 60, .MinimumWidth = 55})
+            dgvThreeWayMatch.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "PPV ($)", .DataPropertyName = "PurchasePriceVariance", .AutoSizeMode = DataGridViewAutoSizeColumnMode.None, .DefaultCellStyle = New DataGridViewCellStyle() With {.Format = "C2", .Alignment = DataGridViewContentAlignment.MiddleRight}, .Width = 60, .MinimumWidth = 55})
+            dgvThreeWayMatch.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "Net Payable", .DataPropertyName = "NetTotalPayable", .AutoSizeMode = DataGridViewAutoSizeColumnMode.None, .DefaultCellStyle = New DataGridViewCellStyle() With {.Format = "C2", .Alignment = DataGridViewContentAlignment.MiddleRight}, .Width = 82, .MinimumWidth = 75})
 
             For Each col As DataGridViewColumn In dgvThreeWayMatch.Columns
                 col.SortMode = DataGridViewColumnSortMode.NotSortable
@@ -52,133 +52,150 @@ Namespace UI.Purchasing
         End Sub
 
         Private Sub tabPurchasing_SelectedIndexChanged(sender As Object, e As EventArgs) Handles tabPurchasing.SelectedIndexChanged
-            If tabPurchasing.SelectedTab Is tabPurchaseOrders Then
-                dgvPurchaseOrders.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.AllCellsExceptHeader)
-                dgvPurchasingPOLines.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.AllCellsExceptHeader)
-            ElseIf tabPurchasing.SelectedTab Is tabGRNList Then
-                dgvGRNs.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.AllCellsExceptHeader)
-            ElseIf tabPurchasing.SelectedTab Is tabThreeWayMatch Then
-                dgvThreeWayMatch.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.None)
-            End If
+            ' Invariant: Avoid blind AutoResizeColumns across all cells to prevent triggering horizontal scrollbars at 1280x720
         End Sub
 
         Private Sub SetupThreeWayJournalGrid()
             dgvThreeWayJournal.Columns.Clear()
             dgvThreeWayJournal.AutoGenerateColumns = False
-            dgvThreeWayJournal.ScrollBars = ScrollBars.Both
+            dgvThreeWayJournal.ScrollBars = ScrollBars.Vertical
 
-            dgvThreeWayJournal.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "Bill Doc #", .AutoSizeMode = DataGridViewAutoSizeColumnMode.None, .Width = 145, .MinimumWidth = 135})
-            dgvThreeWayJournal.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "Posting Date", .AutoSizeMode = DataGridViewAutoSizeColumnMode.None, .Width = 90, .MinimumWidth = 85, .DefaultCellStyle = New DataGridViewCellStyle() With {.Alignment = DataGridViewContentAlignment.MiddleCenter}})
-            dgvThreeWayJournal.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "Account", .AutoSizeMode = DataGridViewAutoSizeColumnMode.None, .Width = 95, .MinimumWidth = 85, .DefaultCellStyle = New DataGridViewCellStyle() With {.Alignment = DataGridViewContentAlignment.MiddleCenter}})
-            dgvThreeWayJournal.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "Account Name", .AutoSizeMode = DataGridViewAutoSizeColumnMode.None, .Width = 240, .MinimumWidth = 180})
+            dgvThreeWayJournal.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "Bill Doc #", .AutoSizeMode = DataGridViewAutoSizeColumnMode.None, .Width = 120, .MinimumWidth = 110})
+            dgvThreeWayJournal.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "Posting Date", .AutoSizeMode = DataGridViewAutoSizeColumnMode.None, .Width = 80, .MinimumWidth = 75, .DefaultCellStyle = New DataGridViewCellStyle() With {.Alignment = DataGridViewContentAlignment.MiddleCenter}})
+            dgvThreeWayJournal.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "Account", .AutoSizeMode = DataGridViewAutoSizeColumnMode.None, .Width = 70, .MinimumWidth = 65, .DefaultCellStyle = New DataGridViewCellStyle() With {.Alignment = DataGridViewContentAlignment.MiddleCenter}})
+            dgvThreeWayJournal.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "Account Name", .AutoSizeMode = DataGridViewAutoSizeColumnMode.None, .Width = 160, .MinimumWidth = 140})
             dgvThreeWayJournal.Columns.Add(New DataGridViewTextBoxColumn() With {
                 .HeaderText = "Debit ($)",
                 .AutoSizeMode = DataGridViewAutoSizeColumnMode.None,
                 .DefaultCellStyle = New DataGridViewCellStyle() With {.Format = "C2", .Alignment = DataGridViewContentAlignment.MiddleRight},
-                .Width = 95,
-                .MinimumWidth = 90
+                .Width = 80,
+                .MinimumWidth = 75
             })
             dgvThreeWayJournal.Columns.Add(New DataGridViewTextBoxColumn() With {
                 .HeaderText = "Credit ($)",
                 .AutoSizeMode = DataGridViewAutoSizeColumnMode.None,
                 .DefaultCellStyle = New DataGridViewCellStyle() With {.Format = "C2", .Alignment = DataGridViewContentAlignment.MiddleRight},
-                .Width = 95,
-                .MinimumWidth = 90
+                .Width = 80,
+                .MinimumWidth = 75
             })
             dgvThreeWayJournal.Columns.Add(New DataGridViewTextBoxColumn() With {
                 .HeaderText = "Memo / Clearing Breakdown",
                 .AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill,
-                .MinimumWidth = 180
+                .FillWeight = 160.0!,
+                .MinimumWidth = 150
             })
         End Sub
 
         Private Sub SetupPurchaseOrdersGrid()
             dgvPurchaseOrders.Columns.Clear()
             dgvPurchaseOrders.AutoGenerateColumns = False
+            dgvPurchaseOrders.ScrollBars = ScrollBars.Vertical
 
-            dgvPurchaseOrders.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "PO #", .DataPropertyName = "DocumentNumber", .Width = 110})
-            dgvPurchaseOrders.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "Vendor", .DataPropertyName = "VendorName", .Width = 200})
+            dgvPurchaseOrders.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "PO #", .DataPropertyName = "DocumentNumber", .AutoSizeMode = DataGridViewAutoSizeColumnMode.None, .Width = 100, .MinimumWidth = 90})
+            dgvPurchaseOrders.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "Vendor", .DataPropertyName = "VendorName", .AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill, .FillWeight = 160.0!, .MinimumWidth = 150})
             dgvPurchaseOrders.Columns.Add(New DataGridViewTextBoxColumn() With {
                 .HeaderText = "Order Date",
                 .DataPropertyName = "OrderDate",
+                .AutoSizeMode = DataGridViewAutoSizeColumnMode.None,
                 .DefaultCellStyle = New DataGridViewCellStyle() With {.Format = "yyyy-MM-dd"},
-                .Width = 95
+                .Width = 90,
+                .MinimumWidth = 85
             })
-            dgvPurchaseOrders.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "Status", .DataPropertyName = "Status", .Width = 110})
+            dgvPurchaseOrders.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "Status", .DataPropertyName = "Status", .AutoSizeMode = DataGridViewAutoSizeColumnMode.None, .Width = 110, .MinimumWidth = 95})
             dgvPurchaseOrders.Columns.Add(New DataGridViewTextBoxColumn() With {
                 .HeaderText = "Total Qty",
                 .DataPropertyName = "TotalOrderedQty",
+                .AutoSizeMode = DataGridViewAutoSizeColumnMode.None,
                 .DefaultCellStyle = New DataGridViewCellStyle() With {.Alignment = DataGridViewContentAlignment.MiddleRight},
-                .Width = 85
+                .Width = 80,
+                .MinimumWidth = 70
             })
             dgvPurchaseOrders.Columns.Add(New DataGridViewTextBoxColumn() With {
                 .HeaderText = "Total ($)",
                 .DataPropertyName = "TotalAmount",
+                .AutoSizeMode = DataGridViewAutoSizeColumnMode.None,
                 .DefaultCellStyle = New DataGridViewCellStyle() With {.Format = "C2", .Alignment = DataGridViewContentAlignment.MiddleRight},
-                .Width = 100
+                .Width = 95,
+                .MinimumWidth = 85
             })
         End Sub
 
         Private Sub SetupPOLinesGrid()
             dgvPurchasingPOLines.Columns.Clear()
             dgvPurchasingPOLines.AutoGenerateColumns = False
+            dgvPurchasingPOLines.ScrollBars = ScrollBars.Vertical
 
-            dgvPurchasingPOLines.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "SKU", .DataPropertyName = "SKU", .Width = 110})
-            dgvPurchasingPOLines.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "Product Name", .DataPropertyName = "ProductName", .Width = 250})
+            dgvPurchasingPOLines.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "SKU", .DataPropertyName = "SKU", .AutoSizeMode = DataGridViewAutoSizeColumnMode.None, .Width = 90, .MinimumWidth = 80})
+            dgvPurchasingPOLines.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "Product Name", .DataPropertyName = "ProductName", .AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill, .FillWeight = 160.0!, .MinimumWidth = 180})
             dgvPurchasingPOLines.Columns.Add(New DataGridViewTextBoxColumn() With {
                 .HeaderText = "Ordered Qty",
                 .DataPropertyName = "OrderedQty",
+                .AutoSizeMode = DataGridViewAutoSizeColumnMode.None,
                 .DefaultCellStyle = New DataGridViewCellStyle() With {.Alignment = DataGridViewContentAlignment.MiddleRight},
-                .Width = 100
+                .Width = 90,
+                .MinimumWidth = 80
             })
             dgvPurchasingPOLines.Columns.Add(New DataGridViewTextBoxColumn() With {
                 .HeaderText = "PO Unit Price",
                 .DataPropertyName = "UnitPrice",
+                .AutoSizeMode = DataGridViewAutoSizeColumnMode.None,
                 .DefaultCellStyle = New DataGridViewCellStyle() With {.Format = "C2", .Alignment = DataGridViewContentAlignment.MiddleRight},
-                .Width = 100
+                .Width = 95,
+                .MinimumWidth = 85
             })
             dgvPurchasingPOLines.Columns.Add(New DataGridViewTextBoxColumn() With {
                 .HeaderText = "Extended Total",
                 .DataPropertyName = "LineTotal",
+                .AutoSizeMode = DataGridViewAutoSizeColumnMode.None,
                 .DefaultCellStyle = New DataGridViewCellStyle() With {.Format = "C2", .Alignment = DataGridViewContentAlignment.MiddleRight},
-                .Width = 120
+                .Width = 110,
+                .MinimumWidth = 95
             })
         End Sub
 
         Private Sub SetupGRNsGrid()
             dgvGRNs.Columns.Clear()
             dgvGRNs.AutoGenerateColumns = False
+            dgvGRNs.ScrollBars = ScrollBars.Vertical
 
-            dgvGRNs.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "GRN #", .DataPropertyName = "DocumentNumber", .Width = 110})
-            dgvGRNs.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "PO #", .DataPropertyName = "PONumber", .Width = 110})
-            dgvGRNs.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "Vendor", .DataPropertyName = "VendorName", .Width = 200})
+            dgvGRNs.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "GRN #", .DataPropertyName = "DocumentNumber", .AutoSizeMode = DataGridViewAutoSizeColumnMode.None, .Width = 85, .MinimumWidth = 75})
+            dgvGRNs.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "PO #", .DataPropertyName = "PONumber", .AutoSizeMode = DataGridViewAutoSizeColumnMode.None, .Width = 85, .MinimumWidth = 75})
+            dgvGRNs.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "Vendor", .DataPropertyName = "VendorName", .AutoSizeMode = DataGridViewAutoSizeColumnMode.None, .Width = 130, .MinimumWidth = 110})
             dgvGRNs.Columns.Add(New DataGridViewTextBoxColumn() With {
                 .HeaderText = "Receipt Date",
                 .DataPropertyName = "ReceiptDate",
+                .AutoSizeMode = DataGridViewAutoSizeColumnMode.None,
                 .DefaultCellStyle = New DataGridViewCellStyle() With {.Format = "yyyy-MM-dd"},
-                .Width = 100
+                .Width = 85,
+                .MinimumWidth = 80
             })
-            dgvGRNs.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "SKU", .DataPropertyName = "SKU", .Width = 110})
-            dgvGRNs.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "Product Name", .DataPropertyName = "ProductName", .Width = 220})
+            dgvGRNs.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "SKU", .DataPropertyName = "SKU", .AutoSizeMode = DataGridViewAutoSizeColumnMode.None, .Width = 80, .MinimumWidth = 75})
+            dgvGRNs.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "Product Name", .DataPropertyName = "ProductName", .AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill, .FillWeight = 160.0!, .MinimumWidth = 140})
             dgvGRNs.Columns.Add(New DataGridViewTextBoxColumn() With {
                 .HeaderText = "Received Qty",
                 .DataPropertyName = "ReceivedQty",
+                .AutoSizeMode = DataGridViewAutoSizeColumnMode.None,
                 .DefaultCellStyle = New DataGridViewCellStyle() With {.Alignment = DataGridViewContentAlignment.MiddleRight},
-                .Width = 95
+                .Width = 65,
+                .MinimumWidth = 60
             })
             dgvGRNs.Columns.Add(New DataGridViewTextBoxColumn() With {
                 .HeaderText = "PO Unit Price",
                 .DataPropertyName = "POUnitPrice",
+                .AutoSizeMode = DataGridViewAutoSizeColumnMode.None,
                 .DefaultCellStyle = New DataGridViewCellStyle() With {.Format = "C2", .Alignment = DataGridViewContentAlignment.MiddleRight},
-                .Width = 95
+                .Width = 75,
+                .MinimumWidth = 70
             })
             dgvGRNs.Columns.Add(New DataGridViewTextBoxColumn() With {
                 .HeaderText = "Total Valuation",
                 .DataPropertyName = "TotalValuation",
+                .AutoSizeMode = DataGridViewAutoSizeColumnMode.None,
                 .DefaultCellStyle = New DataGridViewCellStyle() With {.Format = "C2", .Alignment = DataGridViewContentAlignment.MiddleRight},
-                .Width = 110
+                .Width = 85,
+                .MinimumWidth = 75
             })
-            dgvGRNs.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "Status", .DataPropertyName = "Status", .Width = 100})
+            dgvGRNs.Columns.Add(New DataGridViewTextBoxColumn() With {.HeaderText = "Status", .DataPropertyName = "Status", .AutoSizeMode = DataGridViewAutoSizeColumnMode.None, .Width = 80, .MinimumWidth = 75})
         End Sub
 
         Private Sub PopulateDropdowns()
@@ -434,6 +451,110 @@ Namespace UI.Purchasing
                 RefreshPurchaseOrdersView()
             Catch ex As Exception
                 MessageBox.Show($"Error creating Purchase Order: {ex.Message}", "PO Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            End Try
+        End Sub
+
+        Private Sub btnDisbursePayment_Click(sender As Object, e As EventArgs) Handles btnDisbursePayment.Click
+            Dim vendorId As Integer? = Nothing
+            Dim billId As Integer? = Nothing
+
+            If _selectedMatch IsNot Nothing Then
+                If _selectedMatch.VendorId > 0 Then vendorId = _selectedMatch.VendorId
+                If _selectedMatch.BillId > 0 Then billId = _selectedMatch.BillId
+            End If
+
+            Using dlg As New DisburseVendorPaymentDialog(_repo, vendorId, billId)
+                If dlg.ShowDialog(Me) = DialogResult.OK Then
+                    RefreshThreeWayMatchView()
+                    RefreshThreeWayJournalGrid()
+                    PopulateDropdowns()
+                End If
+            End Using
+        End Sub
+
+        Private Sub btnClosePOShort_Click(sender As Object, e As EventArgs) Handles btnClosePOShort.Click
+            If _selectedPO Is Nothing Then
+                MessageBox.Show("Please select a Purchase Order to close short.", "Selection Required", MessageBoxButtons.OK, MessageBoxIcon.Information)
+                Return
+            End If
+
+            If String.Equals(_selectedPO.Status, "Closed - Short", StringComparison.OrdinalIgnoreCase) OrElse
+               String.Equals(_selectedPO.Status, "Closed", StringComparison.OrdinalIgnoreCase) Then
+                MessageBox.Show($"Purchase Order {_selectedPO.DocumentNumber} is already closed.", "PO Already Closed", MessageBoxButtons.OK, MessageBoxIcon.Information)
+                Return
+            End If
+
+            If String.Equals(_selectedPO.Status, "Fully Received", StringComparison.OrdinalIgnoreCase) Then
+                MessageBox.Show($"Purchase Order {_selectedPO.DocumentNumber} is already fully received and cannot be closed short.", "PO Fully Received", MessageBoxButtons.OK, MessageBoxIcon.Warning)
+                Return
+            End If
+
+            Dim confirmRes = MessageBox.Show(
+                $"Are you sure you want to close Purchase Order {_selectedPO.DocumentNumber} short?{Environment.NewLine}" &
+                $"Vendor: {_selectedPO.VendorName}{Environment.NewLine}" &
+                $"Total Ordered: {_selectedPO.TotalOrderedQty} units (${_selectedPO.TotalAmount:N2}){Environment.NewLine}{Environment.NewLine}" &
+                "Open line commitments will be released without generating General Ledger postings.",
+                "Confirm Close PO Short", MessageBoxButtons.YesNo, MessageBoxIcon.Question)
+
+            If confirmRes <> DialogResult.Yes Then Return
+
+            Try
+                Dim closedPo = _repo.ClosePurchaseOrderShort(_selectedPO.POId)
+                MessageBox.Show($"Purchase Order {closedPo.DocumentNumber} was successfully closed short.{Environment.NewLine}" &
+                                $"Status: {closedPo.Status}",
+                                "PO Closed Short", MessageBoxButtons.OK, MessageBoxIcon.Information)
+
+                RefreshPurchaseOrdersView()
+            Catch ex As Exception
+                MessageBox.Show($"Error closing Purchase Order: {ex.Message}", "Close Short Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
+            End Try
+        End Sub
+
+        Private Sub btnClearUnbilledGRNI_Click(sender As Object, e As EventArgs) Handles btnClearUnbilledGRNI.Click
+            If dgvGRNs.SelectedRows.Count = 0 Then
+                MessageBox.Show("Please select a Goods Receipt Note item to clear.", "Selection Required", MessageBoxButtons.OK, MessageBoxIcon.Information)
+                Return
+            End If
+
+            Dim selectedGRN = TryCast(dgvGRNs.SelectedRows(0).DataBoundItem, PurchasingGRNModel)
+            If selectedGRN Is Nothing Then
+                MessageBox.Show("Please select a valid Goods Receipt Note item.", "Selection Required", MessageBoxButtons.OK, MessageBoxIcon.Information)
+                Return
+            End If
+
+            If String.Equals(selectedGRN.Status, "Settled", StringComparison.OrdinalIgnoreCase) Then
+                MessageBox.Show($"GRN {selectedGRN.DocumentNumber} is already settled in full.", "Already Settled", MessageBoxButtons.OK, MessageBoxIcon.Information)
+                Return
+            End If
+
+            Dim confirmRes = MessageBox.Show(
+                $"Are you sure you want to clear unbilled GRNI accruals for this Goods Receipt Note?{Environment.NewLine}" &
+                $"GRN Document: {selectedGRN.DocumentNumber}{Environment.NewLine}" &
+                $"Product: {selectedGRN.SKU} - {selectedGRN.ProductName}{Environment.NewLine}" &
+                $"Received Qty: {selectedGRN.ReceivedQty} @ ${selectedGRN.POUnitPrice:N2} (Total: ${selectedGRN.TotalValuation:N2}){Environment.NewLine}{Environment.NewLine}" &
+                "This will generate a General Ledger adjustment journal entry:{Environment.NewLine}" &
+                "  Debit  Account 2100 (GRNI Clearing){Environment.NewLine}" &
+                "  Credit Account 5100 (Purchase Price Variance)",
+                "Confirm GRNI Clearing Adjustment", MessageBoxButtons.YesNo, MessageBoxIcon.Question)
+
+            If confirmRes <> DialogResult.Yes Then Return
+
+            Try
+                Dim reasonText As String = $"Stale unbilled GRNI write-off - GRN {selectedGRN.DocumentNumber} SKU {selectedGRN.SKU}"
+                Dim adjustment = _repo.ClearStaleGRNI(selectedGRN.GRNLineId, reasonText)
+
+                MessageBox.Show($"GRNI accrual cleared successfully!{Environment.NewLine}" &
+                                $"Adjustment Doc: {adjustment.DocumentNumber}{Environment.NewLine}" &
+                                $"Cleared Qty: {adjustment.ClearedQty}{Environment.NewLine}" &
+                                $"Cleared Amount: ${adjustment.ClearedAmount:N2}{Environment.NewLine}" &
+                                $"Journal Posted: Dr 2100 GRNI / Cr 5100 PPV",
+                                "GRNI Adjustment Posted", MessageBoxButtons.OK, MessageBoxIcon.Information)
+
+                RefreshGRNsView()
+                RefreshThreeWayMatchView()
+                RefreshThreeWayJournalGrid()
+            Catch ex As Exception
+                MessageBox.Show($"Error clearing GRNI accrual: {ex.Message}", "GRNI Clearing Error", MessageBoxButtons.OK, MessageBoxIcon.Error)
             End Try
         End Sub
 

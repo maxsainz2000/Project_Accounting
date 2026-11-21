@@ -1096,6 +1096,233 @@ Namespace Services
         End Sub
 
         ' =========================================================================
+        ' 5. Clear Stale GRNI & PO Close Short Tests
+        ' =========================================================================
+
+        <TestMethod>
+        Public Sub ClearStaleGRNI_PartiallyBilledGRN_ClearsRemainingAccrualAndPostsDr2100Cr5100()
+            Using fixture As New TestDatabaseFixture()
+                Using context = fixture.CreateContext()
+                    Dim service As New ProcureToPayService(context)
+                    Dim vendor = CreateTestVendor(context, "V-GRNI", "Vendor GRNI")
+                    Dim product = CreateTestProduct(context, "SKU-GRNI", "GRNI Item", 10.0000D, 0)
+
+                    ' 1. Create PO for 100 @ $10.00 = $1,000.00
+                    Dim poLines As New List(Of POLine) From {New POLine(product.ProductId, 100, 10.0000D)}
+                    Dim po = service.CreatePurchaseOrder(vendor.VendorId, poLines, DateTime.Today)
+
+                    ' 2. Receive 100 units under GRN (Dr 1300 $1000 / Cr 2100 $1000)
+                    Dim grnLines As New List(Of GRNLine) From {New GRNLine(po.Lines.First().POLineId, product.ProductId, 100, 10.0000D)}
+                    Dim grn = service.ReceiveGoods(po.POId, grnLines, DateTime.Today)
+                    Dim grnLineId = grn.Lines.First().GRNLineId
+
+                    ' 3. Bill 40 units (clears 40 * $10 = $400 from GRNI)
+                    Dim billLines As New List(Of BillLine) From {
+                        New BillLine() With {.GRNLineId = grnLineId, .BilledQty = 40, .BilledUnitPrice = 10.0000D, .LineTotal = 400.0000D}
+                    }
+                    Dim bill = service.MatchSupplierBill(vendor.VendorId, grn.GRNId, billLines, "BILL-GRNI-01", DateTime.Today)
+
+                    ' 4. Clear stale GRNI for remaining 60 units (60 * $10 = $600)
+                    Dim adj = service.ClearStaleGRNI(grnLineId, "Supplier lost remainder of shipment; write-off accrual")
+
+                    Assert.IsNotNull(adj)
+                    Assert.AreEqual(grnLineId, adj.GoodsReceiptLineId)
+                    Assert.AreEqual(60, adj.ClearedQty)
+                    Assert.AreEqual(600.0000D, adj.ClearedAmount)
+                    Assert.AreEqual("Posted", adj.Status)
+                    Assert.IsTrue(adj.DocumentNumber.StartsWith("GRNI-ADJ-"))
+
+                    ' Verify journal entry
+                    Dim journal = context.JournalEntries.Include(Function(j) j.Lines).FirstOrDefault(Function(j) j.SourceDocType = "GRNIAdjustment" AndAlso j.SourceDocId = adj.AdjustmentId)
+                    Assert.IsNotNull(journal)
+                    Assert.IsTrue(LedgerPostingEngine.IsBalanced(journal.Lines))
+
+                    Dim grniAccount = context.Accounts.First(Function(a) a.Code = "2100")
+                    Dim ppvAccount = context.Accounts.First(Function(a) a.Code = "5100")
+
+                    Dim grniLine = journal.Lines.First(Function(l) l.AccountId = grniAccount.AccountId)
+                    Assert.AreEqual(600.0000D, grniLine.DebitAmount)
+
+                    Dim ppvLine = journal.Lines.First(Function(l) l.AccountId = ppvAccount.AccountId)
+                    Assert.AreEqual(600.0000D, ppvLine.CreditAmount)
+
+                    ' Verify parent GRN is now Settled
+                    Dim updatedGrn = context.GoodsReceiptNotes.Find(grn.GRNId)
+                    Assert.IsNotNull(updatedGrn)
+                    Assert.AreEqual(DocumentStatus.Settled.ToString(), updatedGrn.Status)
+                End Using
+            End Using
+        End Sub
+
+        <TestMethod>
+        Public Sub ClearStaleGRNI_FullyBilledGRN_ThrowsInvalidOperationException()
+            Using fixture As New TestDatabaseFixture()
+                Using context = fixture.CreateContext()
+                    Dim service As New ProcureToPayService(context)
+                    Dim vendor = CreateTestVendor(context, "V-GRNI2", "Vendor GRNI 2")
+                    Dim product = CreateTestProduct(context, "SKU-GRNI2", "GRNI Item 2", 20.0000D, 0)
+
+                    Dim po = service.CreatePurchaseOrder(vendor.VendorId, New List(Of POLine) From {New POLine(product.ProductId, 50, 20.0000D)}, DateTime.Today)
+                    Dim grn = service.ReceiveGoods(po.POId, New List(Of GRNLine) From {New GRNLine(po.Lines.First().POLineId, product.ProductId, 50, 20.0000D)}, DateTime.Today)
+                    Dim grnLineId = grn.Lines.First().GRNLineId
+
+                    ' Bill all 50 units
+                    Dim bill = service.MatchSupplierBill(vendor.VendorId, grn.GRNId, New List(Of BillLine) From {
+                        New BillLine() With {.GRNLineId = grnLineId, .BilledQty = 50, .BilledUnitPrice = 20.0000D, .LineTotal = 1000.0000D}
+                    }, "BILL-GRNI-02", DateTime.Today)
+
+                    ' Attempt to clear stale GRNI when unbilled qty is 0 -> should throw
+                    Assert.Throws(Of InvalidOperationException)(
+                        Sub() service.ClearStaleGRNI(grnLineId, "Should fail"))
+                End Using
+            End Using
+        End Sub
+
+        <TestMethod>
+        Public Sub ClearStaleGRNI_InvalidArguments_ThrowsAppropriateExceptions()
+            Using fixture As New TestDatabaseFixture()
+                Using context = fixture.CreateContext()
+                    Dim service As New ProcureToPayService(context)
+
+                    ' grnLineId <= 0
+                    Assert.Throws(Of ArgumentOutOfRangeException)(
+                        Sub() service.ClearStaleGRNI(0, "Reason"))
+
+                    ' Empty reason
+                    Assert.Throws(Of ArgumentException)(
+                        Sub() service.ClearStaleGRNI(1, ""))
+                    Assert.Throws(Of ArgumentException)(
+                        Sub() service.ClearStaleGRNI(1, "   "))
+
+                    ' Non-existent line
+                    Assert.Throws(Of ArgumentException)(
+                        Sub() service.ClearStaleGRNI(99999, "Reason"))
+                End Using
+            End Using
+        End Sub
+
+        <TestMethod>
+        Public Sub ClosePurchaseOrderShort_ApprovedPO_UpdatesStatusAndReleasesCommitmentsWithoutGLPosting()
+            Using fixture As New TestDatabaseFixture()
+                Using context = fixture.CreateContext()
+                    Dim service As New ProcureToPayService(context)
+                    Dim vendor = CreateTestVendor(context, "V-PO-CS", "Vendor Close Short")
+                    Dim product = CreateTestProduct(context, "SKU-POCS", "PO Item", 15.0000D, 0)
+
+                    Dim po = service.CreatePurchaseOrder(vendor.VendorId, New List(Of POLine) From {New POLine(product.ProductId, 100, 15.0000D)}, DateTime.Today)
+                    Assert.AreEqual("Approved", po.Status)
+
+                    Dim initialJournalCount = context.JournalEntries.Count()
+
+                    Dim closedPo = service.ClosePurchaseOrderShort(po.POId)
+
+                    Assert.IsNotNull(closedPo)
+                    Assert.AreEqual("Closed - Short", closedPo.Status)
+
+                    ' Verify persistence
+                    Dim savedPo = context.PurchaseOrders.Find(po.POId)
+                    Assert.AreEqual("Closed - Short", savedPo.Status)
+
+                    ' Invariant: No GL posting is generated
+                    Dim afterJournalCount = context.JournalEntries.Count()
+                    Assert.AreEqual(initialJournalCount, afterJournalCount, "ClosePurchaseOrderShort must not post GL entries.")
+                End Using
+            End Using
+        End Sub
+
+        <TestMethod>
+        Public Sub ClosePurchaseOrderShort_PartiallyReceivedPO_ClosesShort()
+            Using fixture As New TestDatabaseFixture()
+                Using context = fixture.CreateContext()
+                    Dim service As New ProcureToPayService(context)
+                    Dim vendor = CreateTestVendor(context, "V-PO-CS2", "Vendor Close Short 2")
+                    Dim product = CreateTestProduct(context, "SKU-POCS2", "PO Item 2", 25.0000D, 0)
+
+                    Dim po = service.CreatePurchaseOrder(vendor.VendorId, New List(Of POLine) From {New POLine(product.ProductId, 100, 25.0000D)}, DateTime.Today)
+                    Dim grn = service.ReceiveGoods(po.POId, New List(Of GRNLine) From {New GRNLine(po.Lines.First().POLineId, product.ProductId, 40, 25.0000D)}, DateTime.Today)
+
+                    Dim updatedPo = context.PurchaseOrders.Find(po.POId)
+                    Assert.AreEqual("Partially Received", updatedPo.Status)
+
+                    Dim closedPo = service.ClosePurchaseOrderShort(po.POId)
+                    Assert.AreEqual("Closed - Short", closedPo.Status)
+                End Using
+            End Using
+        End Sub
+
+        <TestMethod>
+        Public Sub ClosePurchaseOrderShort_ClosedOrFullyReceivedPO_ThrowsInvalidOperationException()
+            Using fixture As New TestDatabaseFixture()
+                Using context = fixture.CreateContext()
+                    Dim service As New ProcureToPayService(context)
+                    Dim vendor = CreateTestVendor(context, "V-PO-CS3", "Vendor Close Short 3")
+                    Dim product = CreateTestProduct(context, "SKU-POCS3", "PO Item 3", 10.0000D, 0)
+
+                    ' Fully Received PO
+                    Dim po = service.CreatePurchaseOrder(vendor.VendorId, New List(Of POLine) From {New POLine(product.ProductId, 50, 10.0000D)}, DateTime.Today)
+                    service.ReceiveGoods(po.POId, New List(Of GRNLine) From {New GRNLine(po.Lines.First().POLineId, product.ProductId, 50, 10.0000D)}, DateTime.Today)
+
+                    Assert.AreEqual("Fully Received", po.Status)
+                    Assert.Throws(Of InvalidOperationException)(Sub() service.ClosePurchaseOrderShort(po.POId))
+
+                    ' Already Closed PO
+                    Dim po2 = service.CreatePurchaseOrder(vendor.VendorId, New List(Of POLine) From {New POLine(product.ProductId, 50, 10.0000D)}, DateTime.Today)
+                    service.ClosePurchaseOrderShort(po2.POId)
+                    Assert.AreEqual("Closed - Short", po2.Status)
+
+                    Assert.Throws(Of InvalidOperationException)(Sub() service.ClosePurchaseOrderShort(po2.POId))
+
+                    ' Invalid PO ID
+                    Assert.Throws(Of ArgumentOutOfRangeException)(Sub() service.ClosePurchaseOrderShort(0))
+                    Assert.Throws(Of ArgumentException)(Sub() service.ClosePurchaseOrderShort(99999))
+                End Using
+            End Using
+        End Sub
+
+        <TestMethod>
+        Public Sub DisbursePaymentVoucher_FullSettlement_PostsDr2000Cr1020AndSettlesBill()
+            Using fixture As New TestDatabaseFixture()
+                Using context = fixture.CreateContext()
+                    Dim service As New ProcureToPayService(context)
+                    Dim vendor = CreateTestVendor(context, "V-PAY", "Payment Vendor", 30, 0D)
+                    Dim product = CreateTestProduct(context, "SKU-PAY", "Pay Item", 50.0000D, 0)
+
+                    Dim po = service.CreatePurchaseOrder(vendor.VendorId, New List(Of POLine) From {New POLine(product.ProductId, 10, 50.0000D)}, DateTime.Today)
+                    Dim grn = service.ReceiveGoods(po.POId, New List(Of GRNLine) From {New GRNLine(po.Lines.First().POLineId, product.ProductId, 10, 50.0000D)}, DateTime.Today)
+                    Dim bill = service.MatchSupplierBill(vendor.VendorId, grn.GRNId, New List(Of BillLine) From {
+                        New BillLine() With {.GRNLineId = grn.Lines.First().GRNLineId, .BilledQty = 10, .BilledUnitPrice = 50.0000D, .LineTotal = 500.0000D}
+                    }, "BILL-PAY-01", DateTime.Today)
+
+                    Assert.AreEqual(500.0000D, bill.TotalAmount)
+                    Assert.AreEqual(500.0000D, vendor.CurrentPayableBalance)
+
+                    Dim bankAccount = context.Accounts.First(Function(a) a.Code = "1020")
+                    Dim voucher = service.DisbursePaymentVoucher(vendor.VendorId, bill.BillId, 500.0000D, bankAccount.AccountId)
+
+                    Assert.IsNotNull(voucher)
+                    Assert.AreEqual(500.0000D, voucher.DisbursedAmount)
+                    Assert.AreEqual("VendorPayment", voucher.VoucherType)
+                    Assert.AreEqual(0D, vendor.CurrentPayableBalance)
+
+                    ' Verify bill status is Settled
+                    Assert.AreEqual(DocumentStatus.Settled.ToString(), bill.Status)
+
+                    ' Verify journal entry Dr 2000 / Cr 1020
+                    Dim journal = context.JournalEntries.Include(Function(j) j.Lines).FirstOrDefault(Function(j) j.SourceDocType = "PaymentVoucher" AndAlso j.SourceDocId = voucher.VoucherId)
+                    Assert.IsNotNull(journal)
+                    Assert.IsTrue(LedgerPostingEngine.IsBalanced(journal.Lines))
+
+                    Dim apAccount = context.Accounts.First(Function(a) a.Code = "2000")
+                    Dim apLine = journal.Lines.First(Function(l) l.AccountId = apAccount.AccountId)
+                    Assert.AreEqual(500.0000D, apLine.DebitAmount)
+
+                    Dim bankLine = journal.Lines.First(Function(l) l.AccountId = bankAccount.AccountId)
+                    Assert.AreEqual(500.0000D, bankLine.CreditAmount)
+                End Using
+            End Using
+        End Sub
+
+        ' =========================================================================
         ' Private Test Fixture Helpers
         ' =========================================================================
 

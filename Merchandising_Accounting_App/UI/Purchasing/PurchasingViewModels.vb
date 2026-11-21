@@ -85,6 +85,7 @@ Namespace UI.Purchasing
 
     Public Class PurchasingGRNModel
         Public Property GRNId As Integer
+        Public Property GRNLineId As Integer
         Public Property DocumentNumber As String = String.Empty
         Public Property PONumber As String = String.Empty
         Public Property VendorName As String = String.Empty
@@ -107,6 +108,7 @@ Namespace UI.Purchasing
         Public Property VendorId As Integer
         Public Property GRNId As Integer
         Public Property GRNLineId As Integer
+        Public Property BillId As Integer
         Public Property PONumber As String = String.Empty
         Public Property GRNNumber As String = String.Empty
         Public Property VendorName As String = String.Empty
@@ -304,6 +306,7 @@ Namespace UI.Purchasing
                     For Each l In grn.Lines
                         GoodsReceiptNotes.Add(New PurchasingGRNModel() With {
                             .GRNId = grn.GRNId,
+                            .GRNLineId = l.GRNLineId,
                             .DocumentNumber = grn.DocumentNumber,
                             .PONumber = If(grn.PurchaseOrder IsNot Nothing, grn.PurchaseOrder.DocumentNumber, ""),
                             .VendorName = If(grn.PurchaseOrder IsNot Nothing AndAlso grn.PurchaseOrder.Vendor IsNot Nothing, grn.PurchaseOrder.Vendor.Name, ""),
@@ -353,6 +356,7 @@ Namespace UI.Purchasing
                     }
 
                     If matchedBillLine IsNot Nothing AndAlso matchedBillLine.SupplierBill IsNot Nothing Then
+                        matchModel.BillId = matchedBillLine.SupplierBill.BillId
                         matchModel.BillNumber = matchedBillLine.SupplierBill.DocumentNumber
                         matchModel.BillQty = matchedBillLine.BilledQty
                         matchModel.BilledUnitPrice = matchedBillLine.BilledUnitPrice
@@ -476,6 +480,89 @@ Namespace UI.Purchasing
             Return journal
         End Function
 
+        Public Function ClearStaleGRNI(grnLineId As Integer, reason As String) As GRNIAdjustment
+            Dim adjustment = _p2pService.ClearStaleGRNI(grnLineId, reason, DateTime.Today)
+            LoadData()
+            Return adjustment
+        End Function
+
+        Public Function ClosePurchaseOrderShort(poId As Integer) As PurchaseOrder
+            Dim po = _p2pService.ClosePurchaseOrderShort(poId)
+            LoadData()
+            Return po
+        End Function
+
+        Public Function DisburseVendorPayment(vendorId As Integer, billId As Integer, amount As Decimal, bankAccountId As Integer, Optional paymentDate As DateTime? = Nothing) As PaymentVoucher
+            Dim voucher = _p2pService.DisbursePaymentVoucher(vendorId, billId, amount, bankAccountId, paymentDate)
+            LoadData()
+            Return voucher
+        End Function
+
+        Public Function GetOpenSupplierBills() As List(Of OpenSupplierBillItem)
+            Dim results As New List(Of OpenSupplierBillItem)()
+            Try
+                Dim bills = _context.SupplierBills _
+                    .Include(Function(b) b.Vendor) _
+                    .Where(Function(b) b.Status <> "Settled") _
+                    .OrderByDescending(Function(b) b.BillDate) _
+                    .ToList()
+
+                For Each b In bills
+                    Dim priorDisbursed As Decimal = _context.PaymentVouchers _
+                        .Where(Function(v) v.TargetDocId = b.BillId AndAlso v.VoucherType = "VendorPayment") _
+                        .Sum(Function(v) v.DisbursedAmount)
+
+                    Dim remaining As Decimal = b.TotalAmount - priorDisbursed
+                    If remaining > 0.0001D Then
+                        results.Add(New OpenSupplierBillItem() With {
+                            .BillId = b.BillId,
+                            .VendorId = b.VendorId,
+                            .VendorName = If(b.Vendor IsNot Nothing, b.Vendor.Name, $"Vendor #{b.VendorId}"),
+                            .DocumentNumber = b.DocumentNumber,
+                            .BillDate = b.BillDate,
+                            .DueDate = b.DueDate,
+                            .TotalAmount = b.TotalAmount,
+                            .DisbursedAmount = priorDisbursed,
+                            .RemainingBalance = remaining,
+                            .Status = b.Status
+                        })
+                    End If
+                Next
+            Catch
+            End Try
+            Return results
+        End Function
+
+        Public Function GetBankAccounts() As List(Of Account)
+            Try
+                Return _context.Accounts _
+                    .Where(Function(a) a.IsActive AndAlso (a.Code = "1010" OrElse a.Code = "1020")) _
+                    .OrderBy(Function(a) a.Code) _
+                    .ToList()
+            Catch
+                Return New List(Of Account)()
+            End Try
+        End Function
+
+    End Class
+
+    Public Class OpenSupplierBillItem
+        Public Property BillId As Integer
+        Public Property VendorId As Integer
+        Public Property VendorName As String = String.Empty
+        Public Property DocumentNumber As String = String.Empty
+        Public Property BillDate As DateTime
+        Public Property DueDate As DateTime
+        Public Property TotalAmount As Decimal
+        Public Property DisbursedAmount As Decimal
+        Public Property RemainingBalance As Decimal
+        Public Property Status As String = String.Empty
+
+        Public ReadOnly Property DisplayText As String
+            Get
+                Return $"{DocumentNumber} - {VendorName} (Due: {DueDate:yyyy-MM-dd}, Balance: ${RemainingBalance:N2})"
+            End Get
+        End Property
     End Class
 
 End Namespace

@@ -738,6 +738,162 @@ Namespace Merchandising_Accounting_App.Tests.Domain
                 }))
         End Sub
 
+        ' =========================================================================
+        ' GRNI Adjustment & Safe GL Reversal Tests
+        ' =========================================================================
+
+        <TestMethod>
+        Public Sub GenerateGRNIAdjustmentJournal_ValidInputs_GeneratesBalancedJournalDr2100Cr5100()
+            Dim adj As New GRNIAdjustment() With {
+                .AdjustmentId = 10,
+                .DocumentNumber = "GRNI-ADJ-20261121-001",
+                .GoodsReceiptLineId = 5,
+                .AdjustmentDate = New DateTime(2026, 11, 21),
+                .PostingDate = New DateTime(2026, 11, 21),
+                .ClearedQty = 20,
+                .ClearedAmount = 300.0000D,
+                .Reason = "Vendor went out of business; unbilled accrual write-off",
+                .Status = "Posted"
+            }
+            Dim grnLine As New GRNLine() With {
+                .GRNLineId = 5,
+                .ReceivedQty = 50,
+                .POUnitPrice = 15.0000D,
+                .GoodsReceiptNote = New GoodsReceiptNote() With {.DocumentNumber = "GRN-20261101-01"}
+            }
+
+            Dim entry As JournalEntry = LedgerPostingEngine.GenerateGRNIAdjustmentJournal(adj, grnLine)
+
+            Assert.IsNotNull(entry)
+            Assert.AreEqual("GRNIAdjustment", entry.SourceDocType)
+            Assert.AreEqual(10, entry.SourceDocId)
+            Assert.AreEqual(2, entry.Lines.Count)
+
+            ' Debit 2100 GRNI Clearing: $300.00
+            Dim grniLine = entry.Lines.First(Function(l) l.AccountId = AccountCodes.GRNIClearing)
+            Assert.AreEqual(300.0000D, grniLine.DebitAmount)
+            Assert.AreEqual(0D, grniLine.CreditAmount)
+
+            ' Credit 5100 Purchase Price Variance: $300.00
+            Dim ppvLine = entry.Lines.First(Function(l) l.AccountId = AccountCodes.PurchasePriceVariance)
+            Assert.AreEqual(0D, ppvLine.DebitAmount)
+            Assert.AreEqual(300.0000D, ppvLine.CreditAmount)
+
+            Assert.IsTrue(LedgerPostingEngine.IsBalanced(entry.Lines))
+        End Sub
+
+        <TestMethod>
+        Public Sub GenerateGRNIAdjustmentJournal_InvalidInputs_ThrowsAppropriateExceptions()
+            Dim adj As New GRNIAdjustment() With {
+                .AdjustmentId = 1,
+                .DocumentNumber = "ADJ-001",
+                .ClearedQty = 10,
+                .ClearedAmount = 100D
+            }
+            Dim grnLine As New GRNLine() With {.GRNLineId = 1}
+
+            ' Null adjustment
+            Assert.Throws(Of ArgumentNullException)(Sub() LedgerPostingEngine.GenerateGRNIAdjustmentJournal(Nothing, grnLine))
+
+            ' ClearedAmount <= 0
+            Dim zeroAmountAdj As New GRNIAdjustment() With {.ClearedQty = 10, .ClearedAmount = 0D}
+            Assert.Throws(Of ArgumentOutOfRangeException)(Sub() LedgerPostingEngine.GenerateGRNIAdjustmentJournal(zeroAmountAdj, grnLine))
+
+            ' ClearedQty <= 0
+            Dim zeroQtyAdj As New GRNIAdjustment() With {.ClearedQty = 0, .ClearedAmount = 100D}
+            Assert.Throws(Of ArgumentOutOfRangeException)(Sub() LedgerPostingEngine.GenerateGRNIAdjustmentJournal(zeroQtyAdj, grnLine))
+        End Sub
+
+        <TestMethod>
+        Public Sub GenerateReversingJournal_Directive1_OperationalDocTypesThrowInvalidOperationException()
+            ' Directive 1: Operational journal entries (Sales Invoices, GRNs, Supplier Bills, Credit Notes, etc.)
+            ' must NEVER be reversed directly in the GL UI.
+            Dim operationalTypes() As String = {
+                "SalesInvoice", "GoodsReceiptNote", "SupplierBill", "CustomerReturn", "PaymentVoucher", "PaymentReceipt"
+            }
+
+            For Each docType In operationalTypes
+                Dim original As New JournalEntry() With {
+                    .EntryId = 100,
+                    .SourceDocType = docType,
+                    .SourceDocId = 1,
+                    .PostingDate = DateTime.Today,
+                    .PeriodId = 1,
+                    .Description = $"Original operational entry for {docType}"
+                }
+                original.Lines.Add(New JournalEntryLine(AccountCodes.OperatingBank, 100D, 0D, "Debit"))
+                original.Lines.Add(New JournalEntryLine(AccountCodes.AccountsReceivable, 0D, 100D, "Credit"))
+
+                Dim caughtEx = Assert.Throws(Of InvalidOperationException)(
+                    Sub() LedgerPostingEngine.GenerateReversingJournal(original, DateTime.Today.AddDays(1)))
+
+                Assert.IsTrue(caughtEx.Message.Contains("prohibited for operational document type"),
+                    $"Expected guard message for '{docType}', got: {caughtEx.Message}")
+            Next
+        End Sub
+
+        <TestMethod>
+        Public Sub GenerateReversingJournal_ManualAndAdjustmentDocTypes_GeneratesBalancedReversedLines()
+            ' Manual Journal Reversal
+            Dim manualEntry As New JournalEntry() With {
+                .EntryId = 42,
+                .SourceDocType = "Manual",
+                .SourceDocId = 42,
+                .PostingDate = New DateTime(2026, 11, 1),
+                .PeriodId = 1,
+                .Description = "Month-end manual adjustment accrual"
+            }
+            manualEntry.Lines.Add(New JournalEntryLine(AccountCodes.OperatingBank, 500.0000D, 0D, "Initial Dr"))
+            manualEntry.Lines.Add(New JournalEntryLine(AccountCodes.RetainedEarnings, 0D, 500.0000D, "Initial Cr"))
+
+            Dim reversalDate As New DateTime(2026, 11, 2)
+            Dim reversedEntry = LedgerPostingEngine.GenerateReversingJournal(manualEntry, reversalDate, "Reversing manual accrual")
+
+            Assert.IsNotNull(reversedEntry)
+            Assert.AreEqual("Reversal", reversedEntry.SourceDocType)
+            Assert.AreEqual(42, reversedEntry.SourceDocId)
+            Assert.AreEqual(reversalDate, reversedEntry.PostingDate)
+            Assert.AreEqual(2, reversedEntry.Lines.Count)
+
+            ' Original Dr 1020 $500 -> Reversed Cr 1020 $500
+            Dim bankLine = reversedEntry.Lines.First(Function(l) l.AccountId = AccountCodes.OperatingBank)
+            Assert.AreEqual(0D, bankLine.DebitAmount)
+            Assert.AreEqual(500.0000D, bankLine.CreditAmount)
+
+            ' Original Cr 3000 $500 -> Reversed Dr 3000 $500
+            Dim reLine = reversedEntry.Lines.First(Function(l) l.AccountId = AccountCodes.RetainedEarnings)
+            Assert.AreEqual(500.0000D, reLine.DebitAmount)
+            Assert.AreEqual(0D, reLine.CreditAmount)
+
+            Assert.IsTrue(LedgerPostingEngine.IsBalanced(reversedEntry.Lines))
+
+            ' Adjustment Journal Reversal
+            Dim adjEntry As New JournalEntry() With {
+                .EntryId = 43,
+                .SourceDocType = "Adjustment",
+                .SourceDocId = 43,
+                .PostingDate = New DateTime(2026, 11, 1),
+                .PeriodId = 1,
+                .Description = "Stock write-off adjustment"
+            }
+            adjEntry.Lines.Add(New JournalEntryLine(AccountCodes.InventoryShrinkage, 200.0000D, 0D, "Initial Dr"))
+            adjEntry.Lines.Add(New JournalEntryLine(AccountCodes.MerchandiseInventory, 0D, 200.0000D, "Initial Cr"))
+
+            Dim reversedAdj = LedgerPostingEngine.GenerateReversingJournal(adjEntry, reversalDate)
+            Assert.IsNotNull(reversedAdj)
+            Assert.IsTrue(LedgerPostingEngine.IsBalanced(reversedAdj.Lines))
+        End Sub
+
+        <TestMethod>
+        Public Sub GenerateReversingJournal_InvalidInputs_ThrowsAppropriateExceptions()
+            ' Null entry
+            Assert.Throws(Of ArgumentNullException)(Sub() LedgerPostingEngine.GenerateReversingJournal(Nothing, DateTime.Today))
+
+            ' Entry with no lines
+            Dim emptyEntry As New JournalEntry() With {.EntryId = 1, .SourceDocType = "Manual"}
+            Assert.Throws(Of ArgumentException)(Sub() LedgerPostingEngine.GenerateReversingJournal(emptyEntry, DateTime.Today))
+        End Sub
+
     End Class
 
 End Namespace

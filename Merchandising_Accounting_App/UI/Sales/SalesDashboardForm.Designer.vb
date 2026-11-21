@@ -57,6 +57,48 @@ Namespace UI.Sales
         Friend WithEvents lblAvailCreditTitle As System.Windows.Forms.Label
         Friend WithEvents lblAvailCreditVal As System.Windows.Forms.Label
         Friend WithEvents lblCustomerBadge As System.Windows.Forms.Label
+        Friend WithEvents pnlCustomerActions As System.Windows.Forms.Panel
+        Friend WithEvents btnRecordPayment As System.Windows.Forms.Button
+        Friend WithEvents btnDisburseRefund As System.Windows.Forms.Button
+
+        ' Payment Presentation Dialog / Panel
+        Friend WithEvents pnlRecordPaymentDialog As System.Windows.Forms.Panel
+        Friend WithEvents pnlPaymentDialogHeader As System.Windows.Forms.Panel
+        Friend WithEvents lblPaymentDialogTitle As System.Windows.Forms.Label
+        Friend WithEvents btnClosePaymentDialog As System.Windows.Forms.Button
+        Friend WithEvents lblPaymentCustomerPrompt As System.Windows.Forms.Label
+        Friend WithEvents cmbPaymentCustomer As System.Windows.Forms.ComboBox
+        Friend WithEvents lblPaymentInvoicePrompt As System.Windows.Forms.Label
+        Friend WithEvents cmbPaymentInvoice As System.Windows.Forms.ComboBox
+        Friend WithEvents lblPaymentAmountPrompt As System.Windows.Forms.Label
+        Friend WithEvents numPaymentAmount As System.Windows.Forms.NumericUpDown
+        Friend WithEvents lblPaymentDatePrompt As System.Windows.Forms.Label
+        Friend WithEvents dtpPaymentDate As System.Windows.Forms.DateTimePicker
+        Friend WithEvents lblPaymentMethodPrompt As System.Windows.Forms.Label
+        Friend WithEvents cmbPaymentMethod As System.Windows.Forms.ComboBox
+        Friend WithEvents grpPaymentGlPreview As System.Windows.Forms.GroupBox
+        Friend WithEvents lblPaymentGlInfo As System.Windows.Forms.Label
+        Friend WithEvents pnlPaymentButtons As System.Windows.Forms.Panel
+        Friend WithEvents btnConfirmPaymentReceipt As System.Windows.Forms.Button
+        Friend WithEvents btnCancelPaymentReceipt As System.Windows.Forms.Button
+
+        ' Customer Refund Presentation Dialog / Panel
+        Friend WithEvents pnlRefundDialog As System.Windows.Forms.Panel
+        Friend WithEvents pnlRefundDialogHeader As System.Windows.Forms.Panel
+        Friend WithEvents lblRefundDialogTitle As System.Windows.Forms.Label
+        Friend WithEvents btnCloseRefundDialog As System.Windows.Forms.Button
+        Friend WithEvents lblRefundCustomerInfo As System.Windows.Forms.Label
+        Friend WithEvents lblRefundAmountPrompt As System.Windows.Forms.Label
+        Friend WithEvents numRefundAmount As System.Windows.Forms.NumericUpDown
+        Friend WithEvents lblRefundDatePrompt As System.Windows.Forms.Label
+        Friend WithEvents dtpRefundDate As System.Windows.Forms.DateTimePicker
+        Friend WithEvents lblRefundMethodPrompt As System.Windows.Forms.Label
+        Friend WithEvents cmbRefundMethod As System.Windows.Forms.ComboBox
+        Friend WithEvents grpRefundGlPreview As System.Windows.Forms.GroupBox
+        Friend WithEvents lblRefundGlInfo As System.Windows.Forms.Label
+        Friend WithEvents pnlRefundButtons As System.Windows.Forms.Panel
+        Friend WithEvents btnConfirmRefund As System.Windows.Forms.Button
+        Friend WithEvents btnCancelRefund As System.Windows.Forms.Button
 
         Friend WithEvents grpAddItem As System.Windows.Forms.GroupBox
         Friend WithEvents lblProductPrompt As System.Windows.Forms.Label
@@ -91,6 +133,8 @@ Namespace UI.Sales
         Friend WithEvents splitInvoices As System.Windows.Forms.SplitContainer
         Friend WithEvents grpInvoicesList As System.Windows.Forms.GroupBox
         Friend WithEvents dgvInvoices As System.Windows.Forms.DataGridView
+        Friend WithEvents pnlInvoicesActions As System.Windows.Forms.Panel
+        Friend WithEvents btnInvoiceRecordPayment As System.Windows.Forms.Button
         Friend WithEvents splitInvoiceDetails As System.Windows.Forms.SplitContainer
         Friend WithEvents grpInvoiceLines As System.Windows.Forms.GroupBox
         Friend WithEvents dgvInvoiceLines As System.Windows.Forms.DataGridView
@@ -164,6 +208,9 @@ Namespace UI.Sales
             Me.lblCreditLimitTitle = New System.Windows.Forms.Label()
             Me.cmbCustomer = New System.Windows.Forms.ComboBox()
             Me.lblCustomerPrompt = New System.Windows.Forms.Label()
+            Me.pnlCustomerActions = New System.Windows.Forms.Panel()
+            Me.btnRecordPayment = New System.Windows.Forms.Button()
+            Me.btnDisburseRefund = New System.Windows.Forms.Button()
             Me.grpSelectedOrderLines = New System.Windows.Forms.GroupBox()
             Me.dgvSelectedOrderLines = New System.Windows.Forms.DataGridView()
             Me.pnlOrderActions = New System.Windows.Forms.Panel()
@@ -175,6 +222,8 @@ Namespace UI.Sales
             Me.splitInvoices = New System.Windows.Forms.SplitContainer()
             Me.grpInvoicesList = New System.Windows.Forms.GroupBox()
             Me.dgvInvoices = New System.Windows.Forms.DataGridView()
+            Me.pnlInvoicesActions = New System.Windows.Forms.Panel()
+            Me.btnInvoiceRecordPayment = New System.Windows.Forms.Button()
             Me.splitInvoiceDetails = New System.Windows.Forms.SplitContainer()
             Me.grpInvoiceLines = New System.Windows.Forms.GroupBox()
             Me.dgvInvoiceLines = New System.Windows.Forms.DataGridView()
@@ -195,6 +244,41 @@ Namespace UI.Sales
             Me.lblSimQtyPrompt = New System.Windows.Forms.Label()
             Me.cmbSimProduct = New System.Windows.Forms.ComboBox()
             Me.lblSimPrompt = New System.Windows.Forms.Label()
+            Me.pnlRecordPaymentDialog = New System.Windows.Forms.Panel()
+            Me.pnlPaymentDialogHeader = New System.Windows.Forms.Panel()
+            Me.lblPaymentDialogTitle = New System.Windows.Forms.Label()
+            Me.btnClosePaymentDialog = New System.Windows.Forms.Button()
+            Me.lblPaymentCustomerPrompt = New System.Windows.Forms.Label()
+            Me.cmbPaymentCustomer = New System.Windows.Forms.ComboBox()
+            Me.lblPaymentInvoicePrompt = New System.Windows.Forms.Label()
+            Me.cmbPaymentInvoice = New System.Windows.Forms.ComboBox()
+            Me.lblPaymentAmountPrompt = New System.Windows.Forms.Label()
+            Me.numPaymentAmount = New System.Windows.Forms.NumericUpDown()
+            Me.lblPaymentDatePrompt = New System.Windows.Forms.Label()
+            Me.dtpPaymentDate = New System.Windows.Forms.DateTimePicker()
+            Me.lblPaymentMethodPrompt = New System.Windows.Forms.Label()
+            Me.cmbPaymentMethod = New System.Windows.Forms.ComboBox()
+            Me.grpPaymentGlPreview = New System.Windows.Forms.GroupBox()
+            Me.lblPaymentGlInfo = New System.Windows.Forms.Label()
+            Me.pnlPaymentButtons = New System.Windows.Forms.Panel()
+            Me.btnConfirmPaymentReceipt = New System.Windows.Forms.Button()
+            Me.btnCancelPaymentReceipt = New System.Windows.Forms.Button()
+            Me.pnlRefundDialog = New System.Windows.Forms.Panel()
+            Me.pnlRefundDialogHeader = New System.Windows.Forms.Panel()
+            Me.lblRefundDialogTitle = New System.Windows.Forms.Label()
+            Me.btnCloseRefundDialog = New System.Windows.Forms.Button()
+            Me.lblRefundCustomerInfo = New System.Windows.Forms.Label()
+            Me.lblRefundAmountPrompt = New System.Windows.Forms.Label()
+            Me.numRefundAmount = New System.Windows.Forms.NumericUpDown()
+            Me.lblRefundDatePrompt = New System.Windows.Forms.Label()
+            Me.dtpRefundDate = New System.Windows.Forms.DateTimePicker()
+            Me.lblRefundMethodPrompt = New System.Windows.Forms.Label()
+            Me.cmbRefundMethod = New System.Windows.Forms.ComboBox()
+            Me.grpRefundGlPreview = New System.Windows.Forms.GroupBox()
+            Me.lblRefundGlInfo = New System.Windows.Forms.Label()
+            Me.pnlRefundButtons = New System.Windows.Forms.Panel()
+            Me.btnConfirmRefund = New System.Windows.Forms.Button()
+            Me.btnCancelRefund = New System.Windows.Forms.Button()
             Me.pnlHeader.SuspendLayout()
             Me.pnlKpiContainer.SuspendLayout()
             Me.pnlKpiStockGuard.SuspendLayout()
@@ -214,6 +298,7 @@ Namespace UI.Sales
             CType(Me.numUnitPrice, System.ComponentModel.ISupportInitialize).BeginInit()
             CType(Me.numQuantity, System.ComponentModel.ISupportInitialize).BeginInit()
             Me.grpCustomer.SuspendLayout()
+            Me.pnlCustomerActions.SuspendLayout()
             Me.tblCustomerCredit.SuspendLayout()
             Me.grpSelectedOrderLines.SuspendLayout()
             CType(Me.dgvSelectedOrderLines, System.ComponentModel.ISupportInitialize).BeginInit()
@@ -226,6 +311,7 @@ Namespace UI.Sales
             Me.splitInvoices.Panel2.SuspendLayout()
             Me.splitInvoices.SuspendLayout()
             Me.grpInvoicesList.SuspendLayout()
+            Me.pnlInvoicesActions.SuspendLayout()
             CType(Me.dgvInvoices, System.ComponentModel.ISupportInitialize).BeginInit()
             CType(Me.splitInvoiceDetails, System.ComponentModel.ISupportInitialize).BeginInit()
             Me.splitInvoiceDetails.Panel1.SuspendLayout()
@@ -245,6 +331,16 @@ Namespace UI.Sales
             Me.grpStockSimulation.SuspendLayout()
             Me.pnlSimBadgeContainer.SuspendLayout()
             CType(Me.numSimQty, System.ComponentModel.ISupportInitialize).BeginInit()
+            Me.pnlRecordPaymentDialog.SuspendLayout()
+            Me.pnlPaymentDialogHeader.SuspendLayout()
+            CType(Me.numPaymentAmount, System.ComponentModel.ISupportInitialize).BeginInit()
+            Me.grpPaymentGlPreview.SuspendLayout()
+            Me.pnlPaymentButtons.SuspendLayout()
+            Me.pnlRefundDialog.SuspendLayout()
+            Me.pnlRefundDialogHeader.SuspendLayout()
+            CType(Me.numRefundAmount, System.ComponentModel.ISupportInitialize).BeginInit()
+            Me.grpRefundGlPreview.SuspendLayout()
+            Me.pnlRefundButtons.SuspendLayout()
             Me.SuspendLayout()
             '
             'pnlHeader
@@ -448,16 +544,16 @@ Namespace UI.Sales
             Me.splitOrders.Panel1.Controls.Add(Me.grpOrderLines)
             Me.splitOrders.Panel1.Controls.Add(Me.grpAddItem)
             Me.splitOrders.Panel1.Controls.Add(Me.grpCustomer)
-            Me.splitOrders.Panel1MinSize = 540
+            Me.splitOrders.Panel1MinSize = 500
             '
             'splitOrders.Panel2
             '
             Me.splitOrders.Panel2.Controls.Add(Me.grpSelectedOrderLines)
             Me.splitOrders.Panel2.Controls.Add(Me.pnlOrderActions)
             Me.splitOrders.Panel2.Controls.Add(Me.grpExistingOrders)
-            Me.splitOrders.Panel2MinSize = 400
+            Me.splitOrders.Panel2MinSize = 420
             Me.splitOrders.Size = New System.Drawing.Size(1176, 589)
-            Me.splitOrders.SplitterDistance = 560
+            Me.splitOrders.SplitterDistance = 520
             Me.splitOrders.TabIndex = 0
             '
             'grpOrderLines
@@ -692,6 +788,7 @@ Namespace UI.Sales
             '
             'grpCustomer
             '
+            Me.grpCustomer.Controls.Add(Me.pnlCustomerActions)
             Me.grpCustomer.Controls.Add(Me.tblCustomerCredit)
             Me.grpCustomer.Controls.Add(Me.cmbCustomer)
             Me.grpCustomer.Controls.Add(Me.lblCustomerPrompt)
@@ -699,7 +796,7 @@ Namespace UI.Sales
             Me.grpCustomer.Location = New System.Drawing.Point(0, 0)
             Me.grpCustomer.Name = "grpCustomer"
             Me.grpCustomer.Padding = New System.Windows.Forms.Padding(12, 24, 12, 8)
-            Me.grpCustomer.Size = New System.Drawing.Size(530, 135)
+            Me.grpCustomer.Size = New System.Drawing.Size(530, 180)
             Me.grpCustomer.TabIndex = 0
             Me.grpCustomer.TabStop = False
             Me.grpCustomer.Text = "1. Customer Selection & AR Credit Status"
@@ -847,6 +944,44 @@ Namespace UI.Sales
             Me.lblCustomerPrompt.TabIndex = 0
             Me.lblCustomerPrompt.Text = "Select Customer Account:"
             '
+            'pnlCustomerActions
+            '
+            Me.pnlCustomerActions.Anchor = CType(((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Left) _
+            Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
+            Me.pnlCustomerActions.Controls.Add(Me.btnRecordPayment)
+            Me.pnlCustomerActions.Controls.Add(Me.btnDisburseRefund)
+            Me.pnlCustomerActions.Location = New System.Drawing.Point(12, 130)
+            Me.pnlCustomerActions.Name = "pnlCustomerActions"
+            Me.pnlCustomerActions.Size = New System.Drawing.Size(506, 38)
+            Me.pnlCustomerActions.TabIndex = 3
+            '
+            'btnRecordPayment
+            '
+            Me.btnRecordPayment.BackColor = System.Drawing.Color.FromArgb(CType(CType(40, Byte), Integer), CType(CType(167, Byte), Integer), CType(CType(69, Byte), Integer))
+            Me.btnRecordPayment.FlatStyle = System.Windows.Forms.FlatStyle.Flat
+            Me.btnRecordPayment.Font = New System.Drawing.Font("Segoe UI", 9.0!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+            Me.btnRecordPayment.ForeColor = System.Drawing.Color.White
+            Me.btnRecordPayment.Location = New System.Drawing.Point(0, 3)
+            Me.btnRecordPayment.Name = "btnRecordPayment"
+            Me.btnRecordPayment.Size = New System.Drawing.Size(180, 32)
+            Me.btnRecordPayment.TabIndex = 0
+            Me.btnRecordPayment.Text = "💰 Record Payment"
+            Me.btnRecordPayment.UseVisualStyleBackColor = False
+            '
+            'btnDisburseRefund
+            '
+            Me.btnDisburseRefund.BackColor = System.Drawing.Color.FromArgb(CType(CType(108, Byte), Integer), CType(CType(117, Byte), Integer), CType(CType(125, Byte), Integer))
+            Me.btnDisburseRefund.Enabled = False
+            Me.btnDisburseRefund.FlatStyle = System.Windows.Forms.FlatStyle.Flat
+            Me.btnDisburseRefund.Font = New System.Drawing.Font("Segoe UI", 9.0!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+            Me.btnDisburseRefund.ForeColor = System.Drawing.Color.White
+            Me.btnDisburseRefund.Location = New System.Drawing.Point(188, 3)
+            Me.btnDisburseRefund.Name = "btnDisburseRefund"
+            Me.btnDisburseRefund.Size = New System.Drawing.Size(220, 32)
+            Me.btnDisburseRefund.TabIndex = 1
+            Me.btnDisburseRefund.Text = "💳 Disburse Refund (No Credit)"
+            Me.btnDisburseRefund.UseVisualStyleBackColor = False
+            '
             'grpSelectedOrderLines
             '
             Me.grpSelectedOrderLines.Controls.Add(Me.dgvSelectedOrderLines)
@@ -975,6 +1110,7 @@ Namespace UI.Sales
             'grpInvoicesList
             '
             Me.grpInvoicesList.Controls.Add(Me.dgvInvoices)
+            Me.grpInvoicesList.Controls.Add(Me.pnlInvoicesActions)
             Me.grpInvoicesList.Dock = System.Windows.Forms.DockStyle.Fill
             Me.grpInvoicesList.Location = New System.Drawing.Point(0, 0)
             Me.grpInvoicesList.Name = "grpInvoicesList"
@@ -982,6 +1118,28 @@ Namespace UI.Sales
             Me.grpInvoicesList.TabIndex = 0
             Me.grpInvoicesList.TabStop = False
             Me.grpInvoicesList.Text = "Posted Sales Invoices (Combined Billing & Inventory Relief)"
+            '
+            'pnlInvoicesActions
+            '
+            Me.pnlInvoicesActions.Controls.Add(Me.btnInvoiceRecordPayment)
+            Me.pnlInvoicesActions.Dock = System.Windows.Forms.DockStyle.Bottom
+            Me.pnlInvoicesActions.Location = New System.Drawing.Point(3, 231)
+            Me.pnlInvoicesActions.Name = "pnlInvoicesActions"
+            Me.pnlInvoicesActions.Size = New System.Drawing.Size(1170, 36)
+            Me.pnlInvoicesActions.TabIndex = 1
+            '
+            'btnInvoiceRecordPayment
+            '
+            Me.btnInvoiceRecordPayment.BackColor = System.Drawing.Color.FromArgb(CType(CType(40, Byte), Integer), CType(CType(167, Byte), Integer), CType(CType(69, Byte), Integer))
+            Me.btnInvoiceRecordPayment.FlatStyle = System.Windows.Forms.FlatStyle.Flat
+            Me.btnInvoiceRecordPayment.Font = New System.Drawing.Font("Segoe UI", 9.0!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+            Me.btnInvoiceRecordPayment.ForeColor = System.Drawing.Color.White
+            Me.btnInvoiceRecordPayment.Location = New System.Drawing.Point(6, 3)
+            Me.btnInvoiceRecordPayment.Name = "btnInvoiceRecordPayment"
+            Me.btnInvoiceRecordPayment.Size = New System.Drawing.Size(260, 30)
+            Me.btnInvoiceRecordPayment.TabIndex = 0
+            Me.btnInvoiceRecordPayment.Text = "💰 Record Payment for Invoice"
+            Me.btnInvoiceRecordPayment.UseVisualStyleBackColor = False
             '
             'dgvInvoices
             '
@@ -997,24 +1155,27 @@ Namespace UI.Sales
             Me.dgvInvoices.ReadOnly = True
             Me.dgvInvoices.RowHeadersVisible = False
             Me.dgvInvoices.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect
-            Me.dgvInvoices.Size = New System.Drawing.Size(1170, 247)
+            Me.dgvInvoices.Size = New System.Drawing.Size(1170, 211)
             Me.dgvInvoices.TabIndex = 0
             '
             'splitInvoiceDetails
             '
             Me.splitInvoiceDetails.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.splitInvoiceDetails.FixedPanel = System.Windows.Forms.FixedPanel.None
             Me.splitInvoiceDetails.Location = New System.Drawing.Point(0, 0)
             Me.splitInvoiceDetails.Name = "splitInvoiceDetails"
             '
             'splitInvoiceDetails.Panel1
             '
             Me.splitInvoiceDetails.Panel1.Controls.Add(Me.grpInvoiceLines)
+            Me.splitInvoiceDetails.Panel1MinSize = 400
             '
             'splitInvoiceDetails.Panel2
             '
             Me.splitInvoiceDetails.Panel2.Controls.Add(Me.grpJournalPreview)
-            Me.splitInvoiceDetails.Size = New System.Drawing.Size(1176, 315)
-            Me.splitInvoiceDetails.SplitterDistance = 580
+            Me.splitInvoiceDetails.Panel2MinSize = 340
+            Me.splitInvoiceDetails.Size = New System.Drawing.Size(984, 315)
+            Me.splitInvoiceDetails.SplitterDistance = 530
             Me.splitInvoiceDetails.TabIndex = 0
             '
             'grpInvoiceLines
@@ -1101,20 +1262,21 @@ Namespace UI.Sales
             'splitStock
             '
             Me.splitStock.Dock = System.Windows.Forms.DockStyle.Fill
-            Me.splitStock.FixedPanel = System.Windows.Forms.FixedPanel.Panel2
+            Me.splitStock.FixedPanel = System.Windows.Forms.FixedPanel.None
             Me.splitStock.Location = New System.Drawing.Point(8, 8)
             Me.splitStock.Name = "splitStock"
             '
             'splitStock.Panel1
             '
             Me.splitStock.Panel1.Controls.Add(Me.grpAllProducts)
+            Me.splitStock.Panel1MinSize = 550
             '
             'splitStock.Panel2
             '
             Me.splitStock.Panel2.Controls.Add(Me.grpStockSimulation)
-            Me.splitStock.Panel2MinSize = 380
-            Me.splitStock.Size = New System.Drawing.Size(1176, 589)
-            Me.splitStock.SplitterDistance = 750
+            Me.splitStock.Panel2MinSize = 280
+            Me.splitStock.Size = New System.Drawing.Size(984, 589)
+            Me.splitStock.SplitterDistance = 680
             Me.splitStock.TabIndex = 0
             '
             'grpAllProducts
@@ -1263,12 +1425,411 @@ Namespace UI.Sales
             Me.lblSimPrompt.TabIndex = 0
             Me.lblSimPrompt.Text = "Select Product to Test:"
             '
+            'pnlRecordPaymentDialog
+            '
+            Me.pnlRecordPaymentDialog.BackColor = System.Drawing.Color.White
+            Me.pnlRecordPaymentDialog.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle
+            Me.pnlRecordPaymentDialog.Controls.Add(Me.pnlPaymentButtons)
+            Me.pnlRecordPaymentDialog.Controls.Add(Me.grpPaymentGlPreview)
+            Me.pnlRecordPaymentDialog.Controls.Add(Me.cmbPaymentMethod)
+            Me.pnlRecordPaymentDialog.Controls.Add(Me.lblPaymentMethodPrompt)
+            Me.pnlRecordPaymentDialog.Controls.Add(Me.dtpPaymentDate)
+            Me.pnlRecordPaymentDialog.Controls.Add(Me.lblPaymentDatePrompt)
+            Me.pnlRecordPaymentDialog.Controls.Add(Me.numPaymentAmount)
+            Me.pnlRecordPaymentDialog.Controls.Add(Me.lblPaymentAmountPrompt)
+            Me.pnlRecordPaymentDialog.Controls.Add(Me.cmbPaymentInvoice)
+            Me.pnlRecordPaymentDialog.Controls.Add(Me.lblPaymentInvoicePrompt)
+            Me.pnlRecordPaymentDialog.Controls.Add(Me.cmbPaymentCustomer)
+            Me.pnlRecordPaymentDialog.Controls.Add(Me.lblPaymentCustomerPrompt)
+            Me.pnlRecordPaymentDialog.Controls.Add(Me.pnlPaymentDialogHeader)
+            Me.pnlRecordPaymentDialog.Location = New System.Drawing.Point(340, 110)
+            Me.pnlRecordPaymentDialog.Name = "pnlRecordPaymentDialog"
+            Me.pnlRecordPaymentDialog.Size = New System.Drawing.Size(520, 420)
+            Me.pnlRecordPaymentDialog.TabIndex = 100
+            Me.pnlRecordPaymentDialog.Visible = False
+            '
+            'pnlPaymentDialogHeader
+            '
+            Me.pnlPaymentDialogHeader.BackColor = System.Drawing.Color.FromArgb(CType(CType(13, Byte), Integer), CType(CType(110, Byte), Integer), CType(CType(253, Byte), Integer))
+            Me.pnlPaymentDialogHeader.Controls.Add(Me.btnClosePaymentDialog)
+            Me.pnlPaymentDialogHeader.Controls.Add(Me.lblPaymentDialogTitle)
+            Me.pnlPaymentDialogHeader.Dock = System.Windows.Forms.DockStyle.Top
+            Me.pnlPaymentDialogHeader.Location = New System.Drawing.Point(0, 0)
+            Me.pnlPaymentDialogHeader.Name = "pnlPaymentDialogHeader"
+            Me.pnlPaymentDialogHeader.Size = New System.Drawing.Size(518, 42)
+            Me.pnlPaymentDialogHeader.TabIndex = 0
+            '
+            'lblPaymentDialogTitle
+            '
+            Me.lblPaymentDialogTitle.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.lblPaymentDialogTitle.Font = New System.Drawing.Font("Segoe UI", 10.0!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+            Me.lblPaymentDialogTitle.ForeColor = System.Drawing.Color.White
+            Me.lblPaymentDialogTitle.Location = New System.Drawing.Point(0, 0)
+            Me.lblPaymentDialogTitle.Name = "lblPaymentDialogTitle"
+            Me.lblPaymentDialogTitle.Padding = New System.Windows.Forms.Padding(12, 0, 0, 0)
+            Me.lblPaymentDialogTitle.Size = New System.Drawing.Size(518, 42)
+            Me.lblPaymentDialogTitle.TabIndex = 0
+            Me.lblPaymentDialogTitle.Text = "Record Customer Payment Receipt (AR Settlement)"
+            Me.lblPaymentDialogTitle.TextAlign = System.Drawing.ContentAlignment.MiddleLeft
+            '
+            'btnClosePaymentDialog
+            '
+            Me.btnClosePaymentDialog.BackColor = System.Drawing.Color.Transparent
+            Me.btnClosePaymentDialog.Dock = System.Windows.Forms.DockStyle.Right
+            Me.btnClosePaymentDialog.FlatAppearance.BorderSize = 0
+            Me.btnClosePaymentDialog.FlatStyle = System.Windows.Forms.FlatStyle.Flat
+            Me.btnClosePaymentDialog.Font = New System.Drawing.Font("Segoe UI", 10.0!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+            Me.btnClosePaymentDialog.ForeColor = System.Drawing.Color.White
+            Me.btnClosePaymentDialog.Location = New System.Drawing.Point(478, 0)
+            Me.btnClosePaymentDialog.Name = "btnClosePaymentDialog"
+            Me.btnClosePaymentDialog.Size = New System.Drawing.Size(40, 42)
+            Me.btnClosePaymentDialog.TabIndex = 1
+            Me.btnClosePaymentDialog.Text = "✕"
+            Me.btnClosePaymentDialog.UseVisualStyleBackColor = False
+            '
+            'lblPaymentCustomerPrompt
+            '
+            Me.lblPaymentCustomerPrompt.AutoSize = True
+            Me.lblPaymentCustomerPrompt.Location = New System.Drawing.Point(20, 52)
+            Me.lblPaymentCustomerPrompt.Name = "lblPaymentCustomerPrompt"
+            Me.lblPaymentCustomerPrompt.Size = New System.Drawing.Size(117, 17)
+            Me.lblPaymentCustomerPrompt.TabIndex = 1
+            Me.lblPaymentCustomerPrompt.Text = "Customer Account:"
+            '
+            'cmbPaymentCustomer
+            '
+            Me.cmbPaymentCustomer.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList
+            Me.cmbPaymentCustomer.FormattingEnabled = True
+            Me.cmbPaymentCustomer.Location = New System.Drawing.Point(20, 72)
+            Me.cmbPaymentCustomer.Name = "cmbPaymentCustomer"
+            Me.cmbPaymentCustomer.Size = New System.Drawing.Size(478, 25)
+            Me.cmbPaymentCustomer.TabIndex = 2
+            '
+            'lblPaymentInvoicePrompt
+            '
+            Me.lblPaymentInvoicePrompt.AutoSize = True
+            Me.lblPaymentInvoicePrompt.Location = New System.Drawing.Point(20, 104)
+            Me.lblPaymentInvoicePrompt.Name = "lblPaymentInvoicePrompt"
+            Me.lblPaymentInvoicePrompt.Size = New System.Drawing.Size(207, 17)
+            Me.lblPaymentInvoicePrompt.TabIndex = 3
+            Me.lblPaymentInvoicePrompt.Text = "Apply to Sales Invoice (Optional):"
+            '
+            'cmbPaymentInvoice
+            '
+            Me.cmbPaymentInvoice.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList
+            Me.cmbPaymentInvoice.FormattingEnabled = True
+            Me.cmbPaymentInvoice.Location = New System.Drawing.Point(20, 124)
+            Me.cmbPaymentInvoice.Name = "cmbPaymentInvoice"
+            Me.cmbPaymentInvoice.Size = New System.Drawing.Size(478, 25)
+            Me.cmbPaymentInvoice.TabIndex = 4
+            '
+            'lblPaymentAmountPrompt
+            '
+            Me.lblPaymentAmountPrompt.AutoSize = True
+            Me.lblPaymentAmountPrompt.Location = New System.Drawing.Point(20, 156)
+            Me.lblPaymentAmountPrompt.Name = "lblPaymentAmountPrompt"
+            Me.lblPaymentAmountPrompt.Size = New System.Drawing.Size(147, 17)
+            Me.lblPaymentAmountPrompt.TabIndex = 5
+            Me.lblPaymentAmountPrompt.Text = "Settlement Amount ($):"
+            '
+            'numPaymentAmount
+            '
+            Me.numPaymentAmount.DecimalPlaces = 2
+            Me.numPaymentAmount.Location = New System.Drawing.Point(20, 176)
+            Me.numPaymentAmount.Maximum = New Decimal(New Integer() {10000000, 0, 0, 0})
+            Me.numPaymentAmount.Minimum = New Decimal(New Integer() {1, 0, 0, 131072})
+            Me.numPaymentAmount.Name = "numPaymentAmount"
+            Me.numPaymentAmount.Size = New System.Drawing.Size(228, 25)
+            Me.numPaymentAmount.TabIndex = 6
+            Me.numPaymentAmount.TextAlign = System.Windows.Forms.HorizontalAlignment.Right
+            Me.numPaymentAmount.ThousandsSeparator = True
+            Me.numPaymentAmount.Value = New Decimal(New Integer() {1, 0, 0, 131072})
+            '
+            'lblPaymentDatePrompt
+            '
+            Me.lblPaymentDatePrompt.AutoSize = True
+            Me.lblPaymentDatePrompt.Location = New System.Drawing.Point(270, 156)
+            Me.lblPaymentDatePrompt.Name = "lblPaymentDatePrompt"
+            Me.lblPaymentDatePrompt.Size = New System.Drawing.Size(85, 17)
+            Me.lblPaymentDatePrompt.TabIndex = 7
+            Me.lblPaymentDatePrompt.Text = "Receipt Date:"
+            '
+            'dtpPaymentDate
+            '
+            Me.dtpPaymentDate.Format = System.Windows.Forms.DateTimePickerFormat.[Short]
+            Me.dtpPaymentDate.Location = New System.Drawing.Point(270, 176)
+            Me.dtpPaymentDate.Name = "dtpPaymentDate"
+            Me.dtpPaymentDate.Size = New System.Drawing.Size(228, 25)
+            Me.dtpPaymentDate.TabIndex = 8
+            '
+            'lblPaymentMethodPrompt
+            '
+            Me.lblPaymentMethodPrompt.AutoSize = True
+            Me.lblPaymentMethodPrompt.Location = New System.Drawing.Point(20, 208)
+            Me.lblPaymentMethodPrompt.Name = "lblPaymentMethodPrompt"
+            Me.lblPaymentMethodPrompt.Size = New System.Drawing.Size(109, 17)
+            Me.lblPaymentMethodPrompt.TabIndex = 9
+            Me.lblPaymentMethodPrompt.Text = "Payment Method:"
+            '
+            'cmbPaymentMethod
+            '
+            Me.cmbPaymentMethod.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList
+            Me.cmbPaymentMethod.FormattingEnabled = True
+            Me.cmbPaymentMethod.Location = New System.Drawing.Point(20, 228)
+            Me.cmbPaymentMethod.Name = "cmbPaymentMethod"
+            Me.cmbPaymentMethod.Size = New System.Drawing.Size(478, 25)
+            Me.cmbPaymentMethod.TabIndex = 10
+            '
+            'grpPaymentGlPreview
+            '
+            Me.grpPaymentGlPreview.Controls.Add(Me.lblPaymentGlInfo)
+            Me.grpPaymentGlPreview.Location = New System.Drawing.Point(20, 260)
+            Me.grpPaymentGlPreview.Name = "grpPaymentGlPreview"
+            Me.grpPaymentGlPreview.Padding = New System.Windows.Forms.Padding(10, 6, 10, 6)
+            Me.grpPaymentGlPreview.Size = New System.Drawing.Size(478, 95)
+            Me.grpPaymentGlPreview.TabIndex = 11
+            Me.grpPaymentGlPreview.TabStop = False
+            Me.grpPaymentGlPreview.Text = "Automatic Double-Entry Posting Preview"
+            '
+            'lblPaymentGlInfo
+            '
+            Me.lblPaymentGlInfo.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.lblPaymentGlInfo.Font = New System.Drawing.Font("Segoe UI", 8.5!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+            Me.lblPaymentGlInfo.ForeColor = System.Drawing.Color.FromArgb(CType(CType(73, Byte), Integer), CType(CType(80, Byte), Integer), CType(CType(87, Byte), Integer))
+            Me.lblPaymentGlInfo.Location = New System.Drawing.Point(10, 24)
+            Me.lblPaymentGlInfo.Name = "lblPaymentGlInfo"
+            Me.lblPaymentGlInfo.Size = New System.Drawing.Size(458, 65)
+            Me.lblPaymentGlInfo.TabIndex = 0
+            Me.lblPaymentGlInfo.Text = "Debit:  1020 Operating Bank Account" & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "Credit: 1200 Accounts Receivable (Subledger AR Settlement)"
+            '
+            'pnlPaymentButtons
+            '
+            Me.pnlPaymentButtons.Controls.Add(Me.btnConfirmPaymentReceipt)
+            Me.pnlPaymentButtons.Controls.Add(Me.btnCancelPaymentReceipt)
+            Me.pnlPaymentButtons.Location = New System.Drawing.Point(20, 365)
+            Me.pnlPaymentButtons.Name = "pnlPaymentButtons"
+            Me.pnlPaymentButtons.Size = New System.Drawing.Size(478, 42)
+            Me.pnlPaymentButtons.TabIndex = 12
+            '
+            'btnConfirmPaymentReceipt
+            '
+            Me.btnConfirmPaymentReceipt.BackColor = System.Drawing.Color.FromArgb(CType(CType(40, Byte), Integer), CType(CType(167, Byte), Integer), CType(CType(69, Byte), Integer))
+            Me.btnConfirmPaymentReceipt.FlatStyle = System.Windows.Forms.FlatStyle.Flat
+            Me.btnConfirmPaymentReceipt.Font = New System.Drawing.Font("Segoe UI", 9.0!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+            Me.btnConfirmPaymentReceipt.ForeColor = System.Drawing.Color.White
+            Me.btnConfirmPaymentReceipt.Location = New System.Drawing.Point(160, 4)
+            Me.btnConfirmPaymentReceipt.Name = "btnConfirmPaymentReceipt"
+            Me.btnConfirmPaymentReceipt.Size = New System.Drawing.Size(200, 34)
+            Me.btnConfirmPaymentReceipt.TabIndex = 0
+            Me.btnConfirmPaymentReceipt.Text = "✓ Post Payment Receipt"
+            Me.btnConfirmPaymentReceipt.UseVisualStyleBackColor = False
+            '
+            'btnCancelPaymentReceipt
+            '
+            Me.btnCancelPaymentReceipt.BackColor = System.Drawing.Color.FromArgb(CType(CType(108, Byte), Integer), CType(CType(117, Byte), Integer), CType(CType(125, Byte), Integer))
+            Me.btnCancelPaymentReceipt.FlatStyle = System.Windows.Forms.FlatStyle.Flat
+            Me.btnCancelPaymentReceipt.Font = New System.Drawing.Font("Segoe UI", 9.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+            Me.btnCancelPaymentReceipt.ForeColor = System.Drawing.Color.White
+            Me.btnCancelPaymentReceipt.Location = New System.Drawing.Point(368, 4)
+            Me.btnCancelPaymentReceipt.Name = "btnCancelPaymentReceipt"
+            Me.btnCancelPaymentReceipt.Size = New System.Drawing.Size(110, 34)
+            Me.btnCancelPaymentReceipt.TabIndex = 1
+            Me.btnCancelPaymentReceipt.Text = "Cancel"
+            Me.btnCancelPaymentReceipt.UseVisualStyleBackColor = False
+            '
+            'pnlRefundDialog
+            '
+            Me.pnlRefundDialog.BackColor = System.Drawing.Color.White
+            Me.pnlRefundDialog.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle
+            Me.pnlRefundDialog.Controls.Add(Me.pnlRefundButtons)
+            Me.pnlRefundDialog.Controls.Add(Me.grpRefundGlPreview)
+            Me.pnlRefundDialog.Controls.Add(Me.cmbRefundMethod)
+            Me.pnlRefundDialog.Controls.Add(Me.lblRefundMethodPrompt)
+            Me.pnlRefundDialog.Controls.Add(Me.dtpRefundDate)
+            Me.pnlRefundDialog.Controls.Add(Me.lblRefundDatePrompt)
+            Me.pnlRefundDialog.Controls.Add(Me.numRefundAmount)
+            Me.pnlRefundDialog.Controls.Add(Me.lblRefundAmountPrompt)
+            Me.pnlRefundDialog.Controls.Add(Me.lblRefundCustomerInfo)
+            Me.pnlRefundDialog.Controls.Add(Me.pnlRefundDialogHeader)
+            Me.pnlRefundDialog.Location = New System.Drawing.Point(340, 130)
+            Me.pnlRefundDialog.Name = "pnlRefundDialog"
+            Me.pnlRefundDialog.Size = New System.Drawing.Size(520, 380)
+            Me.pnlRefundDialog.TabIndex = 101
+            Me.pnlRefundDialog.Visible = False
+            '
+            'pnlRefundDialogHeader
+            '
+            Me.pnlRefundDialogHeader.BackColor = System.Drawing.Color.FromArgb(CType(CType(220, Byte), Integer), CType(CType(53, Byte), Integer), CType(CType(69, Byte), Integer))
+            Me.pnlRefundDialogHeader.Controls.Add(Me.btnCloseRefundDialog)
+            Me.pnlRefundDialogHeader.Controls.Add(Me.lblRefundDialogTitle)
+            Me.pnlRefundDialogHeader.Dock = System.Windows.Forms.DockStyle.Top
+            Me.pnlRefundDialogHeader.Location = New System.Drawing.Point(0, 0)
+            Me.pnlRefundDialogHeader.Name = "pnlRefundDialogHeader"
+            Me.pnlRefundDialogHeader.Size = New System.Drawing.Size(518, 42)
+            Me.pnlRefundDialogHeader.TabIndex = 0
+            '
+            'lblRefundDialogTitle
+            '
+            Me.lblRefundDialogTitle.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.lblRefundDialogTitle.Font = New System.Drawing.Font("Segoe UI", 10.0!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+            Me.lblRefundDialogTitle.ForeColor = System.Drawing.Color.White
+            Me.lblRefundDialogTitle.Location = New System.Drawing.Point(0, 0)
+            Me.lblRefundDialogTitle.Name = "lblRefundDialogTitle"
+            Me.lblRefundDialogTitle.Padding = New System.Windows.Forms.Padding(12, 0, 0, 0)
+            Me.lblRefundDialogTitle.Size = New System.Drawing.Size(518, 42)
+            Me.lblRefundDialogTitle.TabIndex = 0
+            Me.lblRefundDialogTitle.Text = "Disburse Customer Credit Refund (Negative AR)"
+            Me.lblRefundDialogTitle.TextAlign = System.Drawing.ContentAlignment.MiddleLeft
+            '
+            'btnCloseRefundDialog
+            '
+            Me.btnCloseRefundDialog.BackColor = System.Drawing.Color.Transparent
+            Me.btnCloseRefundDialog.Dock = System.Windows.Forms.DockStyle.Right
+            Me.btnCloseRefundDialog.FlatAppearance.BorderSize = 0
+            Me.btnCloseRefundDialog.FlatStyle = System.Windows.Forms.FlatStyle.Flat
+            Me.btnCloseRefundDialog.Font = New System.Drawing.Font("Segoe UI", 10.0!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+            Me.btnCloseRefundDialog.ForeColor = System.Drawing.Color.White
+            Me.btnCloseRefundDialog.Location = New System.Drawing.Point(478, 0)
+            Me.btnCloseRefundDialog.Name = "btnCloseRefundDialog"
+            Me.btnCloseRefundDialog.Size = New System.Drawing.Size(40, 42)
+            Me.btnCloseRefundDialog.TabIndex = 1
+            Me.btnCloseRefundDialog.Text = "✕"
+            Me.btnCloseRefundDialog.UseVisualStyleBackColor = False
+            '
+            'lblRefundCustomerInfo
+            '
+            Me.lblRefundCustomerInfo.BackColor = System.Drawing.Color.FromArgb(CType(CType(248, Byte), Integer), CType(CType(249, Byte), Integer), CType(CType(250, Byte), Integer))
+            Me.lblRefundCustomerInfo.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle
+            Me.lblRefundCustomerInfo.Font = New System.Drawing.Font("Segoe UI", 9.0!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+            Me.lblRefundCustomerInfo.Location = New System.Drawing.Point(20, 52)
+            Me.lblRefundCustomerInfo.Name = "lblRefundCustomerInfo"
+            Me.lblRefundCustomerInfo.Padding = New System.Windows.Forms.Padding(8)
+            Me.lblRefundCustomerInfo.Size = New System.Drawing.Size(478, 48)
+            Me.lblRefundCustomerInfo.TabIndex = 1
+            Me.lblRefundCustomerInfo.Text = "Customer: ..."
+            '
+            'lblRefundAmountPrompt
+            '
+            Me.lblRefundAmountPrompt.AutoSize = True
+            Me.lblRefundAmountPrompt.Location = New System.Drawing.Point(20, 110)
+            Me.lblRefundAmountPrompt.Name = "lblRefundAmountPrompt"
+            Me.lblRefundAmountPrompt.Size = New System.Drawing.Size(161, 17)
+            Me.lblRefundAmountPrompt.TabIndex = 2
+            Me.lblRefundAmountPrompt.Text = "Disbursement Amount ($):"
+            '
+            'numRefundAmount
+            '
+            Me.numRefundAmount.DecimalPlaces = 2
+            Me.numRefundAmount.Location = New System.Drawing.Point(20, 130)
+            Me.numRefundAmount.Maximum = New Decimal(New Integer() {10000000, 0, 0, 0})
+            Me.numRefundAmount.Minimum = New Decimal(New Integer() {1, 0, 0, 131072})
+            Me.numRefundAmount.Name = "numRefundAmount"
+            Me.numRefundAmount.Size = New System.Drawing.Size(228, 25)
+            Me.numRefundAmount.TabIndex = 3
+            Me.numRefundAmount.TextAlign = System.Windows.Forms.HorizontalAlignment.Right
+            Me.numRefundAmount.ThousandsSeparator = True
+            Me.numRefundAmount.Value = New Decimal(New Integer() {1, 0, 0, 131072})
+            '
+            'lblRefundDatePrompt
+            '
+            Me.lblRefundDatePrompt.AutoSize = True
+            Me.lblRefundDatePrompt.Location = New System.Drawing.Point(270, 110)
+            Me.lblRefundDatePrompt.Name = "lblRefundDatePrompt"
+            Me.lblRefundDatePrompt.Size = New System.Drawing.Size(91, 17)
+            Me.lblRefundDatePrompt.TabIndex = 4
+            Me.lblRefundDatePrompt.Text = "Payment Date:"
+            '
+            'dtpRefundDate
+            '
+            Me.dtpRefundDate.Format = System.Windows.Forms.DateTimePickerFormat.[Short]
+            Me.dtpRefundDate.Location = New System.Drawing.Point(270, 130)
+            Me.dtpRefundDate.Name = "dtpRefundDate"
+            Me.dtpRefundDate.Size = New System.Drawing.Size(228, 25)
+            Me.dtpRefundDate.TabIndex = 5
+            '
+            'lblRefundMethodPrompt
+            '
+            Me.lblRefundMethodPrompt.AutoSize = True
+            Me.lblRefundMethodPrompt.Location = New System.Drawing.Point(20, 164)
+            Me.lblRefundMethodPrompt.Name = "lblRefundMethodPrompt"
+            Me.lblRefundMethodPrompt.Size = New System.Drawing.Size(139, 17)
+            Me.lblRefundMethodPrompt.TabIndex = 6
+            Me.lblRefundMethodPrompt.Text = "Disbursement Method:"
+            '
+            'cmbRefundMethod
+            '
+            Me.cmbRefundMethod.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList
+            Me.cmbRefundMethod.FormattingEnabled = True
+            Me.cmbRefundMethod.Location = New System.Drawing.Point(20, 184)
+            Me.cmbRefundMethod.Name = "cmbRefundMethod"
+            Me.cmbRefundMethod.Size = New System.Drawing.Size(478, 25)
+            Me.cmbRefundMethod.TabIndex = 7
+            '
+            'grpRefundGlPreview
+            '
+            Me.grpRefundGlPreview.Controls.Add(Me.lblRefundGlInfo)
+            Me.grpRefundGlPreview.Location = New System.Drawing.Point(20, 218)
+            Me.grpRefundGlPreview.Name = "grpRefundGlPreview"
+            Me.grpRefundGlPreview.Padding = New System.Windows.Forms.Padding(10, 6, 10, 6)
+            Me.grpRefundGlPreview.Size = New System.Drawing.Size(478, 90)
+            Me.grpRefundGlPreview.TabIndex = 8
+            Me.grpRefundGlPreview.TabStop = False
+            Me.grpRefundGlPreview.Text = "Automatic Double-Entry Posting Preview"
+            '
+            'lblRefundGlInfo
+            '
+            Me.lblRefundGlInfo.Dock = System.Windows.Forms.DockStyle.Fill
+            Me.lblRefundGlInfo.Font = New System.Drawing.Font("Segoe UI", 8.5!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+            Me.lblRefundGlInfo.ForeColor = System.Drawing.Color.FromArgb(CType(CType(73, Byte), Integer), CType(CType(80, Byte), Integer), CType(CType(87, Byte), Integer))
+            Me.lblRefundGlInfo.Location = New System.Drawing.Point(10, 24)
+            Me.lblRefundGlInfo.Name = "lblRefundGlInfo"
+            Me.lblRefundGlInfo.Size = New System.Drawing.Size(458, 60)
+            Me.lblRefundGlInfo.TabIndex = 0
+            Me.lblRefundGlInfo.Text = "Debit:  1200 Accounts Receivable (Credit Clearance)" & Global.Microsoft.VisualBasic.ChrW(13) & Global.Microsoft.VisualBasic.ChrW(10) & "Credit: 1020 Operating Bank Account (Disbursement)"
+            '
+            'pnlRefundButtons
+            '
+            Me.pnlRefundButtons.Controls.Add(Me.btnConfirmRefund)
+            Me.pnlRefundButtons.Controls.Add(Me.btnCancelRefund)
+            Me.pnlRefundButtons.Location = New System.Drawing.Point(20, 318)
+            Me.pnlRefundButtons.Name = "pnlRefundButtons"
+            Me.pnlRefundButtons.Size = New System.Drawing.Size(478, 42)
+            Me.pnlRefundButtons.TabIndex = 9
+            '
+            'btnConfirmRefund
+            '
+            Me.btnConfirmRefund.BackColor = System.Drawing.Color.FromArgb(CType(CType(220, Byte), Integer), CType(CType(53, Byte), Integer), CType(CType(69, Byte), Integer))
+            Me.btnConfirmRefund.FlatStyle = System.Windows.Forms.FlatStyle.Flat
+            Me.btnConfirmRefund.Font = New System.Drawing.Font("Segoe UI", 9.0!, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+            Me.btnConfirmRefund.ForeColor = System.Drawing.Color.White
+            Me.btnConfirmRefund.Location = New System.Drawing.Point(140, 4)
+            Me.btnConfirmRefund.Name = "btnConfirmRefund"
+            Me.btnConfirmRefund.Size = New System.Drawing.Size(220, 34)
+            Me.btnConfirmRefund.TabIndex = 0
+            Me.btnConfirmRefund.Text = "✓ Disburse Customer Refund"
+            Me.btnConfirmRefund.UseVisualStyleBackColor = False
+            '
+            'btnCancelRefund
+            '
+            Me.btnCancelRefund.BackColor = System.Drawing.Color.FromArgb(CType(CType(108, Byte), Integer), CType(CType(117, Byte), Integer), CType(CType(125, Byte), Integer))
+            Me.btnCancelRefund.FlatStyle = System.Windows.Forms.FlatStyle.Flat
+            Me.btnCancelRefund.Font = New System.Drawing.Font("Segoe UI", 9.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+            Me.btnCancelRefund.ForeColor = System.Drawing.Color.White
+            Me.btnCancelRefund.Location = New System.Drawing.Point(368, 4)
+            Me.btnCancelRefund.Name = "btnCancelRefund"
+            Me.btnCancelRefund.Size = New System.Drawing.Size(110, 34)
+            Me.btnCancelRefund.TabIndex = 1
+            Me.btnCancelRefund.Text = "Cancel"
+            Me.btnCancelRefund.UseVisualStyleBackColor = False
+            '
             'SalesDashboardForm
             '
             Me.AutoScaleDimensions = New System.Drawing.SizeF(7.0!, 17.0!)
             Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
             Me.BackColor = System.Drawing.Color.FromArgb(CType(CType(248, Byte), Integer), CType(CType(249, Byte), Integer), CType(CType(250, Byte), Integer))
             Me.ClientSize = New System.Drawing.Size(1200, 720)
+            Me.Controls.Add(Me.pnlRecordPaymentDialog)
+            Me.Controls.Add(Me.pnlRefundDialog)
             Me.Controls.Add(Me.tabMain)
             Me.Controls.Add(Me.pnlHeader)
             Me.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None
@@ -1298,6 +1859,7 @@ Namespace UI.Sales
             Me.tblCustomerCredit.PerformLayout()
             Me.grpCustomer.ResumeLayout(False)
             Me.grpCustomer.PerformLayout()
+            Me.pnlCustomerActions.ResumeLayout(False)
             Me.grpSelectedOrderLines.ResumeLayout(False)
             CType(Me.dgvSelectedOrderLines, System.ComponentModel.ISupportInitialize).EndInit()
             Me.pnlOrderActions.ResumeLayout(False)
@@ -1309,6 +1871,7 @@ Namespace UI.Sales
             CType(Me.splitInvoices, System.ComponentModel.ISupportInitialize).EndInit()
             Me.splitInvoices.ResumeLayout(False)
             Me.grpInvoicesList.ResumeLayout(False)
+            Me.pnlInvoicesActions.ResumeLayout(False)
             CType(Me.dgvInvoices, System.ComponentModel.ISupportInitialize).EndInit()
             Me.splitInvoiceDetails.Panel1.ResumeLayout(False)
             Me.splitInvoiceDetails.Panel2.ResumeLayout(False)
@@ -1329,6 +1892,18 @@ Namespace UI.Sales
             Me.grpStockSimulation.PerformLayout()
             Me.pnlSimBadgeContainer.ResumeLayout(False)
             CType(Me.numSimQty, System.ComponentModel.ISupportInitialize).EndInit()
+            Me.pnlPaymentDialogHeader.ResumeLayout(False)
+            CType(Me.numPaymentAmount, System.ComponentModel.ISupportInitialize).EndInit()
+            Me.grpPaymentGlPreview.ResumeLayout(False)
+            Me.pnlPaymentButtons.ResumeLayout(False)
+            Me.pnlRecordPaymentDialog.ResumeLayout(False)
+            Me.pnlRecordPaymentDialog.PerformLayout()
+            Me.pnlRefundDialogHeader.ResumeLayout(False)
+            CType(Me.numRefundAmount, System.ComponentModel.ISupportInitialize).EndInit()
+            Me.grpRefundGlPreview.ResumeLayout(False)
+            Me.pnlRefundButtons.ResumeLayout(False)
+            Me.pnlRefundDialog.ResumeLayout(False)
+            Me.pnlRefundDialog.PerformLayout()
             Me.ResumeLayout(False)
 
         End Sub

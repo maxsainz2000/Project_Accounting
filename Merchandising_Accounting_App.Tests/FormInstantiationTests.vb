@@ -211,6 +211,251 @@ Namespace Merchandising_Accounting_App.Tests
             End Sub)
         End Sub
 
+        Private Shared Function GetAllDataGrids(root As Control) As List(Of DataGridView)
+            Dim grids As New List(Of DataGridView)()
+            If TypeOf root Is DataGridView Then
+                grids.Add(DirectCast(root, DataGridView))
+            End If
+            For Each child As Control In root.Controls
+                grids.AddRange(GetAllDataGrids(child))
+            Next
+            Return grids
+        End Function
+
+        Private Shared Sub AssertNoHorizontalScrollBar(dgv As DataGridView, gridName As String, resolutionLabel As String)
+            Dim hScroll = dgv.Controls.OfType(Of HScrollBar)().FirstOrDefault()
+            Assert.IsNotNull(hScroll, $"HScrollBar should exist in {gridName} controls")
+            Assert.IsFalse(hScroll.Visible, $"{gridName} HorizontalScrollBar must not be visible at {resolutionLabel}")
+            Dim visibleColCount As Integer = dgv.Columns.Cast(Of DataGridViewColumn)().Count(Function(c) c.Visible)
+            If visibleColCount > 0 Then
+                Assert.AreEqual(visibleColCount, dgv.DisplayedColumnCount(False), $"All {visibleColCount} visible columns in {gridName} must be fully displayed without clipping at {resolutionLabel}")
+            End If
+        End Sub
+
+        <TestMethod>
+        Public Sub Test_PurchasingDashboardForm_DualResolution_LayoutAllocation()
+            RunOnSta(Sub()
+                Using shell As New UI.MainShellForm()
+                    shell.AutoLoadDefaultModule = False
+                    shell.FormBorderStyle = FormBorderStyle.None
+                    shell.WindowState = FormWindowState.Normal
+                    shell.StartPosition = FormStartPosition.Manual
+                    shell.Location = New Point(0, 0)
+                    shell.ClientSize = New Size(1280, 720)
+                    shell.Visible = True
+
+                    Dim form As New UI.Purchasing.PurchasingDashboardForm()
+                    shell.LoadChildForm(form, "Purchasing", "Purchasing Dashboard")
+                    shell.WindowState = FormWindowState.Normal
+                    shell.ClientSize = New Size(1280, 720)
+                    shell.pnlSidebar.Width = 280
+                    shell.PerformLayout()
+                    form.PerformLayout()
+                    Application.DoEvents()
+
+                    ' 1280x720: Check all tabs
+                    For Each page As TabPage In form.tabPurchasing.TabPages
+                        form.tabPurchasing.SelectedTab = page
+                        shell.PerformLayout()
+                        form.PerformLayout()
+                        Application.DoEvents()
+
+                        Dim grids = GetAllDataGrids(page)
+                        For Each dgv In grids
+                            AssertNoHorizontalScrollBar(dgv, dgv.Name, $"1280x720 (Tab: {page.Text})")
+                        Next
+                    Next
+
+                    ' 1920x1080: Check all tabs
+                    shell.ClientSize = New Size(1920, 1080)
+                    shell.pnlSidebar.Width = 280
+                    shell.PerformLayout()
+                    form.PerformLayout()
+                    Application.DoEvents()
+
+                    For Each page As TabPage In form.tabPurchasing.TabPages
+                        form.tabPurchasing.SelectedTab = page
+                        shell.PerformLayout()
+                        form.PerformLayout()
+                        Application.DoEvents()
+
+                        Dim grids = GetAllDataGrids(page)
+                        For Each dgv In grids
+                            AssertNoHorizontalScrollBar(dgv, dgv.Name, $"1920x1080 (Tab: {page.Text})")
+                        Next
+                    Next
+                End Using
+            End Sub)
+        End Sub
+
+        <TestMethod>
+        Public Sub Test_SalesDashboardForm_DualResolution_LayoutAllocation()
+            RunOnSta(Sub()
+                Using shell As New UI.MainShellForm()
+                    shell.AutoLoadDefaultModule = False
+                    shell.FormBorderStyle = FormBorderStyle.None
+                    shell.WindowState = FormWindowState.Normal
+                    shell.StartPosition = FormStartPosition.Manual
+                    shell.Location = New Point(0, 0)
+                    shell.ClientSize = New Size(1280, 720)
+                    shell.Visible = True
+
+                    Dim form As New UI.Sales.SalesDashboardForm()
+                    shell.LoadChildForm(form, "Sales", "Sales Dashboard")
+                    shell.WindowState = FormWindowState.Normal
+                    shell.ClientSize = New Size(1280, 720)
+                    shell.pnlSidebar.Width = 280
+                    shell.PerformLayout()
+                    form.PerformLayout()
+                    Application.DoEvents()
+
+                    ' 1280x720: Check all tabs
+                    For Each page As TabPage In form.tabMain.TabPages
+                        form.tabMain.SelectedTab = page
+                        shell.PerformLayout()
+                        form.PerformLayout()
+                        Application.DoEvents()
+
+                        Dim grids = GetAllDataGrids(page)
+                        For Each dgv In grids
+                            AssertNoHorizontalScrollBar(dgv, dgv.Name, $"1280x720 (Tab: {page.Text})")
+                        Next
+                    Next
+
+                    ' 1920x1080: Check all tabs
+                    shell.ClientSize = New Size(1920, 1080)
+                    shell.pnlSidebar.Width = 280
+                    shell.PerformLayout()
+                    form.PerformLayout()
+                    Application.DoEvents()
+
+                    For Each page As TabPage In form.tabMain.TabPages
+                        form.tabMain.SelectedTab = page
+                        shell.PerformLayout()
+                        form.PerformLayout()
+                        Application.DoEvents()
+
+                        Dim grids = GetAllDataGrids(page)
+                        For Each dgv In grids
+                            AssertNoHorizontalScrollBar(dgv, dgv.Name, $"1920x1080 (Tab: {page.Text})")
+                        Next
+                    Next
+                End Using
+            End Sub)
+        End Sub
+
+        <TestMethod>
+        Public Sub Test_WarehouseIntakeForm_DualResolution_LayoutAllocation()
+            RunOnSta(Sub()
+                Using shell As New UI.MainShellForm()
+                    shell.AutoLoadDefaultModule = False
+                    shell.FormBorderStyle = FormBorderStyle.None
+                    shell.WindowState = FormWindowState.Normal
+                    shell.StartPosition = FormStartPosition.Manual
+                    shell.Location = New Point(0, 0)
+                    shell.ClientSize = New Size(1280, 720)
+                    shell.Visible = True
+
+                    Dim form As New UI.Warehouse.WarehouseIntakeForm()
+                    shell.LoadChildForm(form, "Warehouse Intake", "Warehouse Intake & RMA")
+                    shell.WindowState = FormWindowState.Normal
+                    shell.ClientSize = New Size(1280, 720)
+                    shell.pnlSidebar.Width = 280
+                    shell.PerformLayout()
+                    form.PerformLayout()
+                    Application.DoEvents()
+
+                    ' 1280x720: Check all tabs
+                    For Each page As TabPage In form.tabMain.TabPages
+                        form.tabMain.SelectedTab = page
+                        shell.PerformLayout()
+                        form.PerformLayout()
+                        Application.DoEvents()
+
+                        Dim grids = GetAllDataGrids(page)
+                        For Each dgv In grids
+                            AssertNoHorizontalScrollBar(dgv, dgv.Name, $"1280x720 (Tab: {page.Text})")
+                        Next
+                    Next
+
+                    ' 1920x1080: Check all tabs
+                    shell.ClientSize = New Size(1920, 1080)
+                    shell.pnlSidebar.Width = 280
+                    shell.PerformLayout()
+                    form.PerformLayout()
+                    Application.DoEvents()
+
+                    For Each page As TabPage In form.tabMain.TabPages
+                        form.tabMain.SelectedTab = page
+                        shell.PerformLayout()
+                        form.PerformLayout()
+                        Application.DoEvents()
+
+                        Dim grids = GetAllDataGrids(page)
+                        For Each dgv In grids
+                            AssertNoHorizontalScrollBar(dgv, dgv.Name, $"1920x1080 (Tab: {page.Text})")
+                        Next
+                    Next
+                End Using
+            End Sub)
+        End Sub
+
+        <TestMethod>
+        Public Sub Test_FinancialReportsForm_DualResolution_LayoutAllocation()
+            RunOnSta(Sub()
+                Using shell As New UI.MainShellForm()
+                    shell.AutoLoadDefaultModule = False
+                    shell.FormBorderStyle = FormBorderStyle.None
+                    shell.WindowState = FormWindowState.Normal
+                    shell.StartPosition = FormStartPosition.Manual
+                    shell.Location = New Point(0, 0)
+                    shell.ClientSize = New Size(1280, 720)
+                    shell.Visible = True
+
+                    Dim form As New UI.Reporting.FinancialReportsForm()
+                    shell.LoadChildForm(form, "Financial Reports", "Financial & Operational Reporting")
+                    shell.WindowState = FormWindowState.Normal
+                    shell.ClientSize = New Size(1280, 720)
+                    shell.pnlSidebar.Width = 280
+                    shell.PerformLayout()
+                    form.PerformLayout()
+                    Application.DoEvents()
+
+                    ' 1280x720: Check all tabs
+                    For Each page As TabPage In form.tabReports.TabPages
+                        form.tabReports.SelectedTab = page
+                        shell.PerformLayout()
+                        form.PerformLayout()
+                        Application.DoEvents()
+
+                        Dim grids = GetAllDataGrids(page)
+                        For Each dgv In grids
+                            AssertNoHorizontalScrollBar(dgv, dgv.Name, $"1280x720 (Tab: {page.Text})")
+                        Next
+                    Next
+
+                    ' 1920x1080: Check all tabs
+                    shell.ClientSize = New Size(1920, 1080)
+                    shell.pnlSidebar.Width = 280
+                    shell.PerformLayout()
+                    form.PerformLayout()
+                    Application.DoEvents()
+
+                    For Each page As TabPage In form.tabReports.TabPages
+                        form.tabReports.SelectedTab = page
+                        shell.PerformLayout()
+                        form.PerformLayout()
+                        Application.DoEvents()
+
+                        Dim grids = GetAllDataGrids(page)
+                        For Each dgv In grids
+                            AssertNoHorizontalScrollBar(dgv, dgv.Name, $"1920x1080 (Tab: {page.Text})")
+                        Next
+                    Next
+                End Using
+            End Sub)
+        End Sub
+
     End Class
 
 End Namespace

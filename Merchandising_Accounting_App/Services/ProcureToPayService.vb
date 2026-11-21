@@ -597,6 +597,164 @@ Namespace Services
         End Function
 
         ' =========================================================================
+        ' 5. GRNI Clearing & Stale Accrual Adjustments
+        ' =========================================================================
+
+        ''' <summary>
+        ''' Clears stale or unbilled Goods Receipt Note (GRN) accruals where received goods will not be billed by the vendor.
+        ''' Validates that ReceivedQty > BilledQty, computes the remaining unbilled accrual balance,
+        ''' records an append-only GRNIAdjustment, and posts a balanced General Ledger journal entry
+        ''' (Debit 2100 GRNI Clearing, Credit 5100 Purchase Price Variance).
+        ''' </summary>
+        ''' <param name="grnLineId">The primary key of the GRNLine to clear.</param>
+        ''' <param name="reason">The business justification for clearing the unbilled liability.</param>
+        ''' <param name="postingDate">Optional statutory posting date; resolved via PeriodService if omitted.</param>
+        ''' <returns>The persisted <see cref="GRNIAdjustment"/>.</returns>
+        Public Function ClearStaleGRNI(grnLineId As Integer,
+                                       reason As String,
+                                       Optional postingDate As DateTime? = Nothing) As GRNIAdjustment
+            If grnLineId <= 0 Then
+                Throw New ArgumentOutOfRangeException(NameOf(grnLineId), "GRN line ID must be greater than zero.")
+            End If
+            If String.IsNullOrWhiteSpace(reason) Then
+                Throw New ArgumentException("Reason for GRNI clearing adjustment cannot be empty.", NameOf(reason))
+            End If
+
+            Dim grnLine = _context.GRNLines _
+                .Include(Function(gl) gl.GoodsReceiptNote).ThenInclude(Function(g) g.Lines) _
+                .Include(Function(gl) gl.BillLines) _
+                .Include(Function(gl) gl.GRNIAdjustments) _
+                .FirstOrDefault(Function(gl) gl.GRNLineId = grnLineId)
+
+            If grnLine Is Nothing Then
+                Throw New ArgumentException($"GRN line with ID {grnLineId} does not exist.", NameOf(grnLineId))
+            End If
+
+            Dim billedQty As Integer = grnLine.BillLines.Sum(Function(bl) bl.BilledQty)
+            Dim priorClearedQty As Integer = grnLine.GRNIAdjustments.Sum(Function(a) a.ClearedQty)
+
+            Dim unbilledQty As Integer = grnLine.ReceivedQty - (billedQty + priorClearedQty)
+            If unbilledQty <= 0 Then
+                Throw New InvalidOperationException(
+                    $"GRN line {grnLineId} has no open unbilled quantity to clear. " &
+                    $"(Received: {grnLine.ReceivedQty}, Billed: {billedQty}, Previously Cleared: {priorClearedQty}).")
+            End If
+
+            Dim unbilledAmount As Decimal = Math.Round(CDec(unbilledQty) * grnLine.POUnitPrice, 4, MidpointRounding.AwayFromZero)
+            If unbilledAmount <= 0D Then
+                Throw New InvalidOperationException($"Computed unbilled GRNI balance is not positive ({unbilledAmount:F4}).")
+            End If
+
+            Dim effectiveAdjustmentDate As DateTime = DateTime.Today
+            Dim statutoryPostingDate As DateTime = If(postingDate.HasValue, postingDate.Value, _periodService.ResolveStatutoryPostingDate(effectiveAdjustmentDate))
+            Dim period As AccountingPeriod = _periodService.ValidatePostingDate(statutoryPostingDate)
+
+            Dim docNum As String = $"GRNI-ADJ-{statutoryPostingDate:yyyyMMdd}-{Guid.NewGuid().ToString().Substring(0, 8).ToUpperInvariant()}"
+
+            Dim isOuterTransaction As Boolean = _context.Database.CurrentTransaction IsNot Nothing
+            Dim tx = If(isOuterTransaction, Nothing, _context.Database.BeginTransaction())
+
+            Try
+                Dim adjustment As New GRNIAdjustment() With {
+                    .GoodsReceiptLineId = grnLineId,
+                    .DocumentNumber = docNum,
+                    .AdjustmentDate = effectiveAdjustmentDate,
+                    .PostingDate = statutoryPostingDate,
+                    .ClearedQty = unbilledQty,
+                    .ClearedAmount = unbilledAmount,
+                    .Reason = reason.Trim(),
+                    .Status = DocumentStatus.Posted.ToString(),
+                    .CreatedAt = DateTime.UtcNow
+                }
+
+                _context.GRNIAdjustments.Add(adjustment)
+                _context.SaveChanges()
+
+                ' Generate and post balanced journal entry (Dr 2100 / Cr 5100)
+                Dim accountLookup = GetAccountLookup()
+                Dim journalEntry As JournalEntry = LedgerPostingEngine.GenerateGRNIAdjustmentJournal(adjustment, grnLine, accountLookup)
+                journalEntry.SourceDocId = adjustment.AdjustmentId
+                journalEntry.PeriodId = period.PeriodId
+                _context.JournalEntries.Add(journalEntry)
+
+                ' Check if all lines on the parent GoodsReceiptNote are now completely billed or cleared
+                If grnLine.GoodsReceiptNote IsNot Nothing Then
+                    Dim grn = grnLine.GoodsReceiptNote
+                    Dim allLinesAccountedFor As Boolean = True
+                    For Each line In grn.Lines
+                        Dim lineBilled As Integer = _context.BillLines _
+                            .Where(Function(bl) bl.GRNLineId.HasValue AndAlso bl.GRNLineId.Value = line.GRNLineId) _
+                            .Sum(Function(bl) bl.BilledQty)
+                        Dim lineCleared As Integer = _context.GRNIAdjustments _
+                            .Where(Function(a) a.GoodsReceiptLineId = line.GRNLineId) _
+                            .Sum(Function(a) a.ClearedQty)
+
+                        If (lineBilled + lineCleared) < line.ReceivedQty Then
+                            allLinesAccountedFor = False
+                            Exit For
+                        End If
+                    Next
+
+                    If allLinesAccountedFor Then
+                        grn.Status = DocumentStatus.Settled.ToString()
+                    End If
+                End If
+
+                _context.SaveChanges()
+
+                If tx IsNot Nothing Then
+                    tx.Commit()
+                End If
+
+                Return adjustment
+            Catch
+                If tx IsNot Nothing Then
+                    tx.Rollback()
+                End If
+                Throw
+            Finally
+                tx?.Dispose()
+            End Try
+        End Function
+
+        ' =========================================================================
+        ' 6. Purchase Order Commitment Lifecycle
+        ' =========================================================================
+
+        ''' <summary>
+        ''' Closes an open or partially received Purchase Order short, releasing unfulfilled commitments without GL posting.
+        ''' </summary>
+        ''' <param name="purchaseOrderId">The primary key of the Purchase Order to close.</param>
+        ''' <returns>The updated <see cref="PurchaseOrder"/>.</returns>
+        Public Function ClosePurchaseOrderShort(purchaseOrderId As Integer) As PurchaseOrder
+            If purchaseOrderId <= 0 Then
+                Throw New ArgumentOutOfRangeException(NameOf(purchaseOrderId), "Purchase order ID must be greater than zero.")
+            End If
+
+            Dim po = _context.PurchaseOrders _
+                .Include(Function(p) p.Lines) _
+                .FirstOrDefault(Function(p) p.POId = purchaseOrderId)
+
+            If po Is Nothing Then
+                Throw New ArgumentException($"Purchase order with ID {purchaseOrderId} does not exist.", NameOf(purchaseOrderId))
+            End If
+
+            If String.Equals(po.Status, "Closed - Short", StringComparison.OrdinalIgnoreCase) OrElse
+               String.Equals(po.Status, "Closed", StringComparison.OrdinalIgnoreCase) Then
+                Throw New InvalidOperationException($"Purchase order {po.DocumentNumber} is already closed.")
+            End If
+
+            If String.Equals(po.Status, "Fully Received", StringComparison.OrdinalIgnoreCase) Then
+                Throw New InvalidOperationException($"Purchase order {po.DocumentNumber} is already fully received and cannot be closed short.")
+            End If
+
+            po.Status = "Closed - Short"
+            _context.SaveChanges()
+
+            Return po
+        End Function
+
+        ' =========================================================================
         ' Helper Query Methods
         ' =========================================================================
 
@@ -629,6 +787,12 @@ Namespace Services
                 .Include(Function(v) v.Vendor) _
                 .Include(Function(v) v.BankAccount) _
                 .FirstOrDefault(Function(v) v.VoucherId = voucherId)
+        End Function
+
+        Public Function GetGRNIAdjustment(adjustmentId As Integer) As GRNIAdjustment
+            Return _context.GRNIAdjustments _
+                .Include(Function(a) a.GoodsReceiptLine) _
+                .FirstOrDefault(Function(a) a.AdjustmentId = adjustmentId)
         End Function
 
         ' =========================================================================

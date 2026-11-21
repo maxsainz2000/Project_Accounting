@@ -521,6 +521,298 @@ Namespace Services
             End Using
         End Sub
 
+        ' =========================================================================
+        ' Stock Reservation, Credit Limit & Sales Order Lifecycle Tests (Track C)
+        ' =========================================================================
+
+        <TestMethod>
+        Public Sub CreateSalesOrder_ReservesAllocatedStockAtomically()
+            Using context = _fixture.CreateContext()
+                Dim service As New OrderToCashService(context)
+
+                Dim customer As New Customer("CUST-RES-01", "Reservation Customer", 10000.0D, 0D)
+                context.Customers.Add(customer)
+                Dim product As New Product("SKU-RES-01", "Reserved Widget", "Each", 10.0D, 50)
+                context.Products.Add(product)
+                context.SaveChanges()
+
+                ' Create Sales Order for 15 units
+                Dim lines As New List(Of SOLine) From {
+                    New SOLine(product.ProductId, 15, 20.0D)
+                }
+
+                Dim so = service.CreateSalesOrder(customer.CustomerId, lines)
+                Assert.IsNotNull(so)
+
+                ' Verify AllocatedQty updated atomically: 15
+                Dim reloaded = context.Products.Find(product.ProductId)
+                Assert.AreEqual(15, reloaded.AllocatedQty)
+                Assert.AreEqual(50, reloaded.TotalQtyOnHand)
+            End Using
+        End Sub
+
+        <TestMethod>
+        Public Sub CreateSalesOrder_InsufficientUnallocatedStock_ThrowsInsufficientStockException()
+            Using context = _fixture.CreateContext()
+                Dim service As New OrderToCashService(context)
+
+                Dim customer As New Customer("CUST-RES-02", "Short Customer", 10000.0D, 0D)
+                context.Customers.Add(customer)
+                ' 20 on hand, 15 already allocated -> only 5 unallocated available
+                Dim product As New Product("SKU-RES-02", "Limited Widget", "Each", 10.0D, 20) With {
+                    .AllocatedQty = 15
+                }
+                context.Products.Add(product)
+                context.SaveChanges()
+
+                ' Attempt to order 10 units when only 5 are unallocated
+                Dim lines As New List(Of SOLine) From {
+                    New SOLine(product.ProductId, 10, 25.0D)
+                }
+
+                Assert.Throws(Of InsufficientStockException)(Sub()
+                    service.CreateSalesOrder(customer.CustomerId, lines)
+                End Sub)
+
+                ' Verify AllocatedQty remains 15
+                Dim reloaded = context.Products.Find(product.ProductId)
+                Assert.AreEqual(15, reloaded.AllocatedQty)
+            End Using
+        End Sub
+
+        <TestMethod>
+        Public Sub CreateSalesOrder_ExceedingCreditLimit_ThrowsCreditLimitExceededException()
+            Using context = _fixture.CreateContext()
+                Dim service As New OrderToCashService(context)
+
+                ' Customer with credit limit of $1,000, current AR balance $800
+                Dim customer As New Customer("CUST-CRED-01", "Tight Credit Customer", 1000.0D, 800.0D)
+                context.Customers.Add(customer)
+                Dim product As New Product("SKU-CRED-01", "Expensive Widget", "Each", 100.0D, 50)
+                context.Products.Add(product)
+                context.SaveChanges()
+
+                ' Order total: 3 * $100 = $300. $800 + $300 = $1,100 > $1,000 credit limit
+                Dim lines As New List(Of SOLine) From {
+                    New SOLine(product.ProductId, 3, 100.0D)
+                }
+
+                Assert.Throws(Of CreditLimitExceededException)(Sub()
+                    service.CreateSalesOrder(customer.CustomerId, lines, allowCreditOverride:=False)
+                End Sub)
+
+                ' Verify no reservation occurred
+                Dim reloaded = context.Products.Find(product.ProductId)
+                Assert.AreEqual(0, reloaded.AllocatedQty)
+            End Using
+        End Sub
+
+        <TestMethod>
+        Public Sub CreateSalesOrder_CreditLimitOverride_Succeeds()
+            Using context = _fixture.CreateContext()
+                Dim service As New OrderToCashService(context)
+
+                Dim customer As New Customer("CUST-CRED-02", "VIP Customer", 1000.0D, 800.0D)
+                context.Customers.Add(customer)
+                Dim product As New Product("SKU-CRED-02", "VIP Widget", "Each", 100.0D, 50)
+                context.Products.Add(product)
+                context.SaveChanges()
+
+                Dim lines As New List(Of SOLine) From {
+                    New SOLine(product.ProductId, 3, 100.0D)
+                }
+
+                ' With override = True, order succeeds
+                Dim so = service.CreateSalesOrder(customer.CustomerId, lines, allowCreditOverride:=True)
+                Assert.IsNotNull(so)
+
+                Dim reloaded = context.Products.Find(product.ProductId)
+                Assert.AreEqual(3, reloaded.AllocatedQty)
+            End Using
+        End Sub
+
+        <TestMethod>
+        Public Sub FulfillSalesInvoice_ReleasesAllocatedStockAndDecrementsPhysicalStock()
+            Using context = _fixture.CreateContext()
+                Dim service As New OrderToCashService(context)
+
+                Dim customer As New Customer("CUST-FUL-01", "Fulfill Customer", 10000.0D, 0D)
+                context.Customers.Add(customer)
+                Dim product As New Product("SKU-FUL-01", "Fulfill Widget", "Each", 15.0D, 40)
+                context.Products.Add(product)
+                context.SaveChanges()
+
+                ' 1. Create SO for 10 units -> AllocatedQty = 10, TotalQtyOnHand = 40
+                Dim lines As New List(Of SOLine) From {
+                    New SOLine(product.ProductId, 10, 30.0D)
+                }
+                Dim so = service.CreateSalesOrder(customer.CustomerId, lines)
+
+                Dim pAfterSO = context.Products.Find(product.ProductId)
+                Assert.AreEqual(10, pAfterSO.AllocatedQty)
+                Assert.AreEqual(40, pAfterSO.TotalQtyOnHand)
+
+                ' 2. Fulfill the SO completely (10 units)
+                Dim postingDate As New DateTime(2026, 11, 15)
+                Dim invoice = service.FulfillSalesInvoice(so.SOId, postingDate)
+
+                Assert.IsNotNull(invoice)
+                Assert.AreEqual("Settled", so.Status)
+
+                ' AllocatedQty released back to 0, TotalQtyOnHand decremented to 30
+                Dim pAfterInv = context.Products.Find(product.ProductId)
+                Assert.AreEqual(0, pAfterInv.AllocatedQty)
+                Assert.AreEqual(30, pAfterInv.TotalQtyOnHand)
+            End Using
+        End Sub
+
+        <TestMethod>
+        Public Sub FulfillSalesInvoice_PartialFulfillment_TransitionsToPartiallyInvoiced()
+            Using context = _fixture.CreateContext()
+                Dim service As New OrderToCashService(context)
+
+                Dim customer As New Customer("CUST-PART-01", "Partial Customer", 10000.0D, 0D)
+                context.Customers.Add(customer)
+                Dim product As New Product("SKU-PART-01", "Partial Widget", "Each", 10.0D, 50)
+                context.Products.Add(product)
+                context.SaveChanges()
+
+                ' Create SO for 20 units
+                Dim lines As New List(Of SOLine) From {
+                    New SOLine(product.ProductId, 20, 25.0D)
+                }
+                Dim so = service.CreateSalesOrder(customer.CustomerId, lines)
+                Dim soLine = so.Lines.First()
+
+                ' Fulfill only 8 of 20 units
+                Dim invLines As New List(Of SalesInvoiceLine) From {
+                    New SalesInvoiceLine() With {
+                        .SOLineId = soLine.SOLineId,
+                        .ProductId = product.ProductId,
+                        .FulfilledQty = 8,
+                        .UnitPrice = 25.0D
+                    }
+                }
+
+                Dim postingDate As New DateTime(2026, 11, 15)
+                Dim invoice = service.FulfillSalesInvoice(so.SOId, invLines, postingDate)
+
+                Assert.IsNotNull(invoice)
+
+                ' Order status must transition to "Partially Invoiced"
+                Dim reloadedSO = context.SalesOrders.Find(so.SOId)
+                Assert.AreEqual("Partially Invoiced", reloadedSO.Status)
+
+                ' 8 released from AllocatedQty: 20 - 8 = 12 remaining allocated
+                ' 8 decremented from TotalQtyOnHand: 50 - 8 = 42 on hand
+                Dim reloadedProd = context.Products.Find(product.ProductId)
+                Assert.AreEqual(12, reloadedProd.AllocatedQty)
+                Assert.AreEqual(42, reloadedProd.TotalQtyOnHand)
+            End Using
+        End Sub
+
+        <TestMethod>
+        Public Sub CancelSalesOrder_ReleasesAllReservedStockAndTransitionsToCancelled()
+            Using context = _fixture.CreateContext()
+                Dim service As New OrderToCashService(context)
+
+                Dim customer As New Customer("CUST-CNC-01", "Cancel Customer", 10000.0D, 0D)
+                context.Customers.Add(customer)
+                Dim product As New Product("SKU-CNC-01", "Cancel Widget", "Each", 10.0D, 50)
+                context.Products.Add(product)
+                context.SaveChanges()
+
+                ' Reserve 15 units via Sales Order
+                Dim lines As New List(Of SOLine) From {
+                    New SOLine(product.ProductId, 15, 25.0D)
+                }
+                Dim so = service.CreateSalesOrder(customer.CustomerId, lines)
+
+                Dim pAfterSO = context.Products.Find(product.ProductId)
+                Assert.AreEqual(15, pAfterSO.AllocatedQty)
+
+                ' Cancel the Sales Order
+                Dim cancelledSO = service.CancelSalesOrder(so.SOId)
+
+                Assert.IsNotNull(cancelledSO)
+                Assert.AreEqual("Cancelled", cancelledSO.Status)
+
+                ' Reserved stock must be released back to 0, TotalQtyOnHand remains 50
+                Dim pAfterCancel = context.Products.Find(product.ProductId)
+                Assert.AreEqual(0, pAfterCancel.AllocatedQty)
+                Assert.AreEqual(50, pAfterCancel.TotalQtyOnHand)
+            End Using
+        End Sub
+
+        <TestMethod>
+        Public Sub CancelSalesOrder_AlreadySettledOrCancelled_ThrowsInvalidOperationException()
+            Using context = _fixture.CreateContext()
+                Dim service As New OrderToCashService(context)
+
+                Dim customer As New Customer("CUST-CNC-02", "Cancel Customer 2", 10000.0D, 0D)
+                context.Customers.Add(customer)
+                Dim product As New Product("SKU-CNC-02", "Cancel Widget 2", "Each", 10.0D, 50)
+                context.Products.Add(product)
+                context.SaveChanges()
+
+                Dim so = service.CreateSalesOrder(customer.CustomerId, New List(Of SOLine) From {
+                    New SOLine(product.ProductId, 5, 20.0D)
+                })
+
+                service.CancelSalesOrder(so.SOId)
+
+                ' Attempting to cancel an already cancelled order
+                Assert.Throws(Of InvalidOperationException)(Sub()
+                    service.CancelSalesOrder(so.SOId)
+                End Sub)
+            End Using
+        End Sub
+
+        <TestMethod>
+        Public Sub CloseSalesOrderShort_ReleasesRemainingReservationsAndTransitionsToClosedShort()
+            Using context = _fixture.CreateContext()
+                Dim service As New OrderToCashService(context)
+
+                Dim customer As New Customer("CUST-CLS-01", "Close Customer", 10000.0D, 0D)
+                context.Customers.Add(customer)
+                Dim product As New Product("SKU-CLS-01", "Close Widget", "Each", 10.0D, 50)
+                context.Products.Add(product)
+                context.SaveChanges()
+
+                ' Create SO for 20 units
+                Dim lines As New List(Of SOLine) From {
+                    New SOLine(product.ProductId, 20, 25.0D)
+                }
+                Dim so = service.CreateSalesOrder(customer.CustomerId, lines)
+                Dim soLine = so.Lines.First()
+
+                ' Fulfill 12 units partially
+                Dim invLines As New List(Of SalesInvoiceLine) From {
+                    New SalesInvoiceLine() With {
+                        .SOLineId = soLine.SOLineId,
+                        .ProductId = product.ProductId,
+                        .FulfilledQty = 12,
+                        .UnitPrice = 25.0D
+                    }
+                }
+                service.FulfillSalesInvoice(so.SOId, invLines, New DateTime(2026, 11, 15))
+
+                Dim pAfterPartial = context.Products.Find(product.ProductId)
+                Assert.AreEqual(8, pAfterPartial.AllocatedQty) ' 20 - 12 = 8 remaining allocated
+
+                ' Customer requests short close (cancel remaining 8)
+                Dim closedSO = service.CloseSalesOrderShort(so.SOId)
+
+                Assert.IsNotNull(closedSO)
+                Assert.AreEqual("Closed Short", closedSO.Status)
+
+                ' Remaining 8 allocated units released back to 0
+                Dim pAfterClose = context.Products.Find(product.ProductId)
+                Assert.AreEqual(0, pAfterClose.AllocatedQty)
+                Assert.AreEqual(38, pAfterClose.TotalQtyOnHand) ' 50 - 12 = 38
+            End Using
+        End Sub
+
     End Class
 
 End Namespace
