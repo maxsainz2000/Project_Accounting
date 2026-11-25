@@ -1,5 +1,6 @@
-{
+﻿{
   "workspace-governance": {
+    "enabled": false,
     "Stop": [
       {
         "type": "command",

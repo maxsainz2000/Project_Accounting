@@ -27,3 +27,6 @@
 ehthumbs.db
 [Dd]esktop.ini
 $RECYCLE.BIN/
+
+## Ephemeral Pipeline Hand-Off Artifacts
+ACTION_ENVELOPE.xml

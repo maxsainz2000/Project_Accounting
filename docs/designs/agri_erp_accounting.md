@@ -1,7 +1,7 @@
 # Agricultural Merchandising ERP Accounting Application
 
 * **Author:** Max Sainz
-* **Status:** Draft
+* **Status:** Approved (Agricultural Living Extension Specification)
 * **Date:** 2026-11-21
 
 ---
@@ -539,6 +539,68 @@ ALTER TABLE InventoryAdjustmentLines ADD COLUMN SiloBinLotId INTEGER NULL REFERE
 
 The implementation expands the existing repository without introducing breaking changes to the 25 core tables or existing test fixtures. It is partitioned into six sequential, buildable, and testable phases.
 
+```
++---------------------------------------------------------------------------------------------------------+
+|                              TARGET FILE MANIFEST (AGRICULTURAL EXTENSION)                              |
++---------------------------------------------------------------------------------------------------------+
+| DOMAIN LAYER (ENTITIES, ENUMS, ENGINES):                                                                |
+| - Merchandising_Accounting_App/Domain/Models/GrainEntities.vb                           [Create]        |
+| - Merchandising_Accounting_App/Domain/Models/SalesEntities.vb                           [Modify]        |
+| - Merchandising_Accounting_App/Domain/Models/InventoryEntities.vb                       [Modify]        |
+| - Merchandising_Accounting_App/Domain/Engines/GrainGradingEngine.vb                     [Create]        |
+| - Merchandising_Accounting_App/Domain/Engines/LedgerPostingEngine.vb                    [Modify]        |
++---------------------------------------------------------------------------------------------------------+
+| PERSISTENCE LAYER (EF CORE 10, CONFIGURATIONS & REPOSITORIES):                                          |
+| - Merchandising_Accounting_App/Data/Configurations/GrainConfigurations.vb               [Create]        |
+| - Merchandising_Accounting_App/Data/Configurations/SalesConfigurations.vb               [Modify]        |
+| - Merchandising_Accounting_App/Data/Configurations/InventoryConfigurations.vb           [Modify]        |
+| - Merchandising_Accounting_App/Data/ErpDbContext.vb                                     [Modify]        |
+| - Merchandising_Accounting_App/Data/DatabaseInitializer.vb                              [Modify]        |
++---------------------------------------------------------------------------------------------------------+
+| APPLICATION SERVICES LAYER:                                                                             |
+| - Merchandising_Accounting_App/Services/WeighbridgeIntakeService.vb                     [Create]        |
+| - Merchandising_Accounting_App/Services/GrowerSettlementService.vb                      [Create]        |
+| - Merchandising_Accounting_App/Services/GrainStorageService.vb                          [Create]        |
+| - Merchandising_Accounting_App/Services/ReportingService.vb                             [Modify]        |
+| - Merchandising_Accounting_App/Services/OrderToCashService.vb                           [Modify]        |
++---------------------------------------------------------------------------------------------------------+
+| PRESENTATION LAYER (WINDOWS FORMS, CONTROLS, VIEWMODELS & DESIGNERS):                                   |
+| - Merchandising_Accounting_App/UI/Agricultural/ScaleTicketForm.vb                        [Create]        |
+| - Merchandising_Accounting_App/UI/Agricultural/ScaleTicketForm.Designer.vb               [Create]        |
+| - Merchandising_Accounting_App/UI/Agricultural/ScaleTicketForm.resx                      [Create]        |
+| - Merchandising_Accounting_App/UI/Grain/GrainViewModels.vb                              [Create]        |
+| - Merchandising_Accounting_App/UI/Controls/WeighbridgeIntakeControl.vb                  [Create]        |
+| - Merchandising_Accounting_App/UI/Controls/WeighbridgeIntakeControl.Designer.vb         [Create]        |
+| - Merchandising_Accounting_App/UI/Controls/WeighbridgeIntakeControl.resx                [Create]        |
+| - Merchandising_Accounting_App/UI/Controls/GrowerSettlementControl.vb                   [Create]        |
+| - Merchandising_Accounting_App/UI/Controls/GrowerSettlementControl.Designer.vb          [Create]        |
+| - Merchandising_Accounting_App/UI/Controls/GrowerSettlementControl.resx                 [Create]        |
+| - Merchandising_Accounting_App/UI/Controls/SiloInventoryControl.vb                      [Create]        |
+| - Merchandising_Accounting_App/UI/Controls/SiloInventoryControl.Designer.vb             [Create]        |
+| - Merchandising_Accounting_App/UI/Controls/SiloInventoryControl.resx                    [Create]        |
+| - Merchandising_Accounting_App/UI/Controls/UnpricedGrainExposureControl.vb              [Create]        |
+| - Merchandising_Accounting_App/UI/Controls/UnpricedGrainExposureControl.Designer.vb     [Create]        |
+| - Merchandising_Accounting_App/UI/Controls/UnpricedGrainExposureControl.resx            [Create]        |
+| - Merchandising_Accounting_App/UI/MainShellForm.vb                                      [Modify]        |
+| - Merchandising_Accounting_App/UI/MainShellForm.Designer.vb                             [Modify]        |
+| - Merchandising_Accounting_App/UI/MainShellForm.resx                                    [Modify]        |
++---------------------------------------------------------------------------------------------------------+
+| AUTOMATED TEST SUITE & PREVIEW TOOLING:                                                                 |
+| - Merchandising_Accounting_App.Tests/Domain/GrainGradingEngineTests.vb                  [Create]        |
+| - Merchandising_Accounting_App.Tests/Domain/GrainLedgerPostingEngineTests.vb            [Create]        |
+| - Merchandising_Accounting_App.Tests/Services/WeighbridgeIntakeServiceTests.vb          [Create]        |
+| - Merchandising_Accounting_App.Tests/Services/GrowerSettlementServiceTests.vb           [Create]        |
+| - Merchandising_Accounting_App.Tests/Services/AgriculturalCreditGuardTests.vb           [Create]        |
+| - Merchandising_Accounting_App.PreviewTool/Program.vb                                   [Modify]        |
+| - Merchandising_Accounting_App.Tests/WorkspaceHygieneTests.vb                           [Modify]        |
+| - docs/designs/mvp_erp_accounting.md                                                    [Modify]        |
+| - docs/designs/SITEMAP.md                                                               [Modify]        |
+| - docs/README.md                                                                        [Modify]        |
++---------------------------------------------------------------------------------------------------------+
+```
+
+---
+
 ### Phase 1: Domain Entities, Enums & Value Objects
 
 * **`Merchandising_Accounting_App/Domain/Models/GrainEntities.vb`** (Create):
@@ -692,18 +754,44 @@ The implementation expands the existing repository without introducing breaking 
 
 ### Phase 5: Presentation Layer & ViewModels
 
+* **`Merchandising_Accounting_App/UI/Agricultural/ScaleTicketForm.vb`** (Create):
+  - Dedicated scale house form for rapid two-stage gross/tare ticketing, dockage deduction, bushel conversions, and silo commingling register.
+* **`Merchandising_Accounting_App/UI/Agricultural/ScaleTicketForm.Designer.vb`** (Create):
+  - Windows Forms designer code-behind declaring scale house controls, dual gross/tare weight inputs, and busheling readouts adhering to anti-slop desktop layout standards.
+* **`Merchandising_Accounting_App/UI/Agricultural/ScaleTicketForm.resx`** (Create):
+  - Resource manifest and localized UI string table for scale ticket form.
 * **`Merchandising_Accounting_App/UI/Grain/GrainViewModels.vb`** (Create):
   - Declares ViewModels with observable data-binding properties: `WeighbridgeIntakeViewModel`, `GrowerSettlementViewModel`, `SiloInventoryViewModel`, and `UnpricedGrainExposureViewModel`.
-* **`Merchandising_Accounting_App/UI/Controls/WeighbridgeIntakeControl.vb`**, `.Designer.vb`, `.resx` (Create):
+* **`Merchandising_Accounting_App/UI/Controls/WeighbridgeIntakeControl.vb`** (Create):
   - Streamlined scale house interface for two-stage gross/tare ticketing, dockage calculation, and bushel conversion display.
-* **`Merchandising_Accounting_App/UI/Controls/GrowerSettlementControl.vb`**, `.Designer.vb`, `.resx` (Create):
+* **`Merchandising_Accounting_App/UI/Controls/WeighbridgeIntakeControl.Designer.vb`** (Create):
+  - Windows Forms designer code-behind declaring scale house controls, dual gross/tare weight inputs, and busheling readouts.
+* **`Merchandising_Accounting_App/UI/Controls/WeighbridgeIntakeControl.resx`** (Create):
+  - Resource manifest and localized UI string table for weighbridge intake control.
+* **`Merchandising_Accounting_App/UI/Controls/GrowerSettlementControl.vb`** (Create):
   - Multi-ticket settlement liquidation workspace with contra invoice allocation grid.
-* **`Merchandising_Accounting_App/UI/Controls/SiloInventoryControl.vb`**, `.Designer.vb`, `.resx` (Create):
+* **`Merchandising_Accounting_App/UI/Controls/GrowerSettlementControl.Designer.vb`** (Create):
+  - Windows Forms designer code-behind declaring settlement liquidation workspace and AR contra allocation grids.
+* **`Merchandising_Accounting_App/UI/Controls/GrowerSettlementControl.resx`** (Create):
+  - Resource manifest and localized UI string table for grower settlement control.
+* **`Merchandising_Accounting_App/UI/Controls/SiloInventoryControl.vb`** (Create):
   - Visual bin board tracking silo capacities, commodity grades, on-hand weights, and clean-out triggers.
-* **`Merchandising_Accounting_App/UI/Controls/UnpricedGrainExposureControl.vb`**, `.Designer.vb`, `.resx` (Create):
+* **`Merchandising_Accounting_App/UI/Controls/SiloInventoryControl.Designer.vb`** (Create):
+  - Windows Forms designer code-behind declaring silo visual bin boards, capacity meters, and clean-out triggers.
+* **`Merchandising_Accounting_App/UI/Controls/SiloInventoryControl.resx`** (Create):
+  - Resource manifest and localized UI string table for silo inventory control.
+* **`Merchandising_Accounting_App/UI/Controls/UnpricedGrainExposureControl.vb`** (Create):
   - Managerial inquiry tracking unpriced DP tickets, aging countdowns, and margin exposure.
-* **`Merchandising_Accounting_App/UI/MainShellForm.vb`**, `.Designer.vb`, `.resx` (Modify):
+* **`Merchandising_Accounting_App/UI/Controls/UnpricedGrainExposureControl.Designer.vb`** (Create):
+  - Windows Forms designer code-behind declaring delayed price aging grids and exposure summary cards.
+* **`Merchandising_Accounting_App/UI/Controls/UnpricedGrainExposureControl.resx`** (Create):
+  - Resource manifest and localized UI string table for unpriced grain exposure control.
+* **`Merchandising_Accounting_App/UI/MainShellForm.vb`** (Modify):
   - Adds navigation menu items and sidebar links for Grain Receiving, Settlements, Silo Storage, and Exposure Reports.
+* **`Merchandising_Accounting_App/UI/MainShellForm.Designer.vb`** (Modify):
+  - Windows Forms designer code-behind registering grain module sidebar navigation buttons and layout anchors.
+* **`Merchandising_Accounting_App/UI/MainShellForm.resx`** (Modify):
+  - Resource manifest updating shell navigation labels and status indicators for agricultural workflows.
 * **Verification Checkpoint**: `dotnet build Merchandising_Accounting_App.slnx` compiles cleanly with zero warnings.
 
 ---
@@ -715,7 +803,7 @@ The implementation expands the existing repository without introducing breaking 
 * **`Merchandising_Accounting_App.Tests/WorkspaceHygieneTests.vb`** (Modify):
   - Synchronizes file manifests and test parity assertions for all newly created classes and test suites.
 * **`docs/designs/mvp_erp_accounting.md`** (Modify):
-  - Synchronizes architectural component breakdown, target file manifests, and test metrics to maintain living specification compliance per `GEMINI.md Rule 1.3`.
+  - Synchronizes architectural component breakdown, target file manifests, and test metrics to maintain living specification compliance per `GEMINI.md Section 2.4`.
 * **`docs/designs/SITEMAP.md`** (Modify):
   - Registers `agri_erp_accounting.md` in the design specifications registry.
 * **`docs/README.md`** (Modify):
