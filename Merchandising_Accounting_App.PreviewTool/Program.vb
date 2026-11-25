@@ -620,8 +620,8 @@ Namespace Merchandising_Accounting_App.PreviewTool
                     Dim okMin As Boolean = RenderScenarioOnStaThread(scenario, minFullPath, restoredTargetSize, useShell, delayMilliseconds)
                     If okMin Then
                         Console.WriteLine("OK")
-                        ' Also copy/save primary key filename in root output dir if in restored mode
-                        If mode = RenderMode.Restored Then
+                        ' Also copy/save primary key filename in root output dir if in restored mode for single-scenario runs
+                        If mode = RenderMode.Restored AndAlso targets.Count = 1 Then
                             Dim rootFileName As String = $"{scenario.Key}.png"
                             Dim rootFullPath As String = Path.Combine(fullOutputDir, rootFileName)
                             SafeCopyFile(minFullPath, rootFullPath)
@@ -645,13 +645,15 @@ Namespace Merchandising_Accounting_App.PreviewTool
                     Dim okMax As Boolean = RenderScenarioOnStaThread(scenario, maxFullPath, maximizedTargetSize, useShell, delayMilliseconds)
                     If okMax Then
                         Console.WriteLine("OK")
-                        ' Copy/save primary key filename in root output dir
-                        Dim rootFileName As String = $"{scenario.Key}.png"
-                        Dim rootFullPath As String = Path.Combine(fullOutputDir, rootFileName)
-                        SafeCopyFile(maxFullPath, rootFullPath)
-                        If useShell AndAlso Not scenario.IsDialog Then
-                            Dim shellPath As String = Path.Combine(fullOutputDir, $"{scenario.Key}_Shell.png")
-                            SafeCopyFile(maxFullPath, shellPath)
+                        ' Copy/save primary key filename in root output dir ONLY for single scenario previews
+                        If targets.Count = 1 Then
+                            Dim rootFileName As String = $"{scenario.Key}.png"
+                            Dim rootFullPath As String = Path.Combine(fullOutputDir, rootFileName)
+                            SafeCopyFile(maxFullPath, rootFullPath)
+                            If useShell AndAlso Not scenario.IsDialog Then
+                                Dim shellPath As String = Path.Combine(fullOutputDir, $"{scenario.Key}_Shell.png")
+                                SafeCopyFile(maxFullPath, shellPath)
+                            End If
                         End If
                         totalSuccess += 1
                     Else
